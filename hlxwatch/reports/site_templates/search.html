@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Ricerca - HLX Watch{% endblock %}
+{% block content %}
+<h1>Ricerca nello storico</h1>
+<section>
+<form class="filters" id="filters" onsubmit="return false">
+ <label>Testo / token / file <input id="q" placeholder="hlx_" size="28"></label>
+ <label>Gioco <select id="game"><option value="">tutti</option>
+  {% for g in games %}<option value="{{ g }}">{{ titles.get(g, g) }}</option>{% endfor %}</select></label>
+ <label>Tipo <select id="type"><option value="">tutti</option>
+  {% for c in ["added","removed","changed","file_added","file_removed","file_renamed","build","new_app"] %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select></label>
+ <label>Punteggio min <input id="min" type="number" value="0" style="width:5rem"></label>
+ <label>Da <input id="since" type="date"></label>
+ <label>A <input id="until" type="date"></label>
+ <label>Ordina <select id="order"><option value="day">data</option><option value="score">punteggio</option></select></label>
+ <label><span>Solo nuove</span><input id="new" type="checkbox"></label>
+ <label><span>Raggruppa</span><input id="group" type="checkbox" checked></label>
+</form>
+<p class="muted" id="status">Carico i dati…</p>
+<table id="results">
+ <thead><tr><th>Punti</th><th>Data modifica</th><th>Gioco</th><th>Tipo</th><th>Token / stringa</th><th>File</th><th>Keyword</th></tr></thead>
+ <tbody></tbody>
+</table>
+</section>
+<script>
+const TITLES = {{ titles|tojson }};
+const MAX_ROWS = 400;
+let ALL = [];
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sev = s => s >= 100 ? "high" : s >= 50 ? "medium" : "low";
+
+function readParams() {
+  const p = new URLSearchParams(location.search);
+  if (p.get("q")) $("q").value = p.get("q");
+  if (p.get("game")) $("game").value = p.get("game");
+  if (p.get("type")) $("type").value = p.get("type");
+  if (p.get("min")) $("min").value = p.get("min");
+  if (p.get("new")) $("new").checked = true;
+  if (p.get("order")) $("order").value = p.get("order");
+}
+
+function groupRows(rows) {
+  const map = new Map();
+  for (const r of rows) {
+    const key = ((r.token || r.text).toLowerCase()) + "|" + r.ref + "|" + r.type;
+    const g = map.get(key);
+    if (g) { g.dup += 1; g.files.push(r.file); g.score = Math.max(g.score, r.score); g.new = g.new || r.new; }
+    else map.set(key, Object.assign({dup: 1, files: []}, r));
+  }
+  return [...map.values()];
+}
+
+function render() {
+  const q = $("q").value.trim().toLowerCase(), game = $("game").value, type = $("type").value;
+  const min = parseInt($("min").value || "0", 10), since = $("since").value, until = $("until").value;
+  const onlyNew = $("new").checked, order = $("order").value;
+  let rows = ALL.filter(r => r.score >= min
+    && (!game || r.game === game) && (!type || r.type === type) && (!onlyNew || r.new)
+    && (!since || r.day >= since) && (!until || r.day <= until)
+    && (!q || (r.token || "").toLowerCase().includes(q) || r.text.toLowerCase().includes(q) || r.file.toLowerCase().includes(q)));
+  rows.sort(order === "score" ? (a, b) => b.score - a.score || (b.day > a.day ? 1 : -1) : (a, b) => (b.day > a.day ? 1 : b.day < a.day ? -1 : b.id - a.id));
+  const total = rows.length;
+  if ($("group").checked) rows = groupRows(rows);
+  const shown = rows.slice(0, MAX_ROWS);
+  $("status").textContent = `${total} voci` + ($("group").checked ? ` (${rows.length} righe raggruppate)` : "") + (rows.length > MAX_ROWS ? `, mostro le prime ${MAX_ROWS}` : "");
+  $("results").querySelector("tbody").innerHTML = shown.map(r => `
+   <tr class="${sev(r.score)}">
+    <td><span class="badge ${sev(r.score)}">${r.score}</span></td>
+    <td>${esc(r.day)}${r.new ? '<br><span class="new">nuova</span>' : ""}<br><small class="muted">vista ${esc(r.seen)}</small></td>
+    <td>${esc(TITLES[r.game] || r.game)}<br><small class="muted">${esc(r.source)}</small></td>
+    <td>${esc(r.type)}</td>
+    <td><code>${esc((r.token || r.text).slice(0, 80))}</code>${r.token && r.text !== r.token ? `<br><small class="muted">${esc(r.text.slice(0, 120))}</small>` : ""}</td>
+    <td><small>${esc(r.file.slice(0, 90))}${r.line ? ":" + r.line : ""}</small>
+        ${r.dup > 1 ? `<br><small class="muted" title="${esc(r.files.join("\n"))}">+ altri ${r.dup - 1} file nello stesso commit</small>` : ""}
+        ${r.url ? `<br><a href="${esc(r.url)}"><small>commit ${esc(r.ref.slice(0, 8))}</small></a>` : ""}</td>
+    <td><small>${esc((r.kw || []).join(", "))}</small></td>
+   </tr>`).join("");
+}
+
+readParams();
+fetch("findings.json").then(r => r.json()).then(data => { ALL = data; render(); })
+  .catch(e => { $("status").textContent = "Impossibile caricare findings.json: " + e; });
+for (const el of document.querySelectorAll("#filters input, #filters select")) el.addEventListener("input", render);
+</script>
+{% endblock %}

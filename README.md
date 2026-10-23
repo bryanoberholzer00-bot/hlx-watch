@@ -183,9 +183,14 @@ del run: scaricalo in `data/hlxwatch.sqlite` per sfogliarlo con la dashboard loc
    invece delle 1000 del token automatico) e `STEAM_WEB_API_KEY`.
 3. Nella scheda Actions lancia "HLX Watch" con **Run workflow**: al primo avvio, senza database in
    cache, fa da solo il backfill di 6 mesi. Da lì in poi gira da solo.
+4. Per la dashboard online: Settings → Pages → Source "GitHub Actions". A ogni run il workflow genera
+   la dashboard statica (`python -m hlxwatch site`: panoramica, timeline, alta rilevanza, ricerca nel
+   browser su `findings.json`, report a 1/7/30 giorni) e la pubblica su
+   `https://<utente>.github.io/hlx-watch/`. GitHub Pages è gratis solo sui repository pubblici, e il
+   sito è comunque visibile a chiunque abbia il link.
 
-Limiti: la pianificazione di GitHub può slittare di qualche minuto nelle ore di punta, la dashboard
-non è esposta online, e la sorgente dei file locali non è disponibile.
+Limiti: la pianificazione di GitHub può slittare di qualche minuto nelle ore di punta e la sorgente
+dei file locali non è disponibile.
 
 ### Docker
 

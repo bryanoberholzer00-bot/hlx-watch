@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Panoramica</h1>
+<div class="cards">
+ <div class="card"><b>{{ stats.findings }}</b><span>voci totali</span></div>
+ <div class="card"><b>{{ stats.findings_new }}</b><span>stringhe mai viste</span></div>
+ <div class="card"><b>{{ stats.findings_high }}</b><span>alta rilevanza (&ge;100)</span></div>
+ <div class="card"><b>{{ stats.builds }}</b><span>build / commit</span></div>
+ <div class="card"><b>{{ stats.steam_builds }}</b><span>build Steam</span></div>
+ <div class="card"><b>{{ stats.steam_apps_flagged }}</b><span>app Steam sospette</span></div>
+ <div class="card"><b style="font-size:1rem">{{ (stats.last_scan or 'mai')[:16]|replace('T',' ') }}</b><span>ultima scansione (UTC)</span></div>
+</div>
+
+<section>
+ <h2>Timeline delle scoperte (ultimi {{ timeline_days }} giorni)</h2>
+ {{ chart|safe }}
+ <p class="muted">Rosso: giorno con almeno una voce &ge;100 &middot; arancio: &ge;50 &middot; grigio: solo voci a bassa rilevanza.</p>
+</section>
+
+<section>
+ <h2>Alta rilevanza ({{ high|length }} voci, raggruppate per token e commit)</h2>
+ {% if not high %}<p class="muted">Nessuna voce ad alta rilevanza.</p>{% endif %}
+ <table>
+  <tr><th>Punti</th><th>Data modifica</th><th>Gioco</th><th>Tipo</th><th>Token / stringa</th><th>File</th></tr>
+  {% for f in high %}
+  <tr class="{{ f.severity }}">
+   <td><span class="badge {{ f.severity }}">{{ f.score }}</span></td>
+   <td>{{ f.day }}{% if f.is_new %}<br><span class="new">nuova</span>{% endif %}</td>
+   <td>{{ titles.get(f.game, f.game) }}</td><td>{{ f.change_type }}</td>
+   <td><code>{{ (f.token or f.text)[:80] }}</code>{% if f.token and f.text != f.token %}<br><small class="muted">{{ f.text[:120] }}</small>{% endif %}</td>
+   <td><small>{{ f.file_path[:90] }}{% if f.line_no %}:{{ f.line_no }}{% endif %}</small>
+       {% if f.dup_count > 1 %}<br><small class="muted" title="{{ f.dup_files|join('&#10;') }}">+ altri {{ f.dup_count - 1 }} file nello stesso commit</small>{% endif %}
+       {% if f.build_url %}<br><a href="{{ f.build_url }}"><small>commit {{ (f.build_ref or '')[:8] }}</small></a>{% endif %}</td>
+  </tr>
+  {% endfor %}
+ </table>
+</section>
+
+<div class="grid2">
+<section>
+ <h2>Ultime voci rilevanti (&ge;50)</h2>
+ <table>
+  {% for f in recent %}
+  <tr class="{{ f.severity }}">
+   <td><span class="badge {{ f.severity }}">{{ f.score }}</span></td>
+   <td>{{ f.day }}<br><small class="muted">{{ titles.get(f.game, f.game) }}</small></td>
+   <td><code>{{ (f.token or f.text)[:60] }}</code><br><small class="muted">{{ f.file_path[:70] }} &middot; {{ f.change_type }}{% if f.dup_count > 1 %} (+{{ f.dup_count - 1 }} file){% endif %}</small></td>
+  </tr>
+  {% endfor %}
+ </table>
+</section>
+<section>
+ <h2>Token più rilevanti</h2>
+ <table>
+  <tr><th>Token</th><th>Max</th><th>Volte</th><th>Giochi</th></tr>
+  {% for t in tokens %}
+  <tr><td><a href="search.html?q={{ t.token|urlencode }}"><code>{{ t.token[:50] }}</code></a></td><td>{{ t.max_score }}</td><td>{{ t.n }}</td><td>{{ t.games }}</td></tr>
+  {% endfor %}
+ </table>
+ <h2 style="margin-top:1.2rem">Ultime build e commit</h2>
+ <table>
+  {% for b in builds %}
+  <tr><td>{{ b.date[:16]|replace('T',' ') }}</td><td>{{ titles.get(b.game, b.game) }}</td>
+      <td>{% if b.url %}<a href="{{ b.url }}">{% endif %}<code>{{ b.ref[:12] }}</code>{% if b.url %}</a>{% endif %} <small class="muted">{{ (b.message or '')[:60] }}</small></td>
+      <td>{{ b.n_findings }} voci</td></tr>
+  {% endfor %}
+ </table>
+ {% if steam_builds %}
+ <h2 style="margin-top:1.2rem">Build Steam (PICS)</h2>
+ <table>
+  {% for s in steam_builds %}
+  <tr><td>{{ s.first_seen[:10] }}</td><td>{{ titles.get(s.game, s.game) }}</td><td>{{ s.branch }}</td><td><code>{{ s.buildid }}</code></td></tr>
+  {% endfor %}
+ </table>
+ {% endif %}
+ {% if apps %}
+ <h2 style="margin-top:1.2rem">App Steam sospette</h2>
+ <table>
+  {% for a in apps %}
+  <tr><td>{{ a.first_seen[:10] }}</td><td><a href="https://store.steampowered.com/app/{{ a.appid }}/">{{ a.appid }}</a></td>
+      <td>{{ a.name or '(senza nome)' }}</td><td><small class="muted">{{ a.flag_reason }}</small></td></tr>
+  {% endfor %}
+ </table>
+ {% endif %}
+</section>
+</div>
+{% endblock %}

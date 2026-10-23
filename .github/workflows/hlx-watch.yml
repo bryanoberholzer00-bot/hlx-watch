@@ -27,6 +27,8 @@ concurrency:
 permissions:
   contents: read
   actions: write     # per salvare/ripristinare la cache del database
+  pages: write       # per pubblicare la dashboard statica su GitHub Pages
+  id-token: write
 
 env:
   HLXWATCH_CONFIG: config.actions.yaml
@@ -90,3 +92,20 @@ jobs:
             data/reports/
           retention-days: 14
           if-no-files-found: ignore
+
+      - name: Genera la dashboard statica
+        run: python -m hlxwatch site --out site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: watch
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

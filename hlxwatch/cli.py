@@ -105,6 +105,15 @@ def cmd_serve(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_site(args: argparse.Namespace) -> int:
+    cfg, db = _open(args)
+    from hlxwatch.reports.site import build_site
+    out = Path(args.out) if args.out else cfg.data_dir / "site"
+    build_site(db, cfg, out, timeline_days=args.days)
+    print(f"Sito generato in {out}")
+    return 0
+
+
 def cmd_search(args: argparse.Namespace) -> int:
     cfg, db = _open(args)
     rows = db.search_findings(q=args.query, game=args.game, min_score=args.min_score, limit=args.limit, order="score")
@@ -175,6 +184,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--host")
     p.add_argument("--port", type=int)
     p.set_defaults(func=cmd_serve)
+
+    p = sub.add_parser("site", help="genera la dashboard statica (HTML + JSON) per GitHub Pages")
+    p.add_argument("--out", help="cartella di destinazione (default data/site)")
+    p.add_argument("--days", type=int, default=180, help="giorni della timeline (default 180)")
+    p.set_defaults(func=cmd_site)
 
     p = sub.add_parser("search", help="cerca nello storico da terminale")
     p.add_argument("query")
