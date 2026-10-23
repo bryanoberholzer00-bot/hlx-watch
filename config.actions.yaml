@@ -50,7 +50,22 @@ github:
       branch: master
       appid: 546560
       ignore_keywords: [half_life]       # in un repo di Half-Life la parola è solo rumore
-    # Altri repo utili: SteamTracking/GameTracking-TF2, SteamTracking/GameTracking-SteamVR
+    - name: steamclient
+      title: "Client Steam"
+      repo: SteamTracking/SteamTracking
+      branch: master
+      # file del client Steam: stringhe, localizzazione, flag di funzionalità (Deadlock vi comparve prima dell'annuncio)
+    - name: protobufs
+      title: "Protobuf Steam"
+      repo: SteamTracking/Protobufs
+      branch: master
+      # messaggi di rete e Game Coordinator di Steam e dei giochi Valve
+    - name: steamvr
+      title: "SteamVR"
+      repo: SteamTracking/GameTracking-SteamVR
+      branch: master
+      # runtime VR: eventuale componente VR di hlx
+    # Altri repo utili: SteamTracking/GameTracking-TF2
 
 steam:
   enabled: true

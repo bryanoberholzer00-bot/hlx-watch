@@ -8,7 +8,8 @@ Usa **solo fonti pubbliche e legali**:
 
 | Fonte | Cosa dà | Come |
 |---|---|---|
-| Repository GitHub `SteamTracking/GameTracking-*` (ex `SteamDatabase`) | file estratti e dump di stringhe/ConVar/schemi per ogni build | REST API ufficiale di GitHub, diff di ogni commit |
+| Repository GitHub `SteamTracking/GameTracking-*` (ex `SteamDatabase`) | file estratti e dump di stringhe/ConVar/schemi per ogni build di CS2, Dota 2, Deadlock, Alyx, SteamVR | REST API ufficiale di GitHub, diff di ogni commit |
+| Repository `SteamTracking/SteamTracking` e `SteamTracking/Protobufs` | file del client Steam (stringhe, localizzazione, flag) e messaggi protobuf | stessa sorgente GitHub |
 | Steam PICS con login **anonimo** (libreria `steam`) | build id per branch, depot, metadati app, elenco app cambiate | sottoprocesso isolato, nessun account |
 | Steam Web API (opzionale, chiave gratuita) | lista completa delle app per trovare quelle nuove | `IStoreService/GetAppList` |
 | File locali dei giochi che possiedi (opzionale) | lista dei file nei VPK, file di testo, stringhe nei binari | `Source2Viewer-CLI` di ValveResourceFormat |
