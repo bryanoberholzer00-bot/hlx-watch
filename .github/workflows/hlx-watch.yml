@@ -19,6 +19,10 @@ on:
       backfill_months:
         description: "Mesi di backfill da eseguire (0 = solo scansione)"
         default: "0"
+      test_notify:
+        description: "Invia una notifica di prova a Discord/Telegram"
+        type: boolean
+        default: false
 
 concurrency:
   group: hlx-watch
@@ -66,6 +70,10 @@ jobs:
           MONTHS="${{ github.event.inputs.backfill_months || '6' }}"
           if [ "$MONTHS" = "0" ]; then MONTHS=6; fi
           python -m hlxwatch backfill --months "$MONTHS"
+
+      - name: Notifica di prova
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_notify == 'true'
+        run: python -m hlxwatch test-notify
 
       - name: Scansione
         if: github.event.schedule != '5 7 * * *'
