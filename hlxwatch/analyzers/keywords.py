@@ -58,13 +58,21 @@ def mixed_case(word: str) -> bool:
     return False
 
 
+ALLOWED_PUNCT = frozenset(" \t\"'_./\\-:=,;()[]{}<>!&|#*+%$")
+
+
 def looks_like_garbage(text: str) -> bool:
-    """Righe dei dump di stringhe binarie: poche lettere/cifre o troppe sequenze di escape."""
+    """Righe dei dump di stringhe binarie: poche lettere/cifre, troppe sequenze di escape,
+    oppure frammenti corti pieni di simboli (es. '?Hl3@')."""
     stripped = text.strip()
     if len(stripped) < 4:
         return False
     alnum = sum(ch.isalnum() for ch in stripped)
-    return alnum / len(stripped) < 0.45 or stripped.count("\\") >= 4
+    if alnum / len(stripped) < 0.45 or stripped.count("\\") >= 4:
+        return True
+    weird = sum(1 for ch in stripped if not ch.isalnum() and ch not in ALLOWED_PUNCT)
+    letters = sum(ch.isalpha() for ch in stripped)
+    return weird >= 1 and letters < 6
 
 
 class KeywordMatcher:

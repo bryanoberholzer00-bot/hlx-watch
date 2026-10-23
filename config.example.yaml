@@ -55,6 +55,7 @@ github:
       title: "Client Steam"
       repo: SteamTracking/SteamTracking
       branch: master
+      ignore_keywords: [half_life]       # la UI di Steam cita i giochi Half-Life esistenti; "Half-Life 3" ha la sua regola
       # file del client Steam: stringhe, localizzazione, flag di funzionalità (Deadlock vi comparve prima dell'annuncio)
     - name: protobufs
       title: "Protobuf Steam"
@@ -136,7 +137,7 @@ keywords:
     path: 15              # il match è in un percorso (maps/, models/, scripts/...)
   global_excludes: ["citadel"]
   codename_weight: 30
-  codenames: ["tf"]       # nomi in codice sconosciuti da sorvegliare, come parole intere
+  codenames: []           # nomi in codice sconosciuti da sorvegliare, come parole intere (es. ["hlvr2"]); "tf" è Team Fortress ovunque
   items:
     - id: hlx
       pattern: "(?<![a-z0-9])hlx(?![a-z0-9])"
@@ -154,6 +155,10 @@ keywords:
       pattern: "(?<![a-z0-9])hl3(?![a-z0-9])"
       weight: 90
       description: "hl3"
+    - id: half_life_3
+      pattern: 'half[_ -]?life[_ -]?(3|three|iii)(?![a-z0-9])'
+      weight: 120
+      description: "Half-Life 3 per esteso (testi, localizzazione, nomi app)"
     - id: half_life
       pattern: "half[_\\- ]?life"
       weight: 40

@@ -6,7 +6,8 @@ import re
 # @PointClass base(Targetname) = npc_hlx_soldier : "..."
 FGD_CLASS_RE = re.compile(r"^\s*@([A-Za-z]+Class)\b[^=]*=\s*([A-Za-z0-9_]+)", re.IGNORECASE)
 # nome_convar "valore" oppure nome_convar : valore oppure nome_convar = valore
-CONVAR_LINE_RE = re.compile(r'^\s*"?([a-z][a-z0-9]*_[a-z0-9_]+)"?\s*(?:[:=]|\s+"|\s+-?\d)', re.IGNORECASE)
+# solo minuscolo: le ConVar lo sono per convenzione, le chiavi di localizzazione ("SteamUI_...") no
+CONVAR_LINE_RE = re.compile(r'^\s*"?([a-z][a-z0-9]*_[a-z0-9_]+)"?\s*(?:[:=]|\s+"|\s+-?\d)')
 CONVAR_PATH_RE = re.compile(r"(convar|cvar|concommand|commands?\.txt|cvarlist)", re.IGNORECASE)
 PATH_RE = re.compile(r"^[A-Za-z0-9_.\-]+([/\\][A-Za-z0-9_.\-]+)+$")
 

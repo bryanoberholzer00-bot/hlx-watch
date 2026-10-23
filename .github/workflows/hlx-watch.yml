@@ -71,6 +71,9 @@ jobs:
           if [ "$MONTHS" = "0" ]; then MONTHS=6; fi
           python -m hlxwatch backfill --months "$MONTHS"
 
+      - name: Riapplica le regole attuali all'archivio (dopo modifiche al config)
+        run: python -m hlxwatch reevaluate
+
       - name: Notifica di prova
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_notify == 'true'
         run: python -m hlxwatch test-notify

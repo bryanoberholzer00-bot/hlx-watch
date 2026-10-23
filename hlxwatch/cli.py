@@ -105,6 +105,34 @@ def cmd_serve(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_reevaluate(args: argparse.Namespace) -> int:
+    """Riapplica le regole attuali a tutto l'archivio: utile dopo aver cambiato keyword o filtri."""
+    cfg, db = _open(args)
+    from hlxwatch.analyzers import KeywordMatcher
+    ignore = {r["name"]: r.get("ignore_keywords", []) or [] for r in cfg.get("github.repos", []) or []}
+    ignore.update({a["name"]: a.get("ignore_keywords", []) or [] for a in cfg.steam_watch_apps})
+    matchers = {g: KeywordMatcher(cfg.keywords, ignore_ids=ids) for g, ids in ignore.items()}
+    default = KeywordMatcher(cfg.keywords)
+    rows = db.conn.execute(
+        "SELECT id, game, text, file_path, change_type, score, keywords FROM findings "
+        "WHERE change_type NOT IN ('build', 'new_app')").fetchall()
+    drop: list[int] = []
+    rescored = 0
+    for r in rows:
+        change_type = "added" if r["change_type"] == "baseline" else r["change_type"]
+        res = matchers.get(r["game"], default).analyze_line(r["text"], file_path=r["file_path"], change_type=change_type)
+        if res is None:
+            drop.append(r["id"])
+        elif res.score != r["score"]:
+            db.conn.execute("UPDATE findings SET score = ?, keywords = ?, token = ? WHERE id = ?",
+                            (res.score, __import__("json").dumps(res.keywords), res.token, r["id"]))
+            rescored += 1
+    db.conn.executemany("DELETE FROM findings WHERE id = ?", [(i,) for i in drop])
+    db.conn.commit()
+    log.info("Rivalutazione: %d voci esaminate, %d eliminate, %d con punteggio aggiornato", len(rows), len(drop), rescored)
+    return 0
+
+
 def cmd_site(args: argparse.Namespace) -> int:
     cfg, db = _open(args)
     from hlxwatch.reports.site import build_site
@@ -184,6 +212,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--host")
     p.add_argument("--port", type=int)
     p.set_defaults(func=cmd_serve)
+
+    p = sub.add_parser("reevaluate", help="riapplica le regole attuali a tutto l'archivio (dopo modifiche al config)")
+    p.set_defaults(func=cmd_reevaluate)
 
     p = sub.add_parser("site", help="genera la dashboard statica (HTML + JSON) per GitHub Pages")
     p.add_argument("--out", help="cartella di destinazione (default data/site)")

@@ -53,10 +53,13 @@ def test_fgd_entity_bonus(matcher):
     assert "fgd_entity" in res.bonuses
 
 
-def test_codename(matcher):
-    res = matcher.analyze_line('"project" "TF"', file_path="x.txt")
+def test_codename():
+    cfg = yaml.safe_load((PACKAGE_ROOT / "config.example.yaml").read_text(encoding="utf-8"))
+    cfg["keywords"]["codenames"] = ["tf"]
+    m = KeywordMatcher(cfg["keywords"])
+    res = m.analyze_line('"project" "TF"', file_path="x.txt")
     assert res is not None and "codename:tf" in res.keywords
-    assert matcher.analyze_line("tfoo", file_path="x.txt") is None
+    assert m.analyze_line("tfoo", file_path="x.txt") is None
 
 
 def test_mixed_case_is_ignored(matcher):
@@ -66,7 +69,18 @@ def test_mixed_case_is_ignored(matcher):
         assert matcher.analyze_line(line, file_path="x.txt") is not None, line
 
 
+def test_half_life_3_and_localization(matcher):
+    res = matcher.analyze_line('"SteamUI_Game_Title" "Half-Life 3"', file_path="steamui_english.txt")
+    assert res is not None and "half_life_3" in res.keywords and res.score >= 120
+    # chiave di localizzazione di un gioco esistente: niente bonus convar, resta sotto soglia
+    res = matcher.analyze_line('"SteamUI_ValveSurvey_HL1Source_Renderer" "Mod Render Half-Life: Source"',
+                               file_path="steamui_malay.txt")
+    assert res is not None and res.score < 50 and "convar" not in res.bonuses
+
+
 def test_binary_garbage_is_ignored(matcher):
+    for line in ("?Hl3@", "@Hl3@", "L=Hl3@"):
+        assert matcher.analyze_line(line, file_path="bin/win64/vrserver.exe_strings.txt") is None, line
     for line in ("tF\\tF", "4\\tF", "tf\\ff\\ff\\ff", "f\\tf\\ti\\tf\\ti", "tA\\tB\\tC\\tD\\tE\\tF\\tG"):
         assert matcher.analyze_line(line, file_path="game/bin/win64/v8_strings.txt") is None, line
     # un match alto passa comunque, anche in una riga brutta
