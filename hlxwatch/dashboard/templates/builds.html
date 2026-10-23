@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Build - HLX Watch{% endblock %}
+{% block content %}
+<h1>Build e commit</h1>
+<section>
+ <form class="filters" method="get" action="/builds">
+  <label>Gioco <select name="game"><option value="">tutti</option>
+   {% for g in games %}<option value="{{ g }}" {% if g == game %}selected{% endif %}>{{ title_of(g) if g != 'steam' else 'Steam' }}</option>{% endfor %}
+  </select></label><button type="submit">Filtra</button>
+ </form>
+ <h2>Commit GameTracking, build Steam e snapshot locali</h2>
+ <table>
+  <tr><th>Data</th><th>Gioco</th><th>Sorgente</th><th>Riferimento</th><th>Messaggio</th><th>File</th><th>Voci</th></tr>
+  {% for b in builds %}
+  <tr><td>{{ b.date[:16]|replace('T',' ') }}</td><td>{{ title_of(b.game) if b.game != 'steam' else 'Steam' }}</td><td>{{ b.source }}</td>
+      <td>{% if b.url %}<a href="{{ b.url }}">{% endif %}<code>{{ b.ref[:14] }}</code>{% if b.url %}</a>{% endif %}
+          {% if b.steam_buildid %}<br><small class="muted">buildid {{ b.steam_buildid }}</small>{% endif %}</td>
+      <td><small>{{ (b.message or '')[:120] }}</small></td><td>{{ b.files_changed or '' }}</td>
+      <td><a href="/findings?q=&game={{ b.game }}&since={{ b.created_at[:10] }}&until={{ b.created_at[:10] }}">{{ b.n_findings }}</a></td></tr>
+  {% endfor %}
+ </table>
+</section>
+<section>
+ <h2>Build Steam per branch (PICS)</h2>
+ <table>
+  <tr><th>Vista il</th><th>Gioco</th><th>App</th><th>Branch</th><th>Build id</th><th>Aggiornata (Steam)</th></tr>
+  {% for s in steam_builds %}
+  <tr><td>{{ s.first_seen[:16]|replace('T',' ') }}</td><td>{{ title_of(s.game) }}</td><td>{{ s.appid }}</td>
+      <td>{{ s.branch }}</td><td><code>{{ s.buildid }}</code></td><td>{{ (s.time_updated or '')[:16]|replace('T',' ') }}</td></tr>
+  {% endfor %}
+ </table>
+</section>
+{% endblock %}

@@ -1,0 +1,22 @@
+services:
+  watcher:
+    build: .
+    container_name: hlx-watch
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./data:/app/data
+    command: ["python", "-m", "hlxwatch", "daemon"]
+
+  dashboard:
+    build: .
+    container_name: hlx-watch-dashboard
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./data:/app/data
+    ports:
+      - "8765:8765"
+    command: ["python", "-m", "hlxwatch", "serve", "--host", "0.0.0.0", "--port", "8765"]

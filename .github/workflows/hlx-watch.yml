@@ -1,0 +1,92 @@
+# HLX Watch su GitHub Actions: scansione ogni 30 minuti e report giornaliero,
+# senza un PC acceso. Il database SQLite sopravvive tra un run e l'altro grazie
+# alla cache di Actions e viene anche pubblicato come artifact scaricabile.
+#
+# Segreti da impostare nel repository (Settings -> Secrets and variables -> Actions):
+#   TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID      (oppure DISCORD_WEBHOOK_URL)
+#   GH_PAT            opzionale: token personale GitHub (5000 req/ora); senza, usa quello
+#                     automatico di Actions (1000 req/ora), sufficiente per le scansioni
+#   STEAM_WEB_API_KEY opzionale: lista completa delle app Steam
+
+name: HLX Watch
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"     # scansione (GitHub può ritardarla di qualche minuto)
+    - cron: "5 7 * * *"        # report giornaliero alle 07:05 UTC (09:05 ora italiana estiva, 08:05 invernale)
+  workflow_dispatch:
+    inputs:
+      backfill_months:
+        description: "Mesi di backfill da eseguire (0 = solo scansione)"
+        default: "0"
+
+concurrency:
+  group: hlx-watch
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write     # per salvare/ripristinare la cache del database
+
+env:
+  HLXWATCH_CONFIG: config.actions.yaml
+  GITHUB_TOKEN: ${{ secrets.GH_PAT != '' && secrets.GH_PAT || github.token }}
+  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+  DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+  STEAM_WEB_API_KEY: ${{ secrets.STEAM_WEB_API_KEY }}
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Ripristina il database dall'ultimo run
+        id: db
+        uses: actions/cache/restore@v4
+        with:
+          path: data/hlxwatch.sqlite
+          key: hlxwatch-db-${{ github.run_id }}
+          restore-keys: hlxwatch-db-
+
+      - name: Backfill iniziale (solo se il database non esiste o se richiesto a mano)
+        if: steps.db.outputs.cache-matched-key == '' || (github.event_name == 'workflow_dispatch' && github.event.inputs.backfill_months != '0')
+        run: |
+          MONTHS="${{ github.event.inputs.backfill_months || '6' }}"
+          if [ "$MONTHS" = "0" ]; then MONTHS=6; fi
+          python -m hlxwatch backfill --months "$MONTHS"
+
+      - name: Scansione
+        if: github.event.schedule != '5 7 * * *'
+        run: python -m hlxwatch scan
+
+      - name: Report giornaliero
+        if: github.event.schedule == '5 7 * * *'
+        run: python -m hlxwatch report --days 1 --send
+
+      - name: Salva il database per il prossimo run
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/hlxwatch.sqlite
+          key: hlxwatch-db-${{ github.run_id }}
+
+      - name: Pubblica database e report come artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hlxwatch-data
+          path: |
+            data/hlxwatch.sqlite
+            data/reports/
+          retention-days: 14
+          if-no-files-found: ignore

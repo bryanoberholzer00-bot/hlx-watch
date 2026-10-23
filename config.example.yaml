@@ -1,0 +1,162 @@
+# ============================================================
+#  HLX Watch - configurazione di esempio
+#  Copia questo file in config.yaml e adattalo.
+#  I segreti (token GitHub, webhook Discord, bot Telegram) vanno in .env
+# ============================================================
+
+general:
+  data_dir: ./data                       # database, log, report, snapshot
+  db_path: ./data/hlxwatch.sqlite
+  log_level: INFO
+  scan_interval_minutes: 45              # 30-60 consigliato
+  daily_report_time: "09:00"             # ora locale del report giornaliero (modalità daemon)
+  notify_min_score: 50                   # soglia punteggio per le notifiche
+  notify_max_items: 25                   # max voci per notifica (per gioco)
+  context_lines: 2                       # righe di contesto salvate attorno a ogni match
+  max_findings_per_file: 400             # protezione dal rumore su file giganteschi
+
+github:
+  api_url: https://api.github.com
+  raw_url: https://raw.githubusercontent.com
+  initial_days: 7                        # alla prima scansione (senza backfill) guarda indietro di N giorni
+  max_commits_per_run: 50                # protezione: commit massimi per repo per scansione
+  max_file_pages: 10                     # GitHub espone al massimo 3000 file per commit (10 pagine da 300)
+  fallback_max_bytes: 26214400           # 25 MB: file più grandi non vengono scaricati per il diff manuale
+  fallback_workers: 8                    # download paralleli per i file senza patch (commit da migliaia di file)
+  # estensioni considerate "testo" per il diff manuale quando GitHub non fornisce la patch
+  text_extensions: [".txt", ".vdf", ".fgd", ".cfg", ".res", ".json", ".xml", ".kv3", ".vmt", ".md",
+                    ".vcfg", ".vpc", ".ini", ".lua", ".nut", ".proto", ".csv", ".h", ".gi", ".vdata",
+                    ".vsndevts", ".vpdi", ".vmap", ".vmdl", ".vmat", ".vpcf", ".vents", ".vsmart", ".vcompmat"]
+  ignore_path_patterns: []               # regex sui percorsi da ignorare, es. ["^Protobufs/"]
+  # NOTA: l'organizzazione GitHub si chiamava SteamDatabase, ora è SteamTracking (il vecchio nome fa redirect)
+  repos:
+    - name: cs2
+      title: "Counter-Strike 2"
+      repo: SteamTracking/GameTracking-CS2
+      branch: master
+      appid: 730
+    - name: dota2
+      title: "Dota 2"
+      repo: SteamTracking/GameTracking-Dota2
+      branch: master
+      appid: 570
+    - name: deadlock
+      title: "Deadlock"
+      repo: SteamTracking/GameTracking-Deadlock
+      branch: master
+      appid: 1422450
+    - name: alyx
+      title: "Half-Life: Alyx"
+      repo: SteamTracking/GameTracking-HalfLifeAlyx
+      branch: master
+      appid: 546560
+      ignore_keywords: [half_life]       # in un repo di Half-Life la parola è solo rumore
+    # Altri repo utili: SteamTracking/GameTracking-TF2, SteamTracking/GameTracking-SteamVR
+
+steam:
+  enabled: true
+  worker_timeout_seconds: 240            # il login anonimo PICS gira in un sottoprocesso isolato
+  build_score: 55                        # punteggio di una nuova build (>= notify_min_score = notifica)
+  watch_apps:
+    - {appid: 730,     name: cs2,      title: "Counter-Strike 2"}
+    - {appid: 570,     name: dota2,    title: "Dota 2"}
+    - {appid: 1422450, name: deadlock, title: "Deadlock"}
+    - {appid: 546560,  name: alyx,     title: "Half-Life: Alyx", ignore_keywords: [half_life]}
+  # NOTA: Deadlock (1422450) in anonimo espone solo info parziali (depot e build richiedono un token):
+  # viene comunque seguito tramite il repo GameTracking-Deadlock.
+  new_apps:
+    enabled: true
+    # Lista completa delle app via IStoreService/GetAppList: serve una chiave Web API gratuita in .env
+    # (STEAM_WEB_API_KEY, da https://steamcommunity.com/dev/apikey). Senza chiave si usa solo l'euristica
+    # sugli appid: un appid mai visto e più alto della "frontiera" registrata è considerato un'app nuova.
+    applist_refresh_hours: 24            # con la chiave: ricarica la lista completa al massimo una volta al giorno
+    max_lookup_per_run: 300              # nuove app di cui chiedere i dettagli a PICS per scansione
+    flag_developers: ["Valve"]           # developer/publisher che fanno scattare l'allarme
+    flag_name_patterns: ["hlx", "half[- _]?life", "hl3", "untitled", "unnamed", "source ?2", "test ?app", "valve"]
+    score_developer: 90
+    score_name: 120
+    score_private: 25                    # app nuova ma con info non visibili in anonimo
+
+local:
+  enabled: false
+  source2viewer_cli: "C:/Tools/Source2Viewer-CLI/Source2Viewer-CLI.exe"
+  text_extensions: "vdf,txt,fgd,kv3,cfg,res,vcfg,vmt,json,xml,gi"
+  extract_text_files: true               # oltre alla lista dei file, estrae e confronta i file di testo
+  min_string_length: 6                   # per l'estrazione stringhe dai binari
+  games:
+    - name: cs2
+      title: "Counter-Strike 2"
+      vpks:
+        - "C:/Program Files (x86)/Steam/steamapps/common/Counter-Strike Global Offensive/game/csgo/pak01_dir.vpk"
+      binaries:
+        - "C:/Program Files (x86)/Steam/steamapps/common/Counter-Strike Global Offensive/game/bin/win64/engine2.dll"
+        - "C:/Program Files (x86)/Steam/steamapps/common/Counter-Strike Global Offensive/game/csgo/bin/win64/client.dll"
+        - "C:/Program Files (x86)/Steam/steamapps/common/Counter-Strike Global Offensive/game/csgo/bin/win64/server.dll"
+
+notifiers:
+  discord:
+    enabled: false                       # URL in .env -> DISCORD_WEBHOOK_URL
+    username: "HLX Watch"
+  telegram:
+    enabled: false                       # TELEGRAM_BOT_TOKEN e TELEGRAM_CHAT_ID in .env
+
+dashboard:
+  host: 127.0.0.1
+  port: 8765
+
+# ------------------------------------------------------------
+#  Parole chiave. Ogni voce: id, pattern (regex, case-insensitive), weight, excludes (opzionale)
+#  Punteggio di una riga = peso più alto + 25% dei pesi degli altri match + bonus.
+#  Soglie: high >= 100, medium >= 50.
+#  NOTA: "citadel" NON è HLX (è il nome in codice di Deadlock): è in global_excludes,
+#  che scarta la riga a meno che non contenga anche un match "alto" (es. hlx).
+# ------------------------------------------------------------
+keywords:
+  severity: {high: 100, medium: 50}
+  bonuses:
+    new_file: 20          # file aggiunto
+    removed_file: 10
+    fgd_entity: 25        # nuova classe entità in un .fgd
+    convar: 15            # riga in un file di convar / cvar
+    path: 15              # il match è in un percorso (maps/, models/, scripts/...)
+  global_excludes: ["citadel"]
+  codename_weight: 30
+  codenames: ["tf"]       # nomi in codice sconosciuti da sorvegliare, come parole intere
+  items:
+    - id: hlx
+      pattern: "(?<![a-z0-9])hlx(?![a-z0-9])"
+      weight: 100
+      description: "hlx come parola isolata"
+    - id: hlx_prefix
+      pattern: "(?<![a-z0-9])hlx_[a-z0-9_]+"
+      weight: 110
+      description: "identificatori hlx_* (ConVar, variabili, file)"
+    - id: hlx_path
+      pattern: "(maps|models|scripts|materials|sounds|particles|resource|scenes|soundevents|panorama|cfg|animations|weapons|characters)[/\\\\]hlx"
+      weight: 130
+      description: "percorsi tipo maps/hlx, models/hlx"
+    - id: hl3
+      pattern: "(?<![a-z0-9])hl3(?![a-z0-9])"
+      weight: 90
+      description: "hl3"
+    - id: half_life
+      pattern: "half[_\\- ]?life"
+      weight: 40
+      description: "half-life generico (rumoroso)"
+      excludes: ["alyx", "half-life 2", "half_life_2", "half-life2", "hl2", "episode", "halflife2"]
+    - id: npc
+      pattern: "(?<![a-z0-9])(npc_[a-z0-9_]+|ai_basenpc|cai_basenpc|ai_base_npc)"
+      weight: 15
+      description: "classi NPC / AI"
+    - id: vehicle
+      pattern: "(?<![a-z0-9])(prop_vehicle[a-z0-9_]*|vehicle_[a-z0-9_]+)"
+      weight: 12
+      description: "veicoli"
+    - id: weather
+      pattern: "(?<![a-z0-9])(wind_[a-z0-9_]+|weather_[a-z0-9_]+|thermodynamic[a-z]*|thermal_[a-z0-9_]+|heat_?sim[a-z0-9_]*)"
+      weight: 12
+      description: "vento / meteo / termodinamica"
+    - id: physics
+      pattern: "(?<![a-z0-9])(phys_[a-z0-9_]+|rubikon[a-z0-9_]*)"
+      weight: 6
+      description: "fisica (molto generico)"

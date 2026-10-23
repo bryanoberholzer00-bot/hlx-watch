@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Panoramica</h1>
+<div class="cards">
+ <div class="card"><b>{{ stats.findings }}</b><span>voci totali</span></div>
+ <div class="card"><b>{{ stats.findings_new }}</b><span>stringhe mai viste</span></div>
+ <div class="card"><b>{{ stats.findings_high }}</b><span>alta rilevanza (&ge;100)</span></div>
+ <div class="card"><b>{{ stats.builds }}</b><span>build / commit</span></div>
+ <div class="card"><b>{{ stats.steam_builds }}</b><span>build Steam</span></div>
+ <div class="card"><b>{{ stats.steam_apps_flagged }}</b><span>app Steam sospette</span></div>
+ <div class="card"><b style="font-size:1rem">{{ (stats.last_scan or 'mai')[:16]|replace('T',' ') }}</b><span>ultima scansione (UTC)</span></div>
+</div>
+
+<section>
+ <h2>Timeline delle scoperte
+  <small class="muted">
+   {% for d in [30, 90, 180, 365] %}<a href="/?days={{ d }}" {% if d == days %}style="font-weight:700"{% endif %}>{{ d }}gg</a> {% endfor %}
+  </small></h2>
+ {{ chart|safe }}
+ <p class="muted">Rosso: giorno con almeno una voce &ge;100 &middot; arancio: &ge;50 &middot; grigio: solo voci a bassa rilevanza. Clicca una barra per vedere il giorno.</p>
+</section>
+
+<div class="grid2">
+<section>
+ <h2>Ultime voci rilevanti (&ge;50)</h2>
+ {% if not highlights %}<p class="muted">Nessuna voce ancora.</p>{% endif %}
+ <table>
+  {% for f in highlights %}
+  <tr class="{{ f.severity }}">
+   <td><span class="badge {{ f.severity }}">{{ f.score }}</span></td>
+   <td>{{ f.day }}<br><small class="muted">{{ title_of(f.game) if f.game != 'steam' else 'Steam' }}</small></td>
+   <td><a href="/finding/{{ f.id }}"><code>{{ (f.token or f.text)[:70] }}</code></a><br>
+       <small class="muted">{{ f.file_path[:80] }} &middot; {{ f.change_type }}{% if f.is_new %} &middot; <span class="new">nuova</span>{% endif %}</small></td>
+  </tr>
+  {% endfor %}
+ </table>
+</section>
+
+<section>
+ <h2>Token più rilevanti</h2>
+ {% if not tokens %}<p class="muted">Nessun token ancora.</p>{% endif %}
+ <table>
+  <tr><th>Token</th><th>Max</th><th>Volte</th><th>Giochi</th><th>Prima volta</th></tr>
+  {% for t in tokens %}
+  <tr><td><a href="/findings?q={{ t.token|urlencode }}"><code>{{ t.token[:60] }}</code></a></td>
+      <td>{{ t.max_score }}</td><td>{{ t.n }}</td><td>{{ t.games }}</td><td>{{ t.first_seen[:10] }}</td></tr>
+  {% endfor %}
+ </table>
+
+ <h2 style="margin-top:1.2rem">Ultime build e commit</h2>
+ <table>
+  {% for b in builds %}
+  <tr><td>{{ b.date[:16]|replace('T',' ') }}</td><td>{{ title_of(b.game) if b.game != 'steam' else 'Steam' }}</td>
+      <td>{% if b.url %}<a href="{{ b.url }}">{% endif %}<code>{{ b.ref[:12] }}</code>{% if b.url %}</a>{% endif %}
+          <small class="muted">{{ (b.message or '')[:70] }}</small></td>
+      <td>{{ b.n_findings }} voci</td></tr>
+  {% endfor %}
+ </table>
+
+ {% if apps %}
+ <h2 style="margin-top:1.2rem">App Steam sospette</h2>
+ <table>
+  {% for a in apps %}
+  <tr><td><a href="https://store.steampowered.com/app/{{ a.appid }}/">{{ a.appid }}</a></td>
+      <td>{{ a.name or '(senza nome)' }}</td><td><small class="muted">{{ a.flag_reason }}</small></td></tr>
+  {% endfor %}
+ </table>
+ {% endif %}
+</section>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Voce {{ f.id }} - HLX Watch{% endblock %}
+{% block content %}
+<h1><span class="badge {{ f.severity }}">{{ f.score }}</span> <code>{{ f.token or f.text[:100] }}</code></h1>
+<section>
+<table>
+ <tr><th style="width:12rem">Gioco</th><td>{{ title_of(f.game) if f.game != 'steam' else 'Steam' }} <small class="muted">({{ f.source }})</small></td></tr>
+ <tr><th>Tipo di modifica</th><td>{{ f.change_type }} {% if f.is_new %}<span class="new">(stringa mai vista prima)</span>{% endif %}</td></tr>
+ <tr><th>File</th><td>{{ f.file_path }}{% if f.line_no %}:{{ f.line_no }}{% endif %}</td></tr>
+ <tr><th>Riga</th><td><code>{{ f.text }}</code></td></tr>
+ {% if f.old_text %}<tr><th>Riga precedente</th><td><code>{{ f.old_text }}</code></td></tr>{% endif %}
+ <tr><th>Keyword</th><td>{{ f.keywords|join(', ') }}</td></tr>
+ <tr><th>Trovata il</th><td>{{ f.created_at|replace('T',' ') }} UTC</td></tr>
+ {% if f.build_ref %}
+ <tr><th>Build / commit</th><td>{% if f.build_url %}<a href="{{ f.build_url }}">{% endif %}<code>{{ f.build_ref }}</code>{% if f.build_url %}</a>{% endif %}
+   <br><small class="muted">{{ f.build_date }} &middot; {{ (f.build_message or '')[:200] }}</small></td></tr>
+ {% endif %}
+ <tr><th>Notificata</th><td>{{ 'sì' if f.notified else 'no' }}</td></tr>
+</table>
+{% if f.context %}<h2 style="margin-top:1rem">Contesto</h2><pre>{{ f.context }}</pre>{% endif %}
+</section>
+{% if related %}
+<section>
+ <h2>Altre occorrenze dello stesso token</h2>
+ <table>
+  {% for r in related if r.id != f.id %}
+  <tr class="{{ r.severity }}"><td><span class="badge {{ r.severity }}">{{ r.score }}</span></td>
+   <td>{{ r.day }}</td><td>{{ title_of(r.game) if r.game != 'steam' else 'Steam' }}</td>
+   <td>{{ r.change_type }}</td><td><a href="/finding/{{ r.id }}">{{ r.file_path[:90] }}</a></td></tr>
+  {% endfor %}
+ </table>
+</section>
+{% endif %}
+{% endblock %}
