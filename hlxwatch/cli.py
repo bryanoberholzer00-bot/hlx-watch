@@ -135,7 +135,7 @@ def cmd_test_notify(args: argparse.Namespace) -> int:
         print("Nessun notificatore abilitato: controlla notifiers.* in config.yaml e i valori in .env")
         return 1
     build = BuildInfo(game="cs2", source="github", ref="0000000deadbeef", date=datetime.now(timezone.utc),
-                      url="https://github.com/SteamDatabase/GameTracking-CS2/commits/master", message="test")
+                      url="https://github.com/SteamTracking/GameTracking-CS2/commits/master", message="test")
     finding = Finding(game="cs2", source="github", file_path="game/csgo/pak01_dir.txt", change_type="added",
                       text="maps/hlx_test_notifica.vpk", score=130, keywords=["hlx_path"],
                       token="maps/hlx_test_notifica.vpk", line_no=42, is_new=True)
