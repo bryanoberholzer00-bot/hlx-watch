@@ -50,7 +50,8 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     recent = group_rows([_row(r) for r in db.search_findings(min_score=50, limit=80, order="created_at",
                                                                exclude_change_type="baseline")])
     index_html = env.get_template("index.html").render(
-        stats=stats, high=high, recent=recent[:40], chart=timeline_svg(db.timeline(days=timeline_days), timeline_days),
+        stats=stats, high=high, recent=recent[:40],
+        chart=timeline_svg(db.timeline(days=timeline_days), timeline_days, link="search.html?since={day}&until={day}"),
         timeline_days=timeline_days, tokens=[dict(r) for r in db.top_tokens(25)],
         builds=[dict(r) for r in db.recent_builds(15)], apps=[dict(r) for r in db.flagged_apps(20)],
         steam_builds=[dict(r) for r in db.steam_builds(12)],

@@ -54,8 +54,10 @@ def group_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [grouped[k] for k in order]
 
 
-def timeline_svg(timeline: list[dict[str, Any]], days: int = 90) -> str:
-    """Grafico a barre inline: voci per giorno, colore in base al punteggio massimo."""
+def timeline_svg(timeline: list[dict[str, Any]], days: int = 90,
+                 link: str = "/findings?since={day}&until={day}") -> str:
+    """Grafico a barre inline: voci per giorno, colore in base al punteggio massimo.
+    `link` è il modello dell'URL di ogni barra (diverso tra dashboard locale e sito statico)."""
     per_day: dict[str, dict[str, int]] = defaultdict(lambda: {"n": 0, "max": 0, "new": 0})
     for row in timeline:
         d = per_day[row["day"]]
@@ -76,7 +78,7 @@ def timeline_svg(timeline: list[dict[str, Any]], days: int = 90) -> str:
         y = height - pad - h
         color = "#e53935" if d["max"] >= 100 else "#fb8c00" if d["max"] >= 50 else "#90a4ae"
         title = html.escape(f"{day}: {d['n']} voci ({d['new']} nuove), punteggio max {d['max']}")
-        parts.append(f'<a href="/findings?since={day}&until={day}"><rect x="{x:.1f}" y="{y:.1f}" width="{max(1.0, bar_w - 1):.1f}" '
+        parts.append(f'<a href="{link.format(day=day)}"><rect x="{x:.1f}" y="{y:.1f}" width="{max(1.0, bar_w - 1):.1f}" '
                      f'height="{h:.1f}" fill="{color}"><title>{title}</title></rect></a>')
         if len(days_sorted) <= 31 or i % max(1, len(days_sorted) // 12) == 0:
             parts.append(f'<text x="{x + bar_w / 2:.1f}" y="{height - 6}" font-size="10" text-anchor="middle">{day[5:]}</text>')
