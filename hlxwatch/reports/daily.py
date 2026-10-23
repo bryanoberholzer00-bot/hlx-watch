@@ -34,7 +34,7 @@ HTML_TEMPLATE = """<!doctype html>
 </div>
 {% if not data.games %}<p><em>Nessuna novit&agrave; nel periodo.</em></p>{% endif %}
 {% for game in data.games %}
-<h2>{{ game.title }} <small>({{ game.findings|length }} voci, {{ game.n_new }} nuove, punteggio max {{ game.max_score }})</small></h2>
+<h2>{{ game.title }} <small>({{ game.n_total }} voci, {{ game.n_rows }} raggruppate, {{ game.n_new }} nuove, punteggio max {{ game.max_score }})</small></h2>
 {% if game.builds %}
 <h3>Build e commit</h3>
 <ul>{% for b in game.builds %}
@@ -49,9 +49,11 @@ HTML_TEMPLATE = """<!doctype html>
 {% for f in game.findings %}
 <tr class="{{ f.severity }}"><td>{{ f.score }}</td><td>{{ f.change_type }}</td>
 <td><code>{{ f.token or f.text[:120] }}</code>{% if f.token and f.text != f.token %}<br><small>{{ f.text[:160] }}</small>{% endif %}</td>
-<td>{{ f.file_path }}{% if f.line_no %}:{{ f.line_no }}{% endif %}{% if f.build_url %} <a href="{{ f.build_url }}">commit</a>{% endif %}</td>
+<td>{{ f.file_path }}{% if f.line_no %}:{{ f.line_no }}{% endif %}{% if f.dup_count > 1 %} <small title="{{ f.dup_files|join('&#10;') }}">(+{{ f.dup_count - 1 }} file)</small>{% endif %}{% if f.build_url %} <a href="{{ f.build_url }}">commit</a>{% endif %}</td>
 <td>{{ f.keywords|join(', ') }}</td><td>{{ 'sì' if f.is_new else '' }}</td></tr>
-{% endfor %}</table>{% endif %}
+{% endfor %}
+{% if game.n_hidden %}<tr><td colspan="6"><em>&hellip; e altre {{ game.n_hidden }} righe a punteggio pi&ugrave; basso (vedi dashboard)</em></td></tr>{% endif %}
+</table>{% endif %}
 {% endfor %}
 </body></html>
 """
@@ -69,6 +71,27 @@ def period_for(day: date | None = None, days: int = 1) -> tuple[datetime, dateti
 
 def _severity(score: int) -> str:
     return "high" if score >= 100 else "medium" if score >= 50 else "low"
+
+
+MAX_ROWS_PER_GAME = 200
+
+
+def _group(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Stesso token, stesso commit, stesso tipo: una riga sola con il conteggio dei file."""
+    grouped: dict[tuple[Any, ...], dict[str, Any]] = {}
+    order: list[tuple[Any, ...]] = []
+    for item in findings:
+        key = ((item.get("token") or item.get("text") or "").lower(), item.get("build_id"), item["change_type"])
+        if key in grouped:
+            g = grouped[key]
+            g["dup_count"] += 1
+            g["dup_files"].append(item["file_path"])
+            g["is_new"] = g["is_new"] or item["is_new"]
+        else:
+            item = dict(item, dup_count=1, dup_files=[])
+            grouped[key] = item
+            order.append(key)
+    return [grouped[k] for k in order]
 
 
 def collect_report_data(db: Database, cfg: Config, start: datetime, end: datetime) -> dict[str, Any]:
@@ -94,8 +117,15 @@ def collect_report_data(db: Database, cfg: Config, start: datetime, end: datetim
     ordered: list[dict[str, Any]] = []
     for name, g in games.items():
         g["title"] = "Steam (nuove app)" if name == "steam" else cfg.game_title(name)
+        g["n_total"] = len(g["findings"])
         g["n_new"] = sum(1 for f in g["findings"] if f["is_new"])
         g["max_score"] = max((f["score"] for f in g["findings"]), default=0)
+        g["n_high"] = sum(1 for f in g["findings"] if f["score"] >= 100)
+        g["n_med"] = sum(1 for f in g["findings"] if 50 <= f["score"] < 100)
+        g["findings"] = _group(g["findings"])          # già ordinate per punteggio
+        g["n_rows"] = len(g["findings"])
+        g["n_hidden"] = max(0, g["n_rows"] - MAX_ROWS_PER_GAME)
+        g["findings"] = g["findings"][:MAX_ROWS_PER_GAME]
         ordered.append(g)
     ordered.sort(key=lambda g: (g["max_score"], len(g["findings"])), reverse=True)
 
@@ -129,7 +159,8 @@ def render_markdown(data: dict[str, Any]) -> str:
         out.append("_Nessuna novit\u00e0 nel periodo._")
     for game in data["games"]:
         out += [f"## {game['title']}", "",
-                f"{len(game['findings'])} voci, {game['n_new']} nuove, punteggio max {game['max_score']}", ""]
+                f"{game['n_total']} voci ({game['n_rows']} raggruppate per token e commit), {game['n_new']} nuove, "
+                f"punteggio max {game['max_score']}", ""]
         if game["builds"]:
             out.append("### Build e commit")
             for b in game["builds"]:
@@ -146,9 +177,13 @@ def render_markdown(data: dict[str, Any]) -> str:
                 where = f["file_path"] + (f":{f['line_no']}" if f.get("line_no") else "")
                 if f.get("build_url"):
                     where = f"[{_cell(where)}]({f['build_url']})"
+                if f["dup_count"] > 1:
+                    where += f" (+{f['dup_count'] - 1} file)"
                 label = _cell(f.get("token") or f["text"][:120])
                 out.append(f"| {f['score']} | {f['change_type']} | `{label}` | {where} | "
                            f"{', '.join(f['keywords'])} | {'s\u00ec' if f['is_new'] else ''} |")
+            if game["n_hidden"]:
+                out.append(f"| | | _\u2026 e altre {game['n_hidden']} righe a punteggio pi\u00f9 basso (vedi dashboard)_ | | | |")
             out.append("")
     return "\n".join(out)
 
@@ -158,12 +193,32 @@ def render_html(data: dict[str, Any]) -> str:
 
 
 def summary_text(data: dict[str, Any]) -> str:
+    """Riepilogo breve per Telegram/Discord: per ogni gioco le voci più rilevanti, senza ripetizioni."""
     t = data["totals"]
     lines = [f"{t['findings']} voci, {t['new']} mai viste, {t['high']} ad alta rilevanza, {t['builds']} build/commit."]
+    if not data["games"]:
+        lines.append("Nessuna novità nel periodo.")
     for game in data["games"][:8]:
-        top = game["findings"][:3]
-        top_txt = "; ".join(f"[{f['score']}] {(f.get('token') or f['text'])[:50]}" for f in top)
-        lines.append(f"- {game['title']}: {len(game['findings'])} voci (max {game['max_score']}) {top_txt}")
+        lines.append(f"\n{game['title']}: {game['n_total']} voci, {game['n_new']} nuove, {game['n_high']} alte, "
+                     f"{game['n_med']} medie"
+                     + (f", {len(game['builds'])} build/commit" if game["builds"] else ""))
+        seen: set[str] = set()
+        shown = 0
+        for f in game["findings"]:
+            label = (f.get("token") or f["text"])[:60]
+            key = label.lower()
+            if key in seen or f["score"] < 50:
+                continue
+            seen.add(key)
+            where = f["file_path"].rsplit("/", 1)[-1][:50]
+            extra = f" (+{f['dup_count'] - 1} file)" if f["dup_count"] > 1 else ""
+            snippet = f" — {f['text'][:70]}" if f.get("token") and f["text"].strip() != f["token"] else ""
+            lines.append(f"  [{f['score']}] {f['change_type']} {label}{snippet} · {where}{extra}")
+            shown += 1
+            if shown >= 5:
+                break
+        if shown == 0:
+            lines.append("  (solo voci a bassa rilevanza)")
     return "\n".join(lines)
 
 

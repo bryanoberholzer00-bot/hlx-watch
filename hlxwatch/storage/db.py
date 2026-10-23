@@ -212,7 +212,7 @@ class Database:
             return self.conn.execute(
                 "SELECT b.*, (SELECT COUNT(*) FROM findings f WHERE f.build_id = b.id) AS n_findings, "
                 "(SELECT MAX(score) FROM findings f WHERE f.build_id = b.id) AS max_score "
-                "FROM builds b WHERE b.created_at >= ? AND b.created_at < ? ORDER BY b.game, b.date",
+                "FROM builds b WHERE b.date >= ? AND b.date < ? ORDER BY b.game, b.date",
                 (iso(start), iso(end)),
             ).fetchall()
 
