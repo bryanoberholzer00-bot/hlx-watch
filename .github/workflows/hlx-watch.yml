@@ -91,7 +91,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_notify == 'true'
         run: python -m hlxwatch test-notify
 
-      - name: Analisi AI su richiesta (prima del giro automatico: non paga due volte)
+      - name: "Analisi AI su richiesta (prima del giro automatico, per non pagare due volte)"
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.analyze == 'true'
         run: python -m hlxwatch analyze --send
 
