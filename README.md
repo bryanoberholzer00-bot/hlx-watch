@@ -203,6 +203,21 @@ passata l'ora in `general.daily_report_time` (UTC). La sorgente dei file locali 
 Per una cadenza esatta serve un servizio esterno che chiami `workflow_dispatch` (es. cron-job.org con
 un token GitHub) oppure un server proprio con `daemon`.
 
+### Analisi AI con Claude Opus 5.5 (opzionale, a pagamento)
+
+Una volta al giorno, dopo il report, il workflow passa a Claude Opus 5.5 le novità sopra 50 punti
+dall'ultima analisi, le voci storiche ad alta rilevanza e le occorrenze già presenti, e salva
+un'analisi in italiano che separa fatti e ipotesi, con ogni prova collegata al suo commit. La trovi in
+cima al sito e nella pagina `analisi.html`; se ci sono novità rilevanti arriva anche un riassunto su
+Telegram. Nei giorni senza novità la chiamata viene saltata e non costa nulla.
+
+- Costo: circa 0,10-0,20 $ per analisi (4 $ / 20 $ per milione di token in ingresso / uscita).
+- Limite di spesa: `ai.monthly_budget_usd` (default 10 $); oltre, le analisi si fermano fino al mese dopo.
+- Attivazione: crea una chiave su console.anthropic.com (impostando anche lì un limite di spesa) e
+  aggiungila come Secret `ANTHROPIC_API_KEY` del repository. In locale: `python -m hlxwatch analyze`.
+- Fallback: se i filtri di sicurezza del modello rifiutassero la richiesta, il parametro
+  `fallbacks: "default"` la fa ripetere automaticamente su un altro modello Claude.
+
 ### Messaggio di benvenuto del bot (Cloudflare Worker, opzionale)
 
 Il bot è solo un mittente: per rispondere subito a /start e /help, anche a PC spento, la cartella

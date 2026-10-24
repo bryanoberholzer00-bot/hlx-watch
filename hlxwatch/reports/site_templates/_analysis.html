@@ -1,0 +1,43 @@
+{% macro prove(ids, a) -%}
+ {%- for pid in ids -%}{% set e = a.content.evidenze.get(pid) if a.content.evidenze else none %}
+  {%- if e and e.commit %}<a href="{{ e.commit }}" title="{{ e.gioco }} {{ e.data }} &middot; {{ e.file }}&#10;{{ e.riga }}"><code>{{ pid }}</code></a>
+  {%- elif e %}<code title="{{ e.gioco }} {{ e.data }} &middot; {{ e.file }}&#10;{{ e.riga }}">{{ pid }}</code>
+  {%- else %}<code>{{ pid }}</code>{% endif %}{% if not loop.last %} {% endif %}
+ {%- endfor -%}
+{%- endmacro %}
+
+{% macro render(a, full=true) %}
+<div class="analysis">
+ <p class="muted" style="margin:0 0 .3rem">{{ a.created_at[:16]|replace('T',' ') }} UTC &middot; {{ a.model }}
+  {% if not a.content.novita_rilevanti %}&middot; giornata senza novità rilevanti{% endif %}</p>
+ <h2 style="margin:.2rem 0 .6rem">{{ a.content.titolo }}</h2>
+ <p>{{ a.content.sintesi }}</p>
+ {% if a.content.ipotesi %}
+ <h3>Ipotesi</h3>
+ <table>
+  {% for h in a.content.ipotesi %}
+  <tr class="{{ {'alta': 'high', 'media': 'medium'}.get(h.fiducia, 'low') }}">
+   <td style="width:6.5rem"><span class="badge {{ {'alta': 'high', 'media': 'medium'}.get(h.fiducia, 'low') }}">{{ h.fiducia }}</span></td>
+   <td><b>{{ h.titolo }}</b><br>{{ h.spiegazione }}<br><small class="muted">prove: {{ prove(h.prove, a) }}</small></td>
+  </tr>
+  {% endfor %}
+ </table>
+ {% endif %}
+ {% if full %}
+ {% if a.content.fatti %}
+ <h3>Fatti</h3>
+ <ul>{% for f in a.content.fatti %}<li>{{ f.testo }} <small class="muted">{{ prove(f.prove, a) }}</small></li>{% endfor %}</ul>
+ {% endif %}
+ {% if a.content.da_osservare %}
+ <h3>Da osservare</h3>
+ <ul>{% for x in a.content.da_osservare %}<li>{{ x }}</li>{% endfor %}</ul>
+ {% endif %}
+ {% if a.content.rumore %}
+ <h3>Sembra importante, ma non lo è</h3>
+ <ul>{% for x in a.content.rumore %}<li>{{ x }}</li>{% endfor %}</ul>
+ {% endif %}
+ {% endif %}
+ <p class="muted" style="font-size:.8rem">Analisi generata da un modello AI a partire dai dati raccolti: i fatti sono verificabili
+ sulle prove collegate, le ipotesi sono interpretazioni e possono essere sbagliate.</p>
+</div>
+{% endmacro %}

@@ -11,6 +11,7 @@
 #   GH_PAT            opzionale: token personale GitHub (5000 req/ora); senza, usa quello
 #                     automatico di Actions (1000 req/ora), sufficiente per le scansioni
 #   STEAM_WEB_API_KEY opzionale: lista completa delle app Steam
+#   ANTHROPIC_API_KEY opzionale: analisi AI giornaliera con Claude Opus 5.5
 
 name: HLX Watch
 
@@ -24,6 +25,10 @@ on:
         default: "0"
       test_notify:
         description: "Invia una notifica di prova a Discord/Telegram"
+        type: boolean
+        default: false
+      analyze:
+        description: "Esegui subito l'analisi AI (anche senza novità)"
         type: boolean
         default: false
       send_report:
@@ -48,6 +53,7 @@ env:
   TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
   DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
   STEAM_WEB_API_KEY: ${{ secrets.STEAM_WEB_API_KEY }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
 jobs:
   watch:
@@ -87,6 +93,10 @@ jobs:
 
       - name: Scansione + report giornaliero se è ora
         run: python -m hlxwatch cron
+
+      - name: Analisi AI su richiesta
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.analyze == 'true'
+        run: python -m hlxwatch analyze --send
 
       - name: Report delle ultime 24 ore su richiesta
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.send_report == 'true'

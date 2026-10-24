@@ -93,6 +93,19 @@ CREATE TABLE IF NOT EXISTS steam_builds (
     UNIQUE(appid, branch, buildid)
 );
 
+CREATE TABLE IF NOT EXISTS ai_analyses (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at    TEXT NOT NULL,
+    model         TEXT NOT NULL,
+    period_start  TEXT,
+    period_end    TEXT,
+    content       TEXT,
+    error         TEXT,
+    input_tokens  INTEGER,
+    output_tokens INTEGER,
+    cost_usd      REAL NOT NULL DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS snapshots (
     key        TEXT PRIMARY KEY,
     hash       TEXT NOT NULL,
@@ -451,6 +464,36 @@ class Database:
         params.append(limit)
         with self._lock:
             return self.conn.execute(sql, params).fetchall()
+
+    # ------------------------------------------------------------ analisi AI
+    def add_analysis(self, model: str, period_start: str | None, period_end: str | None, content: Any,
+                     cost: float, usage: Any = None, error: str | None = None) -> int:
+        with self._lock:
+            cur = self.conn.execute(
+                "INSERT INTO ai_analyses(created_at, model, period_start, period_end, content, error, input_tokens, "
+                "output_tokens, cost_usd) VALUES(?,?,?,?,?,?,?,?,?)",
+                (iso(utcnow()), model, period_start, period_end,
+                 json.dumps(content, ensure_ascii=False) if content is not None else None, error,
+                 int(getattr(usage, "input_tokens", 0) or 0), int(getattr(usage, "output_tokens", 0) or 0), cost),
+            )
+            self.conn.commit()
+            return int(cur.lastrowid)
+
+    def latest_analysis(self) -> sqlite3.Row | None:
+        with self._lock:
+            return self.conn.execute(
+                "SELECT * FROM ai_analyses WHERE content IS NOT NULL ORDER BY id DESC LIMIT 1").fetchone()
+
+    def analyses(self, limit: int = 60) -> list[sqlite3.Row]:
+        with self._lock:
+            return self.conn.execute(
+                "SELECT * FROM ai_analyses WHERE content IS NOT NULL ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+
+    def analyses_cost_since(self, start: datetime) -> float:
+        with self._lock:
+            row = self.conn.execute("SELECT COALESCE(SUM(cost_usd), 0) FROM ai_analyses WHERE created_at >= ?",
+                                    (iso(start),)).fetchone()
+        return float(row[0])
 
     # --------------------------------------------------------------- snapshots
     def get_snapshot(self, key: str) -> tuple[str, str | None] | None:

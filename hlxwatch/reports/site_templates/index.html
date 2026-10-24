@@ -1,6 +1,13 @@
 {% extends "base.html" %}
+{% from "_analysis.html" import render %}
 {% block content %}
 <h1>Panoramica</h1>
+{% if analysis %}
+<section style="border-left:4px solid var(--accent)">
+ {{ render(analysis, full=false) }}
+ <p style="margin:.4rem 0 0"><a href="analisi.html">Analisi completa e archivio &rarr;</a></p>
+</section>
+{% endif %}
 <div class="cards">
  <div class="card"><b>{{ stats.findings }}</b><span>voci totali</span></div>
  <div class="card"><b>{{ stats.findings_new }}</b><span>stringhe mai viste</span></div>

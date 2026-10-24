@@ -37,6 +37,12 @@ def export_findings(db: Database, limit: int = 25000) -> list[dict[str, Any]]:
     return out
 
 
+def load_analysis(row: Any) -> dict[str, Any]:
+    item = dict(row)
+    item["content"] = json.loads(item["content"]) if item.get("content") else {}
+    return item
+
+
 def present_groups(db: Database, limit: int = 60) -> list[dict[str, Any]]:
     """Occorrenze 'già presenti' (scansione completa) raggruppate per cartella e parola chiave:
     281 file di animazione nella stessa cartella diventano una riga sola."""
@@ -68,6 +74,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
                        generated=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"))
 
     stats = db.stats()
+    analyses = [load_analysis(r) for r in db.analyses(60)]
     high = group_rows([_row(r) for r in db.search_findings(min_score=100, limit=300, order="created_at",
                                                              exclude_change_type=("baseline", "present"))])
     recent = group_rows([_row(r) for r in db.search_findings(min_score=50, limit=80, order="created_at",
@@ -78,8 +85,11 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
         timeline_days=timeline_days, tokens=[dict(r) for r in db.top_tokens(25)],
         builds=[dict(r) for r in db.recent_builds(15)], apps=[dict(r) for r in db.flagged_apps(20)],
         steam_builds=[dict(r) for r in db.steam_builds(12)], present=present_groups(db),
+        analysis=analyses[0] if analyses else None,
     )
     (out_dir / "index.html").write_text(index_html, encoding="utf-8")
+    (out_dir / "analisi.html").write_text(env.get_template("analisi.html").render(analyses=analyses),
+                                           encoding="utf-8")
     (out_dir / "search.html").write_text(env.get_template("search.html").render(games=stats["games"]), encoding="utf-8")
 
     findings = export_findings(db)

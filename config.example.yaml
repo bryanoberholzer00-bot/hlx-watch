@@ -70,6 +70,12 @@ github:
       # runtime VR: eventuale componente VR di hlx
     # Altri repo utili: SteamTracking/GameTracking-TF2
 
+ai:
+  enabled: true                          # serve ANTHROPIC_API_KEY (in .env o nei Secrets di GitHub)
+  effort: high                           # profondità del ragionamento di Claude Opus 5.5
+  monthly_budget_usd: 10                 # oltre questa spesa nel mese le analisi si fermano
+  max_items: 60                          # novità passate al modello per ogni analisi
+
 full_scan:
   enabled: true
   interval_hours: 24                     # una scansione completa al giorno (le altre esecuzioni la saltano)

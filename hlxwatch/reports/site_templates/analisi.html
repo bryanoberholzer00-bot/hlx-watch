@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% from "_analysis.html" import render %}
+{% block title %}Analisi AI - HLX Watch{% endblock %}
+{% block content %}
+<h1>Analisi AI</h1>
+{% if not analyses %}
+<section><p class="muted">Nessuna analisi ancora. La prima viene generata dal run giornaliero quando la chiave API è configurata.</p></section>
+{% endif %}
+{% for a in analyses %}
+<section>{{ render(a, full=loop.first) }}
+ {% if not loop.first %}<details><summary class="muted">Fatti, cose da osservare e rumore</summary>{{ render(a, full=true) }}</details>{% endif %}
+</section>
+{% endfor %}
+{% endblock %}

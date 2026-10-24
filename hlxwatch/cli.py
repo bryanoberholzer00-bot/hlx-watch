@@ -84,12 +84,43 @@ def cmd_cron(args: argparse.Namespace) -> int:
     from hlxwatch.scheduler import maybe_daily_report
     pipeline = Pipeline(cfg, db)
     result = pipeline.run_scan(notify=not args.no_notify)
+    report_time = str(cfg.get("general.daily_report_time", "09:00"))
     try:
-        if maybe_daily_report(cfg, db, pipeline, str(cfg.get("general.daily_report_time", "09:00"))):
+        if maybe_daily_report(cfg, db, pipeline, report_time):
             log.info("Report giornaliero inviato")
     except Exception:
         log.exception("Report giornaliero fallito")
+    # analisi AI: una volta al giorno, nella stessa finestra del report, solo se ci sono novità
+    if datetime.now().strftime("%H:%M") >= report_time:
+        try:
+            _run_analysis(cfg, db, pipeline.notifiers, force=False, notify=not args.no_notify)
+        except Exception:
+            log.exception("Analisi AI fallita")
     return 1 if result.errors and not result.findings else 0
+
+
+def _run_analysis(cfg: Config, db: "Database", notifiers: list, *, force: bool, notify: bool,
+                  days: int | None = None) -> dict | None:
+    from hlxwatch.analysis import Analyzer, telegram_text
+    from hlxwatch.notifiers import notify_text
+    content = Analyzer(cfg, db).run(force=force, days=days)
+    if content and notify and notifiers and content.get("novita_rilevanti"):
+        notify_text(notifiers, f"HLX Watch AI: {content.get('titolo', 'analisi')}", telegram_text(content))
+    return content
+
+
+def cmd_analyze(args: argparse.Namespace) -> int:
+    """Analisi AI delle scoperte con Claude Opus 5.5 (richiede ANTHROPIC_API_KEY)."""
+    cfg, db = _open(args)
+    from hlxwatch.notifiers import load_notifiers
+    content = _run_analysis(cfg, db, load_notifiers(cfg), force=True, notify=args.send, days=args.days)
+    if not content:
+        print("Nessuna analisi prodotta: vedi log (chiave mancante, limite di spesa o rifiuto).")
+        return 1
+    print(f"{content.get('titolo')}\n\n{content.get('sintesi')}")
+    for h in content.get("ipotesi", []):
+        print(f"- [{h.get('fiducia')}] {h.get('titolo')}")
+    return 0
 
 
 def cmd_daemon(args: argparse.Namespace) -> int:
@@ -233,6 +264,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("daemon", help="scansione periodica + report giornaliero")
     p.set_defaults(func=cmd_daemon)
+
+    p = sub.add_parser("analyze", help="analisi AI delle scoperte con Claude Opus 5.5 (ANTHROPIC_API_KEY)")
+    p.add_argument("--days", type=int, help="analizza le novità degli ultimi N giorni (default: dall'ultima analisi)")
+    p.add_argument("--send", action="store_true", help="invia il riepilogo ai notificatori se ci sono novità")
+    p.set_defaults(func=cmd_analyze)
 
     p = sub.add_parser("fullscan", help="cerca le parole chiave in tutto il contenuto attuale dei repository")
     p.add_argument("--repo", action="append", help="limita a un repo per nome; ripetibile")
