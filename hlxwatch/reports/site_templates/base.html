@@ -57,7 +57,8 @@
  <a href="analisi.html"><b>Analisi AI</b></a>
  <a href="metodologia.html">Metodologia</a>
  <span class="muted" style="margin-left:auto;font-size:.8rem">aggiornato {{ generated }}</span>
- {% if push_url %}<button id="push-btn" class="pushbtn" hidden>🔕 Attiva notifiche</button>{% endif %}
+ {% if push_url %}<button id="push-btn" class="pushbtn" hidden>🔕 Attiva notifiche</button>
+ <button id="push-test" class="pushbtn" hidden title="Mostra subito una notifica di prova su questo dispositivo">Prova</button>{% endif %}
 </header>
 <main>{% block content %}{% endblock %}</main>
 <footer>HLX Watch v{{ version }} &middot; dati pubblici da SteamTracking/GameTracking-* e Steam PICS &middot; <a href="https://github.com/bryanoberholzer00-bot/hlx-watch/releases/download/android-latest/hlx-watch.apk">app Android (APK)</a></footer>
@@ -82,7 +83,22 @@
     btn.textContent = on ? "🔔 Notifiche attive" : "🔕 Attiva notifiche";
     btn.title = on ? "Ricevi una notifica di sistema per ogni novità rilevante. Clic per disattivarle."
                    : "Ricevi una notifica di sistema per ogni novità rilevante, anche a sito chiuso";
+    testBtn.hidden = !on;
   };
+  // "Prova": il browser genera da solo una notifica, senza passare dal bot né dal servizio push.
+  // Se questa compare e quelle vere no, il problema è nella consegna; se non compare, nel dispositivo.
+  const testBtn = document.getElementById("push-test");
+  testBtn.addEventListener("click", async () => {
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      await reg.showNotification("HLX Watch: prova locale", {
+        body: "Notifica creata dal browser su questo dispositivo, senza passare da internet.",
+        icon: "icon-192.png", badge: "badge-96.png", tag: "hlx-prova-locale", renotify: true,
+      });
+    } catch (err) {
+      alert("Il browser non è riuscito a mostrare la notifica: " + (err && err.message ? err.message : err));
+    }
+  });
   const current = async () => {
     const reg = await navigator.serviceWorker.getRegistration();
     return reg ? reg.pushManager.getSubscription() : null;
