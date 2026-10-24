@@ -10,7 +10,7 @@
  <tr><th>Riga</th><td><code>{{ f.text }}</code></td></tr>
  {% if f.old_text %}<tr><th>Riga precedente</th><td><code>{{ f.old_text }}</code></td></tr>{% endif %}
  <tr><th>Keyword</th><td>{{ f.keywords|join(', ') }}</td></tr>
- <tr><th>Trovata il</th><td>{{ f.created_at|replace('T',' ') }} UTC</td></tr>
+ <tr><th>Trovata il</th><td>{{ f.created_at|local }} ({{ tz_label }})</td></tr>
  {% if f.build_ref %}
  <tr><th>Build / commit</th><td>{% if f.build_url %}<a href="{{ f.build_url }}">{% endif %}<code>{{ f.build_ref }}</code>{% if f.build_url %}</a>{% endif %}
    <br><small class="muted">{{ f.build_date }} &middot; {{ (f.build_message or '')[:200] }}</small></td></tr>

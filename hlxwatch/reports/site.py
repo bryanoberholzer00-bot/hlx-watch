@@ -17,6 +17,7 @@ from hlxwatch.config import Config
 from hlxwatch.dashboard.app import _row, group_rows, timeline_svg
 from hlxwatch.reports.daily import collect_report_data, period_for, render_html
 from hlxwatch.storage import Database
+from hlxwatch.timeutil import local_day, now_local, register_filters, tz_label
 
 log = logging.getLogger(__name__)
 TEMPLATES = Path(__file__).parent / "site_templates"
@@ -31,7 +32,7 @@ def export_findings(db: Database, limit: int = 25000) -> list[dict[str, Any]]:
             "id": item["id"], "score": item["score"], "game": item["game"], "source": item["source"],
             "type": item["change_type"], "token": item.get("token"), "text": (item["text"] or "")[:200],
             "file": item["file_path"], "line": item.get("line_no"), "day": item["day"],
-            "seen": (item.get("created_at") or "")[:10], "new": bool(item["is_new"]),
+            "seen": local_day(item.get("created_at")), "new": bool(item["is_new"]),
             "url": item.get("build_url"), "ref": (item.get("build_ref") or "")[:10], "kw": item["keywords"],
         })
     return out
@@ -69,7 +70,7 @@ def present_groups(db: Database, limit: int = 60) -> list[dict[str, Any]]:
         for game, path, text in g.pop("lines", []):
             fs = db.get_first_seen(game, path, line_hash(text))
             if fs and fs["commit_date"]:
-                dates.append((fs["commit_date"][:10], bool(fs["at_least"])))
+                dates.append((local_day(fs["commit_date"]), bool(fs["at_least"])))
         g["first_seen"] = min(dates) if dates else None
         g["severity"] = "high" if g["score"] >= 100 else "medium" if g["score"] >= 50 else "low"
     return out[:limit]
@@ -80,7 +81,8 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     env = Environment(loader=FileSystemLoader(str(TEMPLATES)), autoescape=select_autoescape(["html"]))
     titles = {g: ("Steam (nuove app)" if g == "steam" else cfg.game_title(g)) for g in db.stats()["games"]}
     env.globals.update(version=__version__, titles=titles,
-                       generated=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"))
+                       generated=f"{now_local().strftime('%Y-%m-%d %H:%M')} ({tz_label()})")
+    register_filters(env)
 
     stats = db.stats()
     analyses = [load_analysis(r) for r in db.analyses(60)]

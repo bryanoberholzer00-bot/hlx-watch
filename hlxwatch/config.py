@@ -123,5 +123,7 @@ def load_config(explicit: str | None = None) -> Config:
     with path.open("r", encoding="utf-8") as fh:
         raw = yaml.safe_load(fh) or {}
     cfg = Config(raw, path)
+    from hlxwatch.timeutil import set_timezone
+    set_timezone(cfg.get("general.timezone"))
     cfg.data_dir.mkdir(parents=True, exist_ok=True)
     return cfg

@@ -12,7 +12,7 @@
   <tr><th>Vista il</th><th>App id</th><th>Nome</th><th>Tipo</th><th>Developer</th><th>Publisher</th><th>Motivo</th></tr>
   {% for a in apps %}
   <tr>
-   <td>{{ a.first_seen[:16]|replace('T',' ') }}</td>
+   <td>{{ a.first_seen|local }}</td>
    <td><a href="https://store.steampowered.com/app/{{ a.appid }}/">{{ a.appid }}</a></td>
    <td>{{ a.name or '(senza nome)' }}</td><td>{{ a.type or '' }}</td>
    <td>{{ a.developer or '' }}</td><td>{{ a.publisher or '' }}</td>

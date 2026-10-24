@@ -15,6 +15,7 @@ from hlxwatch import __version__
 from hlxwatch.config import Config
 from hlxwatch.reports import collect_report_data, period_for, render_html
 from hlxwatch.storage import Database
+from hlxwatch.timeutil import local_day, local_day_bounds_utc, register_filters
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 PER_PAGE = 50
@@ -31,7 +32,7 @@ def _row(row: Any) -> dict[str, Any]:
     score = item.get("score", 0)
     item["severity"] = "high" if score >= 100 else "medium" if score >= 50 else "low"
     # giorno della modifica di Valve (data del commit/build); la scoperta può essere molto dopo (backfill)
-    item["day"] = (item.get("build_date") or item.get("created_at") or "")[:10]
+    item["day"] = local_day(item.get("build_date") or item.get("created_at"))
     return item
 
 
@@ -89,6 +90,7 @@ def timeline_svg(timeline: list[dict[str, Any]], days: int = 90,
 
 def create_app(cfg: Config, db: Database) -> FastAPI:
     templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+    register_filters(templates.env)
     templates.env.globals.update(version=__version__, title_of=cfg.game_title,
                                  change_types=CHANGE_TYPES, sources=SOURCES)
     app = FastAPI(title="HLX Watch", docs_url=None, redoc_url=None)
@@ -113,12 +115,10 @@ def create_app(cfg: Config, db: Database) -> FastAPI:
     def findings(request: Request, q: str = "", game: str = "", source: str = "", change_type: str = "",
                  min_score: int = 0, only_new: int = 0, since: str = "", until: str = "",
                  order: str = "created_at", group: int = 1, page: int = Query(1, ge=1)):
-        from hlxwatch.storage.db import parse_iso
-        since_dt = parse_iso(since + "T00:00:00Z") if since else None
-        until_dt = parse_iso(until + "T00:00:00Z") if until else None
-        if until_dt is not None:
-            from datetime import timedelta
-            until_dt = until_dt + timedelta(days=1)
+        from datetime import date as _date
+        # i filtri sono giorni del calendario locale, il database è in UTC
+        since_dt = local_day_bounds_utc(_date.fromisoformat(since))[0] if since else None
+        until_dt = local_day_bounds_utc(_date.fromisoformat(until))[1] if until else None
         rows = db.search_findings(q=q or None, game=game or None, source=source or None,
                                   change_type=change_type or None, min_score=min_score or None,
                                   only_new=bool(only_new), since=since_dt, until=until_dt,

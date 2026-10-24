@@ -205,7 +205,7 @@ il workflow (GitHub disattiva i cron dopo 60 giorni senza attività). Comandi: `
 Limiti: la pianificazione di GitHub è inaffidabile (i run possono partire con ore di ritardo o essere
 saltati: in pratica se ne ottengono 4-10 al giorno invece di 48). Per questo il workflow usa il comando
 `cron`, che a ogni run manda il report delle ultime 24 ore se non è ancora stato mandato oggi ed è
-passata l'ora in `general.daily_report_time` (UTC). La sorgente dei file locali non è disponibile.
+passata l'ora in `general.daily_report_time` (ora italiana, vedi `general.timezone`). La sorgente dei file locali non è disponibile.
 Per una cadenza esatta serve un servizio esterno che chiami `workflow_dispatch` (es. cron-job.org con
 un token GitHub) oppure un server proprio con `daemon`.
 
@@ -311,7 +311,9 @@ di file giganteschi, `general.notify_min_score` regola quante notifiche ricevi.
   vengono analizzati (viene loggato un avviso). Per i commit di GameTracking è un caso raro.
 - **Libreria `steam`**: usa gevent; per questo gira in un sottoprocesso con timeout. Se l'installazione
   fallisce, il resto funziona e la sorgente Steam viene saltata con un errore nel log.
-- Le date in database e nei report sono in UTC; l'ora del report giornaliero del daemon è locale.
+- Fuso orario: i dati restano in UTC (come GitHub, Steam e i runner di Actions, senza ambiguità con l'ora
+  legale); orari mostrati, giorni dei report e ora del report giornaliero seguono `general.timezone`
+  (default `Europe/Rome`), quindi il report resta alla stessa ora anche al cambio dell'ora.
 
 ## Test
 

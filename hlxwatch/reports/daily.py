@@ -10,6 +10,7 @@ from jinja2 import Environment, select_autoescape
 
 from hlxwatch.config import Config
 from hlxwatch.storage import Database
+from hlxwatch.timeutil import local, local_day, local_day_bounds_utc, now_local, register_filters, tz_label
 
 HTML_TEMPLATE = """<!doctype html>
 <html lang="it"><head><meta charset="utf-8">
@@ -25,7 +26,7 @@ HTML_TEMPLATE = """<!doctype html>
  small{color:#666}
 </style></head><body>
 <h1>HLX Watch &mdash; report {{ data.label }}</h1>
-<p>Periodo: {{ data.start }} &rarr; {{ data.end }} (UTC). Generato il {{ data.generated }}.</p>
+<p>Periodo: {{ data.start }} &rarr; {{ data.end }} ({{ data.tz }}). Generato il {{ data.generated }}.</p>
 <div class="summary">
  <div><b>{{ data.totals.findings }}</b> voci</div>
  <div><b>{{ data.totals.new }}</b> stringhe mai viste</div>
@@ -38,7 +39,7 @@ HTML_TEMPLATE = """<!doctype html>
 {% if game.builds %}
 <h3>Build e commit</h3>
 <ul>{% for b in game.builds %}
- <li>{{ b.date[:16].replace('T',' ') }} &middot; <code>{{ b.ref[:12] }}</code>
+ <li>{{ b.date|local }} &middot; <code>{{ b.ref[:12] }}</code>
  {% if b.url %}<a href="{{ b.url }}">link</a>{% endif %} &middot; {{ b.message or '' }}
  {% if b.steam_buildid %}<small>(buildid {{ b.steam_buildid }})</small>{% endif %}
  &middot; <small>{{ b.n_findings or 0 }} voci</small></li>
@@ -59,14 +60,17 @@ HTML_TEMPLATE = """<!doctype html>
 """
 
 _env = Environment(autoescape=select_autoescape(["html"]))
+register_filters(_env)
 _html_template = _env.from_string(HTML_TEMPLATE)
 
 
 def period_for(day: date | None = None, days: int = 1) -> tuple[datetime, datetime]:
-    """Intervallo [start, end) in UTC che termina alla fine del giorno indicato (default oggi)."""
-    day = day or datetime.now(timezone.utc).date()
-    end = datetime(day.year, day.month, day.day, tzinfo=timezone.utc) + timedelta(days=1)
-    return end - timedelta(days=max(1, days)), end
+    """Intervallo [start, end), espresso in UTC, dei `days` giorni del calendario locale che finiscono con `day`
+    (default oggi): con il fuso Europe/Rome un "giorno" va dalla mezzanotte italiana alla successiva."""
+    day = day or now_local().date()
+    start, _ = local_day_bounds_utc(day - timedelta(days=max(1, days) - 1))
+    _, end = local_day_bounds_utc(day)
+    return start, end
 
 
 def _severity(score: int) -> str:
@@ -130,13 +134,14 @@ def collect_report_data(db: Database, cfg: Config, start: datetime, end: datetim
         ordered.append(g)
     ordered.sort(key=lambda g: (g["max_score"], len(g["findings"])), reverse=True)
 
-    label = start.strftime("%Y-%m-%d") if (end - start) <= timedelta(days=1) \
-        else f"{start.strftime('%Y-%m-%d')} / {(end - timedelta(seconds=1)).strftime('%Y-%m-%d')}"
+    first_day, last_day = local_day(start), local_day(end - timedelta(seconds=1))
+    label = first_day if first_day == last_day else f"{first_day} / {last_day}"
     return {
         "label": label,
-        "start": start.strftime("%Y-%m-%d %H:%M"),
-        "end": end.strftime("%Y-%m-%d %H:%M"),
-        "generated": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "start": local(start),
+        "end": local(end),
+        "generated": now_local().strftime("%Y-%m-%d %H:%M"),
+        "tz": tz_label(),
         "games": ordered,
         "totals": {
             "findings": len(findings),
@@ -153,7 +158,7 @@ def _cell(value: Any) -> str:
 
 def render_markdown(data: dict[str, Any]) -> str:
     out = [f"# HLX Watch \u2014 report {data['label']}", "",
-           f"Periodo: {data['start']} \u2192 {data['end']} (UTC). Generato il {data['generated']}.", "",
+           f"Periodo: {data['start']} \u2192 {data['end']} ({data['tz']}). Generato il {data['generated']}.", "",
            f"**{data['totals']['findings']}** voci, **{data['totals']['new']}** stringhe mai viste, "
            f"**{data['totals']['high']}** ad alta rilevanza, **{data['totals']['builds']}** build/commit.", ""]
     if not data["games"]:
@@ -167,7 +172,7 @@ def render_markdown(data: dict[str, Any]) -> str:
             for b in game["builds"]:
                 link = f" [link]({b['url']})" if b.get("url") else ""
                 buildid = f" (buildid {b['steam_buildid']})" if b.get("steam_buildid") else ""
-                out.append(f"- {b['date'][:16].replace('T', ' ')} `{b['ref'][:12]}`{link} \u2014 "
+                out.append(f"- {local(b['date'])} `{b['ref'][:12]}`{link} \u2014 "
                            f"{_cell(b.get('message'))[:120]}{buildid} \u2014 {b.get('n_findings') or 0} voci")
             out.append("")
         if game["findings"]:
@@ -236,7 +241,7 @@ def generate_report(db: Database, cfg: Config, *, day: date | None = None, days:
         data["label"] = f"ultime {hours} ore"
     out_dir = out_dir or cfg.reports_dir
     out_dir.mkdir(parents=True, exist_ok=True)
-    stem = f"report-{(end - timedelta(seconds=1)).strftime('%Y-%m-%d')}" + (f"-{hours}h" if hours else f"-{days}d" if days > 1 else "")
+    stem = f"report-{local_day(end - timedelta(seconds=1))}" + (f"-{hours}h" if hours else f"-{days}d" if days > 1 else "")
     paths: list[Path] = []
     if fmt in ("md", "both"):
         p = out_dir / f"{stem}.md"

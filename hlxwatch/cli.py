@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import shutil
 import sys
@@ -11,6 +12,7 @@ from pathlib import Path
 from hlxwatch import __version__
 from hlxwatch.config import PACKAGE_ROOT, Config, ConfigError, load_config
 from hlxwatch.logging_setup import setup_logging
+from hlxwatch.timeutil import local_day, now_local
 
 log = logging.getLogger("hlxwatch")
 
@@ -113,7 +115,7 @@ def cmd_cron(args: argparse.Namespace) -> int:
     except Exception:
         log.exception("Report giornaliero fallito")
     # analisi AI: una volta al giorno, nella stessa finestra del report, solo se ci sono novità
-    if datetime.now().strftime("%H:%M") >= report_time:
+    if now_local().strftime("%H:%M") >= report_time:
         try:
             _run_analysis(cfg, db, pipeline.notifiers, force=False, notify=not args.no_notify)
         except Exception:
@@ -203,7 +205,7 @@ def cmd_reevaluate(args: argparse.Namespace) -> int:
             drop.append(r["id"])
         elif res.score != r["score"]:
             db.conn.execute("UPDATE findings SET score = ?, keywords = ?, token = ? WHERE id = ?",
-                            (res.score, __import__("json").dumps(res.keywords), res.token, r["id"]))
+                            (res.score, json.dumps(res.keywords), res.token, r["id"]))
             rescored += 1
     db.conn.executemany("DELETE FROM findings WHERE id = ?", [(i,) for i in drop])
     # app private senza altri segnali, registrate come voci dalle versioni precedenti
@@ -234,7 +236,7 @@ def cmd_search(args: argparse.Namespace) -> int:
         print("Nessun risultato.")
         return 0
     for r in rows:
-        print(f"[{r['score']:3d}] {r['created_at'][:10]} {r['game']:<9} {r['change_type']:<12} "
+        print(f"[{r['score']:3d}] {local_day(r['created_at'])} {r['game']:<9} {r['change_type']:<12} "
               f"{(r['token'] or r['text'])[:60]:<60} {r['file_path'][:50]}")
     return 0
 

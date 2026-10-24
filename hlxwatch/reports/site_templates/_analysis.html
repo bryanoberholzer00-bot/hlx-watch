@@ -8,7 +8,7 @@
 
 {% macro render(a, full=true) %}
 <div class="analysis">
- <p class="muted" style="margin:0 0 .3rem">{{ a.created_at[:16]|replace('T',' ') }} UTC &middot; {{ a.model }}
+ <p class="muted" style="margin:0 0 .3rem">{{ a.created_at|local }} ({{ tz_label }}) &middot; {{ a.model }}
   {% if not a.content.novita_rilevanti %}&middot; giornata senza novità rilevanti{% endif %}</p>
  <h2 style="margin:.2rem 0 .6rem">{{ a.content.titolo }}</h2>
  <p>{{ a.content.sintesi }}</p>

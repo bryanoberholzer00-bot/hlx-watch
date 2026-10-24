@@ -32,7 +32,7 @@
  {% for f in rows %}
  <tr class="{{ f.severity }}">
   <td><span class="badge {{ f.severity }}">{{ f.score }}</span></td>
-  <td>{{ f.day }}{% if f.is_new %}<br><span class="new">nuova</span>{% endif %}<br><small class="muted">vista {{ f.created_at[:10] }}</small></td>
+  <td>{{ f.day }}{% if f.is_new %}<br><span class="new">nuova</span>{% endif %}<br><small class="muted">vista {{ f.created_at|localday }}</small></td>
   <td>{{ title_of(f.game) if f.game != 'steam' else 'Steam' }}<br><small class="muted">{{ f.source }}</small></td>
   <td>{{ f.change_type }}</td>
   <td><a href="/finding/{{ f.id }}"><code>{{ (f.token or f.text)[:80] }}</code></a>

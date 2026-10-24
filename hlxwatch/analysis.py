@@ -17,6 +17,7 @@ from typing import Any
 from hlxwatch.config import Config
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, parse_iso, utcnow
+from hlxwatch.timeutil import local_day
 
 log = logging.getLogger(__name__)
 
@@ -117,7 +118,7 @@ def _evidence(rows: list[dict[str, Any]], start: int, label: str, db: Database |
             g["altri_file"] += 1
             continue
         item = {
-            "gioco": r["game"], "data_modifica": (r.get("build_date") or r["created_at"])[:10],
+            "gioco": r["game"], "data_modifica": local_day(r.get("build_date") or r["created_at"]),
             "tipo": r["change_type"], "punteggio": r["score"], "token": r.get("token"),
             "riga": (r["text"] or "")[:300], "riga_precedente": (r.get("old_text") or "")[:300] or None,
             "file": r["file_path"], "contesto": (r.get("context") or "")[:600] or None,
@@ -126,7 +127,7 @@ def _evidence(rows: list[dict[str, Any]], start: int, label: str, db: Database |
         if r["change_type"] == "present" and db is not None:
             fs = db.get_first_seen(r["game"], r["file_path"], line_hash(r["text"]))
             if fs and fs["commit_date"]:
-                item["prima_comparsa"] = ("almeno dal " if fs["at_least"] else "") + fs["commit_date"][:10]
+                item["prima_comparsa"] = ("almeno dal " if fs["at_least"] else "") + local_day(fs["commit_date"])
                 repo = r.get("build_url", "") or ""
                 base = repo.split("/tree/")[0] if "/tree/" in repo else ""
                 item["commit_prima_comparsa"] = f"{base}/commit/{fs['commit_sha']}" if base else fs["commit_sha"]
@@ -187,7 +188,7 @@ def collect_input(db: Database, since: datetime, max_items: int = 60,
         },
         "storico_alta_rilevanza": history,
         "gia_presenti_nel_contenuto_attuale": present_short[:40],
-        "analisi_precedente": ({"data": previous["created_at"][:10], **json.loads(previous["content"])}
+        "analisi_precedente": ({"data": local_day(previous["created_at"]), **json.loads(previous["content"])}
                                if previous else None),
         "statistiche": db.stats(),
     }
@@ -228,7 +229,8 @@ class Analyzer:
         if not self.enabled():
             log.info("Analisi AI: disattivata o ANTHROPIC_API_KEY assente, salto")
             return None
-        today = utcnow().strftime("%Y-%m-%d")
+        from hlxwatch.timeutil import today_local
+        today = today_local()
         if not force and self.db.get_state("ai:last_day") == today:
             return None
         budget = float(self.acfg.get("monthly_budget_usd", 10))

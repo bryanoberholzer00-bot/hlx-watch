@@ -10,6 +10,7 @@ from hlxwatch.core import Pipeline
 from hlxwatch.notifiers import notify_text
 from hlxwatch.reports import generate_report, summary_text
 from hlxwatch.storage import Database
+from hlxwatch.timeutil import now_local, tz
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ def maybe_daily_report(cfg: Config, db: Database, pipeline: Pipeline, report_tim
 
     Non dipende da un orario preciso: funziona sia nel daemon sia su GitHub Actions, dove i run
     pianificati possono partire con ore di ritardo."""
-    now = datetime.now()
+    now = now_local()
     today = now.strftime("%Y-%m-%d")
     if db.get_state("daemon:last_report_day") == today or now.strftime("%H:%M") < report_time:
         return False
@@ -42,7 +43,7 @@ def run_daemon(cfg: Config, db: Database, pipeline: Pipeline) -> None:
         except Exception:
             log.exception("Scansione fallita, riprovo al prossimo giro")
         next_run = time.time() + interval
-        log.info("Prossima scansione alle %s", datetime.fromtimestamp(next_run).strftime("%H:%M:%S"))
+        log.info("Prossima scansione alle %s", datetime.fromtimestamp(next_run, tz=tz()).strftime("%H:%M:%S"))
         while time.time() < next_run:
             try:
                 maybe_daily_report(cfg, db, pipeline, report_time)

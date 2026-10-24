@@ -15,7 +15,7 @@
  <div class="card"><b>{{ stats.builds }}</b><span>build / commit</span></div>
  <div class="card"><b>{{ stats.steam_builds }}</b><span>build Steam</span></div>
  <div class="card"><b>{{ stats.steam_apps_flagged }}</b><span>app Steam sospette</span></div>
- <div class="card"><b style="font-size:1rem">{{ (stats.last_scan or 'mai')[:16]|replace('T',' ') }}</b><span>ultima scansione (UTC)</span></div>
+ <div class="card"><b style="font-size:1rem">{{ (stats.last_scan or 'mai')|local }}</b><span>ultima scansione ({{ tz_label }})</span></div>
 </div>
 
 <section>
@@ -89,7 +89,7 @@
  <h2 style="margin-top:1.2rem">Ultime build e commit</h2>
  <table>
   {% for b in builds %}
-  <tr><td>{{ b.date[:16]|replace('T',' ') }}</td><td>{{ titles.get(b.game, b.game) }}</td>
+  <tr><td>{{ b.date|local }}</td><td>{{ titles.get(b.game, b.game) }}</td>
       <td>{% if b.url %}<a href="{{ b.url }}">{% endif %}<code>{{ b.ref[:12] }}</code>{% if b.url %}</a>{% endif %} <small class="muted">{{ (b.message or '')[:60] }}</small></td>
       <td>{{ b.n_findings }} voci</td></tr>
   {% endfor %}
@@ -98,7 +98,7 @@
  <h2 style="margin-top:1.2rem">Build Steam (PICS)</h2>
  <table>
   {% for s in steam_builds %}
-  <tr><td>{{ s.first_seen[:10] }}</td><td>{{ titles.get(s.game, s.game) }}</td><td>{{ s.branch }}</td><td><code>{{ s.buildid }}</code></td></tr>
+  <tr><td>{{ s.first_seen|localday }}</td><td>{{ titles.get(s.game, s.game) }}</td><td>{{ s.branch }}</td><td><code>{{ s.buildid }}</code></td></tr>
   {% endfor %}
  </table>
  {% endif %}
@@ -106,7 +106,7 @@
  <h2 style="margin-top:1.2rem">App Steam sospette</h2>
  <table>
   {% for a in apps %}
-  <tr><td>{{ a.first_seen[:10] }}</td><td><a href="https://store.steampowered.com/app/{{ a.appid }}/">{{ a.appid }}</a></td>
+  <tr><td>{{ a.first_seen|localday }}</td><td><a href="https://store.steampowered.com/app/{{ a.appid }}/">{{ a.appid }}</a></td>
       <td>{{ a.name or '(senza nome)' }}</td><td><small class="muted">{{ a.flag_reason }}</small></td></tr>
   {% endfor %}
  </table>

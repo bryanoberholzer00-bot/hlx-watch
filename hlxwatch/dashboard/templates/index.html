@@ -8,7 +8,7 @@
  <div class="card"><b>{{ stats.builds }}</b><span>build / commit</span></div>
  <div class="card"><b>{{ stats.steam_builds }}</b><span>build Steam</span></div>
  <div class="card"><b>{{ stats.steam_apps_flagged }}</b><span>app Steam sospette</span></div>
- <div class="card"><b style="font-size:1rem">{{ (stats.last_scan or 'mai')[:16]|replace('T',' ') }}</b><span>ultima scansione (UTC)</span></div>
+ <div class="card"><b style="font-size:1rem">{{ (stats.last_scan or 'mai')|local }}</b><span>ultima scansione ({{ tz_label }})</span></div>
 </div>
 
 <section>
@@ -43,14 +43,14 @@
   <tr><th>Token</th><th>Max</th><th>Volte</th><th>Giochi</th><th>Prima volta</th></tr>
   {% for t in tokens %}
   <tr><td><a href="/findings?q={{ t.token|urlencode }}"><code>{{ t.token[:60] }}</code></a></td>
-      <td>{{ t.max_score }}</td><td>{{ t.n }}</td><td>{{ t.games }}</td><td>{{ t.first_seen[:10] }}</td></tr>
+      <td>{{ t.max_score }}</td><td>{{ t.n }}</td><td>{{ t.games }}</td><td>{{ t.first_seen|localday }}</td></tr>
   {% endfor %}
  </table>
 
  <h2 style="margin-top:1.2rem">Ultime build e commit</h2>
  <table>
   {% for b in builds %}
-  <tr><td>{{ b.date[:16]|replace('T',' ') }}</td><td>{{ title_of(b.game) if b.game != 'steam' else 'Steam' }}</td>
+  <tr><td>{{ b.date|local }}</td><td>{{ title_of(b.game) if b.game != 'steam' else 'Steam' }}</td>
       <td>{% if b.url %}<a href="{{ b.url }}">{% endif %}<code>{{ b.ref[:12] }}</code>{% if b.url %}</a>{% endif %}
           <small class="muted">{{ (b.message or '')[:70] }}</small></td>
       <td>{{ b.n_findings }} voci</td></tr>
