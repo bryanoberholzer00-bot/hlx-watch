@@ -32,3 +32,13 @@ def test_siblings_are_merged_per_commit():
     assert len(merged.siblings) == 8
     assert "(+8 file)" in finding_line(merged, "markdown")
     assert "(+8 file)" in finding_line(merged, "html")
+
+
+def test_link_labels():
+    from hlxwatch.links import link_label, steam_app_history_url, steam_build_url
+    assert link_label("https://github.com/SteamTracking/GameTracking-CS2/commit/abc") == "commit"
+    assert steam_build_url(26185107) == "https://steamdb.info/patchnotes/26185107/"
+    assert link_label(steam_build_url(26185107)) == "build"
+    assert link_label(steam_app_history_url(570)) == "cronologia"
+    assert link_label("https://store.steampowered.com/app/570/") == "pagina Steam"
+    assert link_label(None) == "fonte"

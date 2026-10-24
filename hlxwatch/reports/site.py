@@ -19,6 +19,7 @@ from hlxwatch.dashboard.app import _row, group_rows, timeline_svg
 from hlxwatch.reports.daily import collect_report_data, period_for, render_html
 from hlxwatch.repos import tracked_repos
 from hlxwatch.storage import Database
+from hlxwatch.links import link_label
 from hlxwatch.timeutil import local_day, now_local, register_filters, tz_label
 
 log = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ def export_findings(db: Database, limit: int = 25000) -> list[dict[str, Any]]:
             "type": item["change_type"], "token": item.get("token"), "text": (item["text"] or "")[:200],
             "file": item["file_path"], "line": item.get("line_no"), "day": item["day"],
             "seen": local_day(item.get("created_at")), "new": bool(item["is_new"]),
-            "url": item.get("build_url"), "ref": (item.get("build_ref") or "")[:10], "kw": item["keywords"],
+            "url": item.get("build_url"), "ul": link_label(item.get("build_url")), "ref": (item.get("build_ref") or "")[:10], "kw": item["keywords"],
         })
     return out
 

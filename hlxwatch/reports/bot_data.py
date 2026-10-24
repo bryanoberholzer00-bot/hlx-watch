@@ -18,6 +18,7 @@ from hlxwatch.repos import followed_repos
 from hlxwatch.storage import Database
 from hlxwatch.health import Health
 from hlxwatch.storage.db import iso, utcnow
+from hlxwatch.links import link_label
 from hlxwatch.timeutil import local, local_day, now_local
 
 INDEX_MIN_SCORE = 40
@@ -36,7 +37,7 @@ def _item(cfg: Config, db: Database, r: dict[str, Any]) -> dict[str, Any]:
     return {
         "s": r["score"], "g": _title(cfg, r["game"]), "t": r["change_type"],
         "k": (r.get("token") or "")[:80], "x": (r.get("text") or "")[:140], "f": (r.get("file_path") or "")[:90],
-        "d": day, "n": int(r.get("dup_count") or 1), "u": r.get("build_url") or "",
+        "d": day, "n": int(r.get("dup_count") or 1), "u": r.get("build_url") or "", "ul": link_label(r.get("build_url")),
     }
 
 

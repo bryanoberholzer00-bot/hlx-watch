@@ -40,7 +40,7 @@ HTML_TEMPLATE = """<!doctype html>
 <h3>Build e commit</h3>
 <ul>{% for b in game.builds %}
  <li>{{ b.date|local }} &middot; <code>{{ b.ref[:12] }}</code>
- {% if b.url %}<a href="{{ b.url }}">link</a>{% endif %} &middot; {{ b.message or '' }}
+ {% if b.url %}<a href="{{ b.url }}">{{ b.url|linklabel }}</a>{% endif %} &middot; {{ b.message or '' }}
  {% if b.steam_buildid %}<small>(buildid {{ b.steam_buildid }})</small>{% endif %}
  &middot; <small>{{ b.n_findings or 0 }} voci</small></li>
 {% endfor %}</ul>{% endif %}
@@ -50,7 +50,7 @@ HTML_TEMPLATE = """<!doctype html>
 {% for f in game.findings %}
 <tr class="{{ f.severity }}"><td>{{ f.score }}</td><td>{{ f.change_type }}</td>
 <td><code>{{ f.token or f.text[:120] }}</code>{% if f.token and f.text != f.token %}<br><small>{{ f.text[:160] }}</small>{% endif %}</td>
-<td>{{ f.file_path }}{% if f.line_no %}:{{ f.line_no }}{% endif %}{% if f.dup_count > 1 %} <small title="{{ f.dup_files|join('&#10;') }}">(+{{ f.dup_count - 1 }} file)</small>{% endif %}{% if f.build_url %} <a href="{{ f.build_url }}">commit</a>{% endif %}</td>
+<td>{{ f.file_path }}{% if f.line_no %}:{{ f.line_no }}{% endif %}{% if f.dup_count > 1 %} <small title="{{ f.dup_files|join('&#10;') }}">(+{{ f.dup_count - 1 }} file)</small>{% endif %}{% if f.build_url %} <a href="{{ f.build_url }}">{{ f.build_url|linklabel }}</a>{% endif %}</td>
 <td>{{ f.keywords|join(', ') }}</td><td>{{ 'sì' if f.is_new else '' }}</td></tr>
 {% endfor %}
 {% if game.n_hidden %}<tr><td colspan="6"><em>&hellip; e altre {{ game.n_hidden }} righe a punteggio pi&ugrave; basso (vedi dashboard)</em></td></tr>{% endif %}

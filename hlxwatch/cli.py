@@ -220,6 +220,12 @@ def cmd_reevaluate(args: argparse.Namespace) -> int:
     db.conn.executemany("DELETE FROM findings WHERE id = ?", [(r["id"],) for r in private])
     db.conn.executemany("DELETE FROM builds WHERE id = ? AND NOT EXISTS (SELECT 1 FROM findings WHERE build_id = ?)",
                         [(r["build_id"], r["build_id"]) for r in private if r["build_id"]])
+    # build Steam registrate con il vecchio link alla pagina del negozio
+    db.conn.execute("UPDATE builds SET url = 'https://steamdb.info/patchnotes/' || steam_buildid || '/' "
+                    "WHERE source = 'steam' AND steam_buildid IS NOT NULL AND url LIKE 'https://store.steampowered.com/%'")
+    db.conn.execute("UPDATE builds SET url = replace(url, 'https://store.steampowered.com/app/', "
+                    "'https://steamdb.info/app/') || 'history/' "
+                    "WHERE source = 'steam' AND ref LIKE 'pics:%' AND url LIKE 'https://store.steampowered.com/app/%'")
     db.conn.commit()
     log.info("Rivalutazione: %d voci esaminate, %d eliminate, %d con punteggio aggiornato, %d app private rimosse",
              len(rows), len(drop), rescored, len(private))

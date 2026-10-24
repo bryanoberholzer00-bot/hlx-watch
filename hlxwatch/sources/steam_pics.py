@@ -9,6 +9,7 @@ import sys
 from datetime import datetime, timezone
 from typing import Any
 
+from hlxwatch.links import steam_app_history_url, steam_build_url
 from hlxwatch.analyzers import KeywordMatcher, analyze_line_sets
 from hlxwatch.config import PACKAGE_ROOT, Config
 from hlxwatch.models import BuildInfo, Finding
@@ -141,7 +142,7 @@ class SteamPicsSource:
             if not self.db.upsert_steam_build(appid, name, branch, buildid, iso(date)):
                 continue
             build = BuildInfo(game=name, source="steam", ref=f"{branch}:{buildid}", date=date,
-                              url=f"https://store.steampowered.com/app/{appid}/",
+                              url=steam_build_url(buildid),
                               message=f"Build {buildid} sul branch '{branch}'", steam_buildid=buildid)
             build_id = self.db.upsert_build(build)
             finding = Finding(
@@ -178,7 +179,7 @@ class SteamPicsSource:
                                         max_findings=self.max_findings)
             if changed:
                 build = BuildInfo(game=name, source="steam", ref=f"pics:{info.get('_change_number', digest[:12])}",
-                                  date=utcnow(), url=f"https://store.steampowered.com/app/{appid}/",
+                                  date=utcnow(), url=steam_app_history_url(appid),
                                   message="Modifica delle informazioni app (PICS)")
                 build_id = self.db.upsert_build(build)
                 for finding in changed:

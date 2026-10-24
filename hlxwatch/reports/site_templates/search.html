@@ -75,7 +75,7 @@ function render() {
     <td><code>${esc((r.token || r.text).slice(0, 80))}</code>${r.token && r.text !== r.token ? `<br><small class="muted">${esc(r.text.slice(0, 120))}</small>` : ""}</td>
     <td><small>${esc(r.file.slice(0, 90))}${r.line ? ":" + r.line : ""}</small>
         ${r.dup > 1 ? `<br><small class="muted" title="${esc(r.files.join("\n"))}">+ altri ${r.dup - 1} file nello stesso commit</small>` : ""}
-        ${r.url ? `<br><a href="${esc(r.url)}"><small>commit ${esc(r.ref.slice(0, 8))}</small></a>` : ""}</td>
+        ${r.url ? `<br><a href="${esc(r.url)}"><small>${esc(r.ul || "commit")}${r.ul === "commit" ? " " + esc(r.ref.slice(0, 8)) : ""}</small></a>` : ""}</td>
     <td><small>${esc((r.kw || []).join(", "))}</small></td>
    </tr>`).join("");
 }

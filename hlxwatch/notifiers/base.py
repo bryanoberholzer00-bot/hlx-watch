@@ -4,6 +4,7 @@ import html
 from dataclasses import dataclass
 from typing import Any
 
+from hlxwatch.links import link_label
 from hlxwatch.config import Config
 from hlxwatch.models import Finding
 
@@ -71,11 +72,11 @@ def finding_line(finding: Finding, style: str) -> str:
         line = (f"{icon} <b>[{finding.score}]</b> <code>{html.escape(label)}</code> "
                 f"— {html.escape(where)} ({finding.change_type})")
         if url:
-            line += f' <a href="{html.escape(url, quote=True)}">link</a>'
+            line += f' <a href="{html.escape(url, quote=True)}">{link_label(url)}</a>'
         return line
     line = f"{icon} **[{finding.score}]** `{label}` — {where} ({finding.change_type})"
     if url:
-        line += f" [link]({url})"
+        line += f" [{link_label(url)}]({url})"
     return line
 
 

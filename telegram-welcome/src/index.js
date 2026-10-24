@@ -27,7 +27,7 @@ function line(item) {
   const label = esc(String(present ? item.x : (item.k || item.x)).slice(0, 110));
   const detail = !present && item.k && item.x && item.x !== item.k ? `\n<i>${esc(String(item.x).slice(0, 110))}</i>` : "";
   const more = item.n > 1 ? ` (+${item.n - 1} file)` : "";
-  const link = item.u ? ` <a href="${esc(item.u)}">${present ? "fonte" : "commit"}</a>` : "";
+  const link = item.u ? ` <a href="${esc(item.u)}">${esc(item.ul || (present ? "fonte" : "commit"))}</a>` : "";
   const kind = present ? "già presente" : item.t;
   return `${dot(item.s)} <b>[${item.s}]</b> ${esc(item.d)} · ${esc(item.g)} · ${esc(kind)}\n` +
     `<code>${label}</code>${detail}\n${esc(item.f)}${more}${link}`;

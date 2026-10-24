@@ -81,3 +81,5 @@ def register_filters(env) -> None:
     env.filters["local"] = local
     env.filters["localday"] = local_day
     env.globals["tz_label"] = tz_label()
+    from hlxwatch.links import link_label
+    env.filters["linklabel"] = link_label
