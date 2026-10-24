@@ -25,7 +25,8 @@ github:
   # estensioni considerate "testo" per il diff manuale quando GitHub non fornisce la patch
   text_extensions: [".txt", ".vdf", ".fgd", ".cfg", ".res", ".json", ".xml", ".kv3", ".vmt", ".md",
                     ".vcfg", ".vpc", ".ini", ".lua", ".nut", ".proto", ".csv", ".h", ".gi", ".vdata",
-                    ".vsndevts", ".vpdi", ".vmap", ".vmdl", ".vmat", ".vpcf", ".vents", ".vsmart", ".vcompmat"]
+                    ".vsndevts", ".vpdi", ".vmap", ".vmdl", ".vmat", ".vpcf", ".vents", ".vsmart", ".vcompmat",
+                    ".stringsignore"]
   ignore_path_patterns: []               # regex sui percorsi da ignorare, es. ["^Protobufs/"]
   # NOTA: l'organizzazione GitHub si chiamava SteamDatabase, ora è SteamTracking (il vecchio nome fa redirect)
   repos:
