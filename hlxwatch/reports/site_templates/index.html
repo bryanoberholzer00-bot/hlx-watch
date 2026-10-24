@@ -50,13 +50,14 @@
  Erano già lì prima dell'inizio dell'archivio: le liste qui sopra mostrano solo i cambiamenti.
  <a href="search.html?type=present">Vedi tutte</a></p>
  <table>
-  <tr><th>Punti</th><th>Cartella</th><th>Giochi</th><th>File</th><th>Esempio</th></tr>
+  <tr><th>Punti</th><th>Cartella</th><th>Giochi</th><th>File</th><th>Prima comparsa</th><th>Esempio</th></tr>
   {% for g in present %}
   <tr class="{{ g.severity }}">
    <td><span class="badge {{ g.severity }}">{{ g.score }}</span></td>
    <td><small>{{ g.folder }}</small><br><small class="muted">{{ g.keyword }}</small></td>
    <td><small>{% for x in g.games %}{{ titles.get(x, x) }}{% if not loop.last %}, {% endif %}{% endfor %}</small></td>
    <td>{{ g.n_files }}</td>
+   <td><small>{% if g.first_seen %}{% if g.first_seen[1] %}almeno dal {% endif %}{{ g.first_seen[0] }}{% else %}<span class="muted">in calcolo</span>{% endif %}</small></td>
    <td><code>{{ g.example.text[:110] }}</code><br><small class="muted">{{ g.example.file_path[-80:] }}{% if g.example.line_no %}:{{ g.example.line_no }}{% endif %}</small></td>
   </tr>
   {% endfor %}

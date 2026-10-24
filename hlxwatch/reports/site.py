@@ -56,12 +56,21 @@ def present_groups(db: Database, limit: int = 60) -> list[dict[str, Any]]:
         g["games"].add(r["game"])
         g["count"] += 1
         g["files"].add(r["file_path"])
+        g.setdefault("lines", []).append((r["game"], r["file_path"], r["text"]))
         if r["score"] > g["score"]:
             g["score"], g["example"] = r["score"], r
     out = sorted(groups.values(), key=lambda g: (-g["score"], -len(g["games"]), g["folder"]))
     for g in out:
         g["games"] = sorted(g["games"])
         g["n_files"] = len(g["files"])
+        # prima comparsa del gruppo: la data più vecchia tra le righe già datate
+        from hlxwatch.sources.first_seen import line_hash
+        dates = []
+        for game, path, text in g.pop("lines", []):
+            fs = db.get_first_seen(game, path, line_hash(text))
+            if fs and fs["commit_date"]:
+                dates.append((fs["commit_date"][:10], bool(fs["at_least"])))
+        g["first_seen"] = min(dates) if dates else None
         g["severity"] = "high" if g["score"] >= 100 else "medium" if g["score"] >= 50 else "low"
     return out[:limit]
 

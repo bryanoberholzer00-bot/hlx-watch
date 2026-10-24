@@ -85,6 +85,12 @@ class Pipeline:
             except Exception as exc:
                 log.exception("Scansione completa fallita")
                 result.errors.append(f"fullscan: {exc}")
+            try:
+                from hlxwatch.sources.first_seen import FirstSeenResolver
+                FirstSeenResolver(self.cfg, self.db, client=self.github.client).run()
+            except Exception as exc:
+                log.exception("Ricerca della prima comparsa fallita")
+                result.errors.append(f"first_seen: {exc}")
 
         result.alerts = self.select_alerts(result.findings)
         if result.alerts:

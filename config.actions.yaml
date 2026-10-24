@@ -74,6 +74,12 @@ ai:
   effort: high                           # profondità del ragionamento di Claude Opus 5.5
   monthly_budget_usd: 10                 # oltre questa spesa nel mese le analisi si fermano
   max_items: 60                          # novità passate al modello per ogni analisi
+  generic_keywords: [npc, vehicle, weather, physics, half_life]   # voci fatte solo di queste: escluse (sotto 100 punti)
+
+first_seen:
+  enabled: true                          # data di prima comparsa delle voci "già presenti" (storia dei file su GitHub)
+  max_downloads_per_run: 60              # versioni di file scaricate per run: il lavoro si completa in più run
+  max_commit_pages: 20                   # fino a 2000 commit di storia per file
 
 full_scan:
   enabled: true

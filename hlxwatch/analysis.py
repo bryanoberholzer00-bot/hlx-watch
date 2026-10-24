@@ -43,7 +43,9 @@ che "sparisce" dal dump delle stringhe e "compare" negli schemi è uno spostamen
 Valve); voci rimaste da progetti chiusi o già usciti (Half-Life: Alyx è uscito nel 2020, Left 4 Dead 3 è noto \
 dal 2015); sistemi del motore condiviso che non appartengono a un gioco specifico. Se le novità non dicono \
 nulla di nuovo su HLX, dillo chiaramente e imposta novita_rilevanti a false: un giorno tranquillo è un esito \
-normale. Non inventare fatti, date o nomi che non sono nei dati."""
+normale. Non inventare fatti, date o nomi che non sono nei dati.
+
+Per le voci già presenti nel contenuto attuale, il campo prima_comparsa è la data del primo commit di \nSteamTracking in cui quella riga compare nel file; \"almeno dal\" significa che c'era già quando il \nrepository ha iniziato a tracciare il file, quindi può essere più vecchia."""
 
 OUTPUT_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -85,23 +87,53 @@ OUTPUT_SCHEMA: dict[str, Any] = {
 
 
 # --------------------------------------------------------------------- dati
-def _evidence(rows: list[Any], start: int, label: str) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
+DEFAULT_GENERIC = ["npc", "vehicle", "weather", "physics", "half_life"]
+
+
+def _key(r: dict[str, Any]) -> tuple[Any, ...]:
+    return ((r.get("token") or r["text"]).lower(), r.get("build_id"), r["change_type"])
+
+
+def is_generic(row: dict[str, Any], generic: set[str]) -> bool:
+    """Voce fatta solo di parole generiche (npc_, vehicle_, phys_...): rumore per l'analisi, salvo punteggi alti."""
+    try:
+        kws = json.loads(row.get("keywords") or "[]")
+    except (TypeError, json.JSONDecodeError):
+        kws = []
+    return row["score"] < 100 and bool(kws) and all(k in generic for k in kws)
+
+
+def _evidence(rows: list[dict[str, Any]], start: int, label: str, db: Database | None = None,
+              skip: set[tuple[Any, ...]] | None = None) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
     """Raggruppa per token+commit+tipo e assegna gli identificativi E1, E2... (ritorna elenco e mappa id->voce)."""
+    from hlxwatch.sources.first_seen import line_hash
     grouped: dict[tuple[Any, ...], dict[str, Any]] = {}
     for r in rows:
-        r = dict(r)
-        key = ((r.get("token") or r["text"]).lower(), r.get("build_id"), r["change_type"])
+        key = _key(r)
+        if skip and key in skip:
+            continue
         g = grouped.get(key)
         if g:
             g["altri_file"] += 1
             continue
-        grouped[key] = {
+        item = {
             "gioco": r["game"], "data_modifica": (r.get("build_date") or r["created_at"])[:10],
             "tipo": r["change_type"], "punteggio": r["score"], "token": r.get("token"),
             "riga": (r["text"] or "")[:300], "riga_precedente": (r.get("old_text") or "")[:300] or None,
             "file": r["file_path"], "contesto": (r.get("context") or "")[:600] or None,
-            "commit": r.get("build_url"), "altri_file": 0, "sezione": label,
+            "commit": r.get("build_url"), "altri_file": 0, "sezione": label, "_key": key,
         }
+        if r["change_type"] == "present" and db is not None:
+            fs = db.get_first_seen(r["game"], r["file_path"], line_hash(r["text"]))
+            if fs and fs["commit_date"]:
+                item["prima_comparsa"] = ("almeno dal " if fs["at_least"] else "") + fs["commit_date"][:10]
+                repo = r.get("build_url", "") or ""
+                base = repo.split("/tree/")[0] if "/tree/" in repo else ""
+                item["commit_prima_comparsa"] = f"{base}/commit/{fs['commit_sha']}" if base else fs["commit_sha"]
+            else:
+                item["prima_comparsa"] = "non ancora determinata"
+            item["data_modifica"] = None     # per le voci già presenti conta la prima comparsa, non la scansione
+        grouped[key] = item
     out, by_id = [], {}
     for i, item in enumerate(grouped.values(), start=start):
         item = {"id": f"E{i}", **item}
@@ -110,31 +142,49 @@ def _evidence(rows: list[Any], start: int, label: str) -> tuple[list[dict[str, A
     return out, by_id
 
 
-def collect_input(db: Database, since: datetime, max_items: int = 60) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
-    recent_rows = db.search_findings(since=since, min_score=50, limit=2000, order="score",
-                                     exclude_change_type=("baseline", "present"))
-    recent, ids = _evidence(list(recent_rows)[:max_items * 4], 1, "novità")
+def collect_input(db: Database, since: datetime, max_items: int = 60,
+                  generic: list[str] | None = None) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+    generic_set = set(generic if generic is not None else DEFAULT_GENERIC)
+    recent_rows = [dict(r) for r in db.search_findings(since=since, min_score=50, limit=5000, order="score",
+                                                        exclude_change_type=("baseline", "present"))]
+    noise = [r for r in recent_rows if is_generic(r, generic_set)]
+    recent, ids = _evidence([r for r in recent_rows if not is_generic(r, generic_set)], 1, "novità")
     recent = recent[:max_items]
-    history_rows = db.search_findings(min_score=100, limit=500, order="created_at",
-                                      exclude_change_type=("baseline", "present"))
-    history, ids2 = _evidence(list(history_rows), len(recent) + 1, "storico")
-    history = [h for h in history if h["id"] not in {r["id"] for r in recent}][:40]
-    present_rows = db.search_findings(change_type="present", min_score=90, limit=2000, order="score")
-    present, ids3 = _evidence(list(present_rows), len(recent) + len(history) + 1, "già presenti")
+    recent_keys = {e["_key"] for e in recent}
+    history_rows = [dict(r) for r in db.search_findings(min_score=100, limit=500, order="created_at",
+                                                         exclude_change_type=("baseline", "present"))]
+    history, ids2 = _evidence(history_rows, len(recent) + 1, "storico", skip=recent_keys)
+    history = history[:40]
+    present_rows = [dict(r) for r in db.search_findings(change_type="present", min_score=90, limit=2000, order="score")]
+    present, ids3 = _evidence(present_rows, len(recent) + len(history) + 1, "già presenti", db=db)
     # le centinaia di righe quasi identiche (es. file di animazione) bastano poche volte
     seen_folders: dict[str, int] = {}
     present_short = []
-    for p in present:
-        folder = "/".join(p["file"].split("/")[:3])
+    for item in present:
+        folder = "/".join(item["file"].split("/")[:3])
         seen_folders[folder] = seen_folders.get(folder, 0) + 1
         if seen_folders[folder] <= 3:
-            present_short.append(p)
+            present_short.append(item)
     ids.update(ids2)
     ids.update(ids3)
+    for collection in (recent, history, present_short):
+        for item in collection:
+            item.pop("_key", None)
+    # riassunto del rumore escluso, perché il modello sappia che c'è senza sprecarci spazio
+    noise_summary: dict[str, int] = {}
+    for r in noise:
+        label = f"{r['game']}: {'/'.join(r['file_path'].split('/')[:4])}"
+        noise_summary[label] = noise_summary.get(label, 0) + 1
     previous = db.latest_analysis()
     data = {
         "periodo": {"dal": iso(since), "al": iso(utcnow())},
         "novita": recent,
+        "rumore_generico_escluso": {
+            "spiegazione": "voci con sole parole generiche (npc_, vehicle_, phys_, meteo, half-life generico) "
+                           "e punteggio sotto 100, non incluse una per una",
+            "totale": len(noise),
+            "per_cartella": dict(sorted(noise_summary.items(), key=lambda kv: -kv[1])[:15]),
+        },
         "storico_alta_rilevanza": history,
         "gia_presenti_nel_contenuto_attuale": present_short[:40],
         "analisi_precedente": ({"data": previous["created_at"][:10], **json.loads(previous["content"])}
@@ -194,7 +244,8 @@ class Analyzer:
             since = parse_iso(previous["period_end"]) or utcnow() - timedelta(days=1)
         else:
             since = utcnow() - timedelta(days=3650)       # prima analisi: tutto l'archivio
-        data, ids = collect_input(self.db, since, int(self.acfg.get("max_items", 60)))
+        data, ids = collect_input(self.db, since, int(self.acfg.get("max_items", 60)),
+                                  self.acfg.get("generic_keywords"))
         if not data["novita"] and previous and not force:
             log.info("Analisi AI: nessuna novità sopra 50 punti dall'ultima analisi, salto (nessun costo)")
             self.db.set_state("ai:last_day", today)
@@ -228,8 +279,9 @@ class Analyzer:
             log.error("Analisi AI: risposta non in JSON (stop_reason=%s)", response.stop_reason)
             self.db.add_analysis(MODEL, iso(since), iso(utcnow()), None, cost, response.usage, error="json")
             return None
-        content["evidenze"] = {k: {"gioco": v["gioco"], "data": v["data_modifica"], "token": v["token"],
-                                   "riga": v["riga"][:160], "file": v["file"], "commit": v["commit"]}
+        content["evidenze"] = {k: {"gioco": v["gioco"], "data": v.get("data_modifica") or v.get("prima_comparsa"),
+                                   "token": v["token"], "riga": v["riga"][:160], "file": v["file"],
+                                   "commit": v.get("commit_prima_comparsa") or v["commit"]}
                                for k, v in ids.items() if k in _cited(content)}
         served_by = getattr(response, "model", MODEL)
         self.db.add_analysis(served_by, iso(since), iso(utcnow()), content, cost, response.usage)

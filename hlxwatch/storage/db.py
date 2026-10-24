@@ -93,6 +93,19 @@ CREATE TABLE IF NOT EXISTS steam_builds (
     UNIQUE(appid, branch, buildid)
 );
 
+CREATE TABLE IF NOT EXISTS first_seen (
+    game        TEXT NOT NULL,
+    file_path   TEXT NOT NULL,
+    line_hash   TEXT NOT NULL,
+    text        TEXT,
+    commit_sha  TEXT,
+    commit_date TEXT,
+    at_least    INTEGER NOT NULL DEFAULT 0,
+    unresolved  INTEGER NOT NULL DEFAULT 0,
+    checked_at  TEXT NOT NULL,
+    PRIMARY KEY (game, file_path, line_hash)
+);
+
 CREATE TABLE IF NOT EXISTS ai_analyses (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at    TEXT NOT NULL,
@@ -464,6 +477,37 @@ class Database:
         params.append(limit)
         with self._lock:
             return self.conn.execute(sql, params).fetchall()
+
+    # -------------------------------------------------------- prima comparsa
+    def set_first_seen(self, game: str, file_path: str, lhash: str, text: str, sha: str | None, date: str | None,
+                       at_least: bool, unresolved: bool = False) -> None:
+        with self._lock:
+            self.conn.execute(
+                "INSERT INTO first_seen(game, file_path, line_hash, text, commit_sha, commit_date, at_least, unresolved, "
+                "checked_at) VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(game, file_path, line_hash) DO UPDATE SET "
+                "commit_sha = excluded.commit_sha, commit_date = excluded.commit_date, at_least = excluded.at_least, "
+                "unresolved = excluded.unresolved, checked_at = excluded.checked_at",
+                (game, file_path, lhash, text[:2000], sha, date, int(at_least), int(unresolved), iso(utcnow())),
+            )
+            self.conn.commit()
+
+    def get_first_seen(self, game: str, file_path: str, lhash: str) -> sqlite3.Row | None:
+        with self._lock:
+            return self.conn.execute(
+                "SELECT * FROM first_seen WHERE game = ? AND file_path = ? AND line_hash = ?",
+                (game, file_path, lhash)).fetchone()
+
+    def present_without_first_seen(self, limit: int = 500) -> list[sqlite3.Row]:
+        """Occorrenze 'present' ancora senza data, dalle più rilevanti."""
+        from hlxwatch.sources.first_seen import line_hash
+        with self._lock:
+            rows = self.conn.execute(
+                "SELECT game, file_path, text, MAX(score) AS score FROM findings WHERE change_type = 'present' "
+                "GROUP BY game, file_path, text ORDER BY score DESC").fetchall()
+            done = {(r[0], r[1], r[2]) for r in self.conn.execute(
+                "SELECT game, file_path, line_hash FROM first_seen").fetchall()}
+        out = [r for r in rows if (r["game"], r["file_path"], line_hash(r["text"])) not in done]
+        return out[:limit]
 
     # ------------------------------------------------------------ analisi AI
     def add_analysis(self, model: str, period_start: str | None, period_end: str | None, content: Any,
