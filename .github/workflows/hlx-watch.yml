@@ -41,7 +41,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write    # per salvare l'archivio nel ramo data
   actions: write     # per salvare/ripristinare la cache del database
   pages: write       # per pubblicare la dashboard statica su GitHub Pages
   id-token: write
@@ -77,8 +77,20 @@ jobs:
           key: hlxwatch-db-${{ github.run_id }}
           restore-keys: hlxwatch-db-
 
+      - name: Ripristina dal ramo data se la cache è sparita
+        id: datarestore
+        if: steps.db.outputs.cache-matched-key == ''
+        run: |
+          if git fetch --quiet --depth 1 origin data 2>/dev/null; then
+            git show FETCH_HEAD:hlxwatch.sqlite.gz > "$RUNNER_TEMP/hlxwatch.sqlite.gz"
+            python -m hlxwatch restore "$RUNNER_TEMP/hlxwatch.sqlite.gz"
+            echo "restored=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Ramo data non ancora presente: si parte dal backfill"
+          fi
+
       - name: Backfill iniziale (solo se il database non esiste o se richiesto a mano)
-        if: steps.db.outputs.cache-matched-key == '' || (github.event_name == 'workflow_dispatch' && github.event.inputs.backfill_months != '0')
+        if: (steps.db.outputs.cache-matched-key == '' && steps.datarestore.outputs.restored != 'true') || (github.event_name == 'workflow_dispatch' && github.event.inputs.backfill_months != '0')
         run: |
           MONTHS="${{ github.event.inputs.backfill_months || '6' }}"
           if [ "$MONTHS" = "0" ]; then MONTHS=6; fi
@@ -122,6 +134,18 @@ jobs:
 
       - name: Genera la dashboard statica
         run: python -m hlxwatch site --out site
+
+      - name: "Salva l'archivio nel ramo data (copia permanente, tiene attivo il workflow)"
+        if: always() && hashFiles('data/hlxwatch.sqlite') != ''
+        run: |
+          OUT="$RUNNER_TEMP/databranch"
+          rm -rf "$OUT"
+          python -m hlxwatch export --out "$OUT"             --repo-url "https://github.com/${{ github.repository }}"             --site-url "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          cd "$OUT"
+          git init --quiet -b data
+          git add -A
+          git -c user.name="hlx-watch[bot]" -c user.email="hlx-watch@users.noreply.github.com"             commit --quiet -m "Archivio HLX Watch $(date -u +'%Y-%m-%d %H:%M') UTC"
+          git push --quiet --force "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" data
 
       - uses: actions/upload-pages-artifact@v3
         with:

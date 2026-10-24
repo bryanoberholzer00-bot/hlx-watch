@@ -196,6 +196,12 @@ del run: scaricalo in `data/hlxwatch.sqlite` per sfogliarlo con la dashboard loc
    `https://<utente>.github.io/hlx-watch/`. GitHub Pages è gratis solo sui repository pubblici, e il
    sito è comunque visibile a chiunque abbia il link.
 
+Archivio permanente: a ogni run il workflow esporta il database (copia coerente, compressa) e un CSV
+di tutte le voci nel ramo `data` del repository, con un solo commit riscritto ogni volta. Se la cache di
+Actions sparisce, il run successivo riparte da lì invece di rifare il backfill; il push tiene anche attivo
+il workflow (GitHub disattiva i cron dopo 60 giorni senza attività). Comandi: `export --out cartella`,
+`restore file.sqlite.gz`. La metodologia completa è pubblicata sul sito in `metodologia.html`.
+
 Limiti: la pianificazione di GitHub è inaffidabile (i run possono partire con ore di ritardo o essere
 saltati: in pratica se ne ottengono 4-10 al giorno invece di 48). Per questo il workflow usa il comando
 `cron`, che a ogni run manda il report delle ultime 24 ore se non è ancora stato mandato oggi ed è

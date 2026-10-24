@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Metodologia - HLX Watch{% endblock %}
+{% block content %}
+<h1>Metodologia</h1>
+
+<section>
+ <h2>In breve</h2>
+ <p>HLX Watch sorveglia dati <b>pubblici</b> dei giochi Valve su Source 2 e registra ogni riga che contiene
+ riferimenti a HLX (il presunto nome in codice di Half-Life 3) o ad altri progetti non annunciati. Ogni voce
+ porta alla sua fonte: il commit di SteamTracking da cui proviene, il file e la riga. Lo strumento non usa
+ account, depot privati né scraping di siti terzi, e non interpreta i dati da solo: le interpretazioni stanno
+ solo nell'<a href="analisi.html">analisi AI</a>, separate dai fatti.</p>
+ <p class="muted">Questa pagina è generata dalla stessa configurazione che usa lo strumento, quindi pesi e
+ soglie qui sotto sono quelli realmente applicati. Aggiornata {{ generated }}.</p>
+</section>
+
+<section>
+ <h2>Fonti</h2>
+ <table>
+  <tr><th>Fonte</th><th>Cosa contiene</th><th>Come viene letta</th></tr>
+  {% for r in repos %}
+  <tr><td><a href="https://github.com/{{ r.repo }}">{{ r.repo }}</a></td><td>{{ r.title }}{% if r.ignore_keywords %} <small class="muted">(ignorate: {{ r.ignore_keywords|join(', ') }})</small>{% endif %}</td>
+      <td><small>diff di ogni commit + scansione completa giornaliera</small></td></tr>
+  {% endfor %}
+  <tr><td>Steam PICS (login anonimo)</td><td>build per branch, depot, metadati di {{ steam_apps|join(', ') }}; elenco delle app cambiate</td><td><small>a ogni run</small></td></tr>
+  <tr><td>Steam Web API</td><td>elenco completo delle app, per riconoscere quelle nuove</td><td><small>una volta al giorno</small></td></tr>
+ </table>
+ <p class="muted">I repository SteamTracking contengono file estratti dai giochi e dump generati da strumenti
+ (stringhe dei binari, schemi del motore, ConVar). HLX Watch è quindi una fonte <b>secondaria</b>: dipende da
+ come SteamTracking estrae i dati, e un cambio di formato dei dump può far "comparire" o "sparire" righe che
+ Valve non ha toccato.</p>
+</section>
+
+<section>
+ <h2>Come vengono trovate le voci</h2>
+ <ol>
+  <li><b>Monitoraggio dei commit.</b> Per ogni commit nuovo lo strumento legge la patch di ogni file; se GitHub
+  non la fornisce (file troppo grandi) scarica le due versioni e le confronta. Le righe aggiunte, rimosse o
+  modificate che contengono una parola chiave diventano voci. Limite: l'API di GitHub espone al massimo 3000
+  file per commit.</li>
+  <li><b>Scansione completa</b> (ogni {{ full_scan.interval_hours }} ore). L'ultima versione di ogni repository viene
+  scaricata senza storia e cercata per intero, compresi i file che la ricerca di GitHub non indicizza e quelli
+  tagliati dal limite dei 3000 file. Prefiltro: <code>{{ full_scan.prefilter }}</code>; soglia {{ full_scan.min_score }} punti.</li>
+  <li><b>Prima comparsa.</b> Per le voci trovate dalla scansione completa, lo strumento ripercorre la storia del
+  file e cerca per bisezione il primo commit in cui la riga compare.</li>
+  <li><b>Steam.</b> Nuove build per branch e app nuove con developer/publisher Valve, nome sospetto o parole chiave.</li>
+ </ol>
+</section>
+
+<section>
+ <h2>Parole chiave e punteggio</h2>
+ <p>Punteggio di una riga = peso della parola chiave più forte + 25% dei pesi delle altre + bonus, fino a 250.
+ Rilevanza <b>alta</b> da {{ severity.high }} punti, <b>media</b> da {{ severity.medium }}. Le notifiche partono per righe
+ <b>mai viste prima</b> con almeno {{ notify_min_score }} punti.</p>
+ <table>
+  <tr><th>Id</th><th>Peso</th><th>Espressione (senza distinzione maiuscole)</th><th>Note</th></tr>
+  {% for k in keywords|sort(attribute='weight', reverse=true) %}
+  <tr><td><code>{{ k.id }}</code></td><td>{{ k.weight }}</td><td><code>{{ k.pattern }}</code></td>
+      <td><small>{{ k.description or '' }}{% if k.excludes %}<br>esclusa se la riga contiene: {{ k.excludes|join(', ') }}{% endif %}</small></td></tr>
+  {% endfor %}
+  {% for c in codenames %}<tr><td><code>codename:{{ c }}</code></td><td>{{ codename_weight }}</td><td><code>{{ c }}</code> come parola intera</td><td><small>nome in codice sorvegliato</small></td></tr>{% endfor %}
+ </table>
+ <h3>Bonus</h3>
+ <table>
+  {% for name, value in bonuses.items() %}<tr><td><code>{{ name }}</code></td><td>+{{ value }}</td></tr>{% endfor %}
+ </table>
+ <h3>Filtri contro i falsi positivi</h3>
+ <ul>
+  <li>Righe che contengono {{ global_excludes|join(', ') }} (nome in codice di Deadlock) scartate, salvo match ad alta rilevanza.</li>
+  <li>Corrispondenze con maiuscole miste (<code>hLX</code>, <code>HLx</code>): sequenze casuali nei dump binari, scartate.</li>
+  <li>Frammenti binari: righe con poche lettere o piene di simboli e sequenze di escape, scartate sotto i {{ severity.high }} punti.</li>
+  <li>Le regole correnti vengono riapplicate a tutto l'archivio a ogni run: una modifica alle regole pulisce anche lo storico.</li>
+ </ul>
+</section>
+
+<section>
+ <h2>Significato dei campi</h2>
+ <table>
+  <tr><th>Tipo</th><th>Significato</th></tr>
+  <tr><td><code>added</code> / <code>removed</code></td><td>riga aggiunta o tolta in un commit</td></tr>
+  <tr><td><code>changed</code></td><td>riga modificata: si vedono la versione nuova e la precedente</td></tr>
+  <tr><td><code>file_added</code> / <code>file_removed</code> / <code>file_renamed</code></td><td>il percorso stesso del file contiene una parola chiave</td></tr>
+  <tr><td><code>present</code></td><td>trovata dalla scansione completa: c'era già, non è una modifica recente</td></tr>
+  <tr><td><code>build</code></td><td>nuova build Steam su un branch</td></tr>
+  <tr><td><code>new_app</code></td><td>nuova app Steam con un segnale (Valve, nome sospetto, parole chiave)</td></tr>
+ </table>
+ <ul>
+  <li><b>Data modifica</b>: data del commit di SteamTracking, cioè di quando il dato è cambiato nei file del gioco. <b>Vista il</b>: quando lo strumento l'ha registrata (diversa per l'archivio storico).</li>
+  <li><b>Prima comparsa</b>: primo commit in cui la riga compare nel file. <b>"Almeno dal"</b>: la riga c'era già quando SteamTracking ha iniziato a tracciare quel file, quindi può essere più vecchia.</li>
+  <li><b>Nuova</b>: la stringa (o il suo identificatore) non era mai stata vista prima nell'archivio.</li>
+  <li><b>+ altri N file</b>: la stessa riga è cambiata in più file dello stesso commit (tipico dei dump di più eseguibili): conta come un'unica modifica.</li>
+ </ul>
+</section>
+
+<section>
+ <h2>Limiti noti</h2>
+ <ul>
+  <li><b>Ritardo</b>: i run sono pianificati ogni 30 minuti, ma GitHub li avvia in modo irregolare; una scoperta può arrivare con ore di ritardo rispetto al commit.</li>
+  <li><b>Parole chiave</b>: si trova solo ciò che corrisponde all'elenco qui sopra. Un progetto con un nome in codice nuovo passa inosservato finché non viene aggiunto.</li>
+  <li><b>Formato dei dump</b>: SteamTracking cambia talvolta come estrae i dati (per esempio dal 13 ottobre 2026 molte stringhe già note sono filtrate dai dump dei binari). Spostamenti tra file non sono modifiche di Valve.</li>
+  <li><b>Codice condiviso</b>: Source 2 è un motore comune; la stessa modifica compare in più giochi man mano che vengono aggiornati e va contata una volta sola.</li>
+  <li><b>Deadlock su Steam</b>: in accesso anonimo le sue build non sono visibili; il gioco è coperto dal suo repository.</li>
+  <li><b>Analisi AI</b>: generata da {{ ai_model }} sui dati raccolti. I fatti rimandano alle prove, le ipotesi sono interpretazioni e possono essere sbagliate.</li>
+ </ul>
+</section>
+
+<section>
+ <h2>Dati e citazioni</h2>
+ <ul>
+  <li><b>Archivio completo</b>, aggiornato a ogni run: <a href="{{ repo_url }}/tree/data">ramo <code>data</code> del repository</a>
+   con il database SQLite compresso (<a href="{{ repo_url }}/raw/data/hlxwatch.sqlite.gz">hlxwatch.sqlite.gz</a>) e il CSV di tutte le voci
+   (<a href="{{ repo_url }}/raw/data/findings.csv">findings.csv</a>).</li>
+  <li><b>JSON</b> usato dalla ricerca del sito: <a href="findings.json">findings.json</a>.</li>
+  <li><b>Codice</b> dello strumento: <a href="{{ repo_url }}">{{ repo_url }}</a>.</li>
+ </ul>
+ <p>Per citare una voce, la fonte primaria è il commit di SteamTracking (link "commit" accanto a ogni voce) con file e
+ riga, non questo sito: per esempio <i>SteamTracking/GameTracking-CS2, commit 0214b1f4, DumpSource2/schemas/particles/C_OP_RenderSprites.h:4280</i>.</p>
+</section>
+{% endblock %}

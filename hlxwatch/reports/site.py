@@ -97,6 +97,15 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
         analysis=analyses[0] if analyses else None,
     )
     (out_dir / "index.html").write_text(index_html, encoding="utf-8")
+    kw = cfg.keywords
+    (out_dir / "metodologia.html").write_text(env.get_template("metodologia.html").render(
+        repos=cfg.github_repos, steam_apps=[a.get("title", a.get("name")) for a in cfg.steam_watch_apps],
+        full_scan={**{"interval_hours": 24, "min_score": 50, "prefilter": ""}, **(cfg.get("full_scan", {}) or {})},
+        keywords=kw.get("items", []), codenames=kw.get("codenames", []) or [], codename_weight=kw.get("codename_weight", 30),
+        bonuses=kw.get("bonuses", {}) or {}, severity={"high": 100, "medium": 50, **(kw.get("severity") or {})},
+        global_excludes=kw.get("global_excludes", []) or [], notify_min_score=cfg.get("general.notify_min_score", 50),
+        ai_model="Claude Opus 5.5", repo_url=str(cfg.get("general.repo_url", "https://github.com/bryanoberholzer00-bot/hlx-watch")),
+    ), encoding="utf-8")
     (out_dir / "analisi.html").write_text(env.get_template("analisi.html").render(analyses=analyses),
                                            encoding="utf-8")
     (out_dir / "search.html").write_text(env.get_template("search.html").render(games=stats["games"]), encoding="utf-8")

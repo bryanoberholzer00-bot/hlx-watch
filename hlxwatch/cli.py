@@ -67,6 +67,28 @@ def cmd_backfill(args: argparse.Namespace) -> int:
     return 1 if result.errors and not result.findings else 0
 
 
+def cmd_export(args: argparse.Namespace) -> int:
+    """Esporta l'archivio (database compresso + CSV) in una cartella, ad esempio per il ramo `data`."""
+    cfg, db = _open(args)
+    from hlxwatch.export import export_all
+    info = export_all(cfg, db, Path(args.out), args.repo_url, args.site_url)
+    print(f"Esportate {info['findings']} voci, database compresso {info['size_gz'] / 1e6:.1f} MB in {args.out}")
+    return 0
+
+
+def cmd_restore(args: argparse.Namespace) -> int:
+    """Ripristina il database da un file .sqlite.gz (solo se manca o con --force)."""
+    cfg = load_config(args.config)
+    setup_logging(args.log_level or cfg.get("general.log_level", "INFO"), cfg.log_dir)
+    from hlxwatch.export import restore_db
+    if cfg.db_path.exists() and not args.force:
+        print(f"Database già presente in {cfg.db_path}: niente da fare (usa --force per sovrascrivere)")
+        return 0
+    restore_db(Path(args.file), cfg.db_path)
+    print(f"Database ripristinato in {cfg.db_path}")
+    return 0
+
+
 def cmd_fullscan(args: argparse.Namespace) -> int:
     """Scansione completa del contenuto attuale dei repository (anche se non è ancora dovuta)."""
     cfg, db = _open(args)
@@ -264,6 +286,17 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("daemon", help="scansione periodica + report giornaliero")
     p.set_defaults(func=cmd_daemon)
+
+    p = sub.add_parser("export", help="esporta database compresso e CSV delle voci in una cartella")
+    p.add_argument("--out", default="export")
+    p.add_argument("--repo-url", default="https://github.com/bryanoberholzer00-bot/hlx-watch")
+    p.add_argument("--site-url", default="https://bryanoberholzer00-bot.github.io/hlx-watch/")
+    p.set_defaults(func=cmd_export)
+
+    p = sub.add_parser("restore", help="ripristina il database da un file .sqlite.gz")
+    p.add_argument("file")
+    p.add_argument("--force", action="store_true")
+    p.set_defaults(func=cmd_restore)
 
     p = sub.add_parser("analyze", help="analisi AI delle scoperte con Claude Opus 5.5 (ANTHROPIC_API_KEY)")
     p.add_argument("--days", type=int, help="analizza le novità degli ultimi N giorni (default: dall'ultima analisi)")
