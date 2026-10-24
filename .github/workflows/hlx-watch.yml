@@ -24,7 +24,7 @@ on:
         description: "Mesi di backfill da eseguire (0 = solo scansione)"
         default: "0"
       test_notify:
-        description: "Invia una notifica di prova a Discord/Telegram"
+        description: "Invia una notifica di prova (Telegram e notifiche di sistema)"
         type: boolean
         default: false
       analyze:
