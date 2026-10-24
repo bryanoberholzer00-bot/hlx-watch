@@ -163,6 +163,9 @@ notifiers:
     username: "HLX Watch"
   telegram:
     enabled: true                       # TELEGRAM_BOT_TOKEN e TELEGRAM_CHAT_ID in .env
+  webpush:
+    enabled: true                        # notifiche di sistema per chi le attiva sul sito (PUSH_SECRET in .env)
+    worker_url: "https://hlx-watch-bot.bryan-oberholzer00.workers.dev"
 
 dashboard:
   host: 127.0.0.1

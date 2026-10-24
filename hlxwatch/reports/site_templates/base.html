@@ -40,6 +40,9 @@
  svg.timeline{width:100%;height:auto;background:var(--card)}
  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem} @media(max-width:900px){.grid2{grid-template-columns:1fr}}
  footer{color:var(--muted);font-size:.8rem;text-align:center;margin:2rem 0}
+ .pushbtn{background:transparent;border:1px solid #4b5366;color:#fff;padding:.25rem .6rem;font-size:.8rem;white-space:nowrap}
+ .pushbtn[data-on="1"]{border-color:var(--accent);color:var(--accent)} .pushbtn:disabled{opacity:.5}
+ @media(max-width:700px){.pushbtn{margin-left:auto}}
 </style>
 </head>
 <body>
@@ -54,8 +57,79 @@
  <a href="analisi.html"><b>Analisi AI</b></a>
  <a href="metodologia.html">Metodologia</a>
  <span class="muted" style="margin-left:auto;font-size:.8rem">aggiornato {{ generated }}</span>
+ {% if push_url %}<button id="push-btn" class="pushbtn" hidden>🔕 Attiva notifiche</button>{% endif %}
 </header>
 <main>{% block content %}{% endblock %}</main>
 <footer>HLX Watch v{{ version }} &middot; dati pubblici da SteamTracking/GameTracking-* e Steam PICS &middot; <a href="https://github.com/bryanoberholzer00-bot/hlx-watch/releases/download/android-latest/hlx-watch.apk">app Android (APK)</a></footer>
+{% if push_url %}
+<script>
+// Notifiche di sistema: il browser si iscrive presso il bot di HLX Watch (Cloudflare), che le invia a ogni
+// novità rilevante. Il pulsante resta nascosto dove le notifiche web non esistono (per esempio nell'app
+// Android, che ha le sue, o in Safari su iPhone se il sito non è aggiunto alla schermata Home).
+(() => {
+  const API = {{ push_url|tojson }};
+  const btn = document.getElementById("push-btn");
+  if (!btn || !("serviceWorker" in navigator && "PushManager" in window && "Notification" in window)) return;
+  btn.hidden = false;
+  const post = (path, data) => fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" },
+                                                   body: JSON.stringify(data) });
+  const rawKey = (b64) => {
+    const s = b64.replace(/-/g, "+").replace(/_/g, "/");
+    return Uint8Array.from(atob(s + "===".slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
+  };
+  const show = (on) => {
+    btn.dataset.on = on ? "1" : "";
+    btn.textContent = on ? "🔔 Notifiche attive" : "🔕 Attiva notifiche";
+    btn.title = on ? "Ricevi una notifica di sistema per ogni novità rilevante. Clic per disattivarle."
+                   : "Ricevi una notifica di sistema per ogni novità rilevante, anche a sito chiuso";
+  };
+  const current = async () => {
+    const reg = await navigator.serviceWorker.getRegistration();
+    return reg ? reg.pushManager.getSubscription() : null;
+  };
+  current().then((sub) => {
+    const on = !!sub && Notification.permission === "granted";
+    show(on);
+    if (on) post("/push/subscribe", sub).catch(() => {});      // ricorda l'iscrizione al bot, senza doppioni
+  }).catch(() => show(false));
+
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    try {
+      if (btn.dataset.on) {
+        if (!confirm("Disattivare le notifiche di HLX Watch su questo dispositivo?")) return;
+        const sub = await current();
+        if (sub) {
+          await post("/push/unsubscribe", { endpoint: sub.endpoint }).catch(() => {});
+          await sub.unsubscribe();
+        }
+        show(false);
+        return;
+      }
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        alert("Le notifiche sono bloccate per questo sito. Si riattivano dalle impostazioni del browser " +
+              "(il lucchetto o l'icona a sinistra dell'indirizzo).");
+        return;
+      }
+      const reg = await navigator.serviceWorker.register("sw.js");
+      await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        const { key } = await (await fetch(API + "/push/key")).json();
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: rawKey(key) });
+      }
+      const res = await post("/push/subscribe", sub);
+      if (!res.ok) throw new Error("il bot ha risposto " + res.status);
+      show(true);
+    } catch (err) {
+      alert("Non è stato possibile attivare le notifiche: " + (err && err.message ? err.message : err));
+    } finally {
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+{% endif %}
 </body>
 </html>

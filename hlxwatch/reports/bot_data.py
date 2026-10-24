@@ -64,7 +64,7 @@ def export_bot_data(db: Database, cfg: Config, out_dir: Path, site_url: str) -> 
     recent_rows = [dict(r) for r in db.search_findings(min_score=50, limit=400, order="created_at",
                                                         exclude_change_type=("baseline", "present"))]
     recent = _group([_row(r) for r in recent_rows if not is_generic(r, generic)])
-    ultime = [_item(cfg, db, r) for r in recent[:15]]
+    ultime = [dict(_item(cfg, db, r), c=r.get("created_at") or "") for r in recent[:15]]
     (bot / "ultime.json").write_text(json.dumps(ultime, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
     rows = _group([_row(r) for r in db.search_findings(min_score=INDEX_MIN_SCORE, limit=20000, order="score",

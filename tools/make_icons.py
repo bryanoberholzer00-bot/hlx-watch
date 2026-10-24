@@ -36,6 +36,33 @@ def draw_icon(size: int, round_shape: bool = False, padding: float = 0.0) -> Ima
     return img.resize((size, size), Image.LANCZOS)
 
 
+LAMBDA = [
+    [(0.28, 0.16), (0.42, 0.16), (0.76, 0.76), (0.84, 0.76), (0.84, 0.86), (0.68, 0.86), (0.346, 0.27), (0.28, 0.27)],
+    [(0.50, 0.42), (0.575, 0.55), (0.30, 0.88), (0.19, 0.80)],
+]
+
+
+def draw_badge(size: int) -> Image.Image:
+    """Icona piccola delle notifiche: solo la lambda, bianca su trasparente (Android la colora da sé)."""
+    s = size * 4
+    img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    for poly in LAMBDA:
+        d.polygon([(x * s, y * s) for x, y in poly], fill=(255, 255, 255, 255))
+    return img.resize((size, size), Image.LANCZOS)
+
+
+def notification_vector() -> str:
+    """La stessa lambda come vector drawable per le notifiche dell'app Android."""
+    paths = "\n".join(
+        '    <path android:fillColor="#FFFFFFFF" android:pathData="M' +
+        " L".join(f"{x * 24:.2f},{y * 24:.2f}" for x, y in poly) + ' Z" />' for poly in LAMBDA)
+    return ('<?xml version="1.0" encoding="utf-8"?>\n'
+            '<vector xmlns:android="http://schemas.android.com/apk/res/android"\n'
+            '    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">\n'
+            f"{paths}\n</vector>\n")
+
+
 def main() -> None:
     static = ROOT / "hlxwatch" / "reports" / "site_static"
     static.mkdir(parents=True, exist_ok=True)
@@ -44,6 +71,7 @@ def main() -> None:
     draw_icon(512, padding=0.12).save(static / "icon-maskable-512.png")   # con margine per le icone "maschera"
     draw_icon(180).save(static / "apple-touch-icon.png")
     draw_icon(64).save(static / "favicon.png")
+    draw_badge(96).save(static / "badge-96.png")
 
     res = ROOT / "android" / "app" / "src" / "main" / "res"
     for density, size in (("mdpi", 48), ("hdpi", 72), ("xhdpi", 96), ("xxhdpi", 144), ("xxxhdpi", 192)):
@@ -51,6 +79,9 @@ def main() -> None:
         folder.mkdir(parents=True, exist_ok=True)
         draw_icon(size).save(folder / "ic_launcher.png")
         draw_icon(size, round_shape=True).save(folder / "ic_launcher_round.png")
+    drawable = res / "drawable"
+    drawable.mkdir(parents=True, exist_ok=True)
+    (drawable / "ic_stat_hlx.xml").write_text(notification_vector(), encoding="utf-8")
     print("icone generate")
 
 

@@ -3,6 +3,7 @@ package io.github.bryanoberholzer00bot.hlxwatch;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -25,10 +26,13 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
  * HLX Watch per Android: il sito pubblicato su GitHub Pages in una WebView a schermo intero.
  * Il contenuto resta quello del sito, quindi l'app non va reinstallata quando i dati cambiano.
  * Le pagine del sito si aprono nell'app; GitHub, Steam e gli altri link esterni nel browser.
+ * Le notifiche di sistema arrivano da CheckJob, che controlla le novità in background.
  */
 public class MainActivity extends Activity {
 
-    private static final String HOME = "https://bryanoberholzer00-bot.github.io/hlx-watch/";
+    static final String HOME = "https://bryanoberholzer00-bot.github.io/hlx-watch/";
+    static final String EXTRA_URL = "url";
+    private static final int ASK_NOTIFICATIONS = 7;
     private static final String HOST = "bryanoberholzer00-bot.github.io";
     private static final String PATH = "/hlx-watch";
 
@@ -108,11 +112,65 @@ public class MainActivity extends Activity {
         setContentView(root);
         fitSystemBars(root);
 
-        if (savedInstanceState != null) {
+        String target = siteUrl(getIntent());
+        if (target != null) {
+            web.loadUrl(target);                   // aperta da una notifica: si va subito alla voce
+        } else if (savedInstanceState != null) {
             web.restoreState(savedInstanceState);
         } else {
             web.loadUrl(HOME);
         }
+        setUpNotifications();
+    }
+
+    /** Pianifica il controllo in background e, da Android 13, chiede il permesso per le notifiche (una volta). */
+    private void setUpNotifications() {
+        CheckJob.createChannel(this);
+        CheckJob.schedule(this);
+        if (Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
+            android.content.SharedPreferences prefs = getSharedPreferences("app", MODE_PRIVATE);
+            if (!prefs.getBoolean("asked_notifications", false)) {
+                prefs.edit().putBoolean("asked_notifications", true).apply();
+                requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, ASK_NOTIFICATIONS);
+            }
+            return;
+        }
+        checkNow();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode == ASK_NOTIFICATIONS && results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) {
+            checkNow();
+        }
+    }
+
+    /** Un controllo subito, senza aspettare il primo giro programmato (al primo avvio manda la conferma). */
+    private void checkNow() {
+        new Thread(() -> {
+            try {
+                CheckJob.check(getApplicationContext());
+            } catch (Exception ignored) {
+                // senza rete: ci pensa il controllo programmato
+            }
+        }).start();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        String target = siteUrl(intent);
+        if (target != null) {
+            web.loadUrl(target);
+        }
+    }
+
+    /** L'indirizzo passato da una notifica, solo se è una pagina del sito. */
+    private static String siteUrl(Intent intent) {
+        String url = intent == null ? null : intent.getStringExtra(EXTRA_URL);
+        return url != null && url.startsWith(HOME) ? url : null;
     }
 
     /**

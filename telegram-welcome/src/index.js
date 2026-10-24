@@ -5,7 +5,10 @@
 // sito pubblica a ogni run in bot/ (ultime.json, indice.json, stato.json). Non salva nulla.
 //
 // Segreti (wrangler secret put): BOT_TOKEN, WEBHOOK_SECRET, OWNER_CHAT_ID
+// Notifiche di sistema del sito (percorsi /push/...): vedi src/push.js
 // Variabili facoltative: SITE_URL (default il sito pubblico), DRY_RUN=1 (risponde nella risposta HTTP: per i test)
+
+import { handlePush } from "./push.js";
 
 const DEFAULT_SITE = "https://bryanoberholzer00-bot.github.io/hlx-watch/";
 const REPO = "https://github.com/bryanoberholzer00-bot/hlx-watch";
@@ -185,6 +188,10 @@ export default {
   },
 
   async fetch(request, env) {
+    // notifiche di sistema del sito: iscrizioni dal browser e invii dai run su GitHub (src/push.js)
+    if (new URL(request.url).pathname.startsWith("/push/")) {
+      return handlePush(request, env);
+    }
     if (request.method !== "POST") {
       return new Response("HLX Watch bot: ok", { status: 200 });
     }

@@ -42,3 +42,41 @@ def test_link_labels():
     assert link_label(steam_app_history_url(570)) == "cronologia"
     assert link_label("https://store.steampowered.com/app/570/") == "pagina Steam"
     assert link_label(None) == "fonte"
+
+
+def test_webpush_message_and_pages(monkeypatch):
+    from hlxwatch.models import Finding
+    from hlxwatch.notifiers.base import AlertGroup
+    from hlxwatch.notifiers.webpush import WebPushNotifier
+    site = "https://example.org/hlx/"
+    hlx = Finding(game="deadlock", source="github", file_path="a.h", change_type="added", text="x hlx", score=100,
+                  keywords=["hlx"], token="hlx_thumper")
+    one = WebPushNotifier.message([AlertGroup("deadlock", "Deadlock", [hlx], 100, 1)], site)
+    assert one["title"] == "HLX Watch: novità in Deadlock" and one["url"] == site + "search.html?q=hlx_thumper"
+    others = [Finding(game="cs2", source="github", file_path="b", change_type="added", text=f"t{i}", score=55,
+                      keywords=["hlx"], token=f"t{i}") for i in range(5)]
+    many = WebPushNotifier.message([AlertGroup("deadlock", "Deadlock", [hlx], 100, 1),
+                                    AlertGroup("cs2", "Counter-Strike 2", others, 55, 5)], site)
+    assert many["title"] == "HLX Watch: 6 novità (max 100)" and many["url"].endswith("search.html?new=1&min=50")
+    assert many["body"].splitlines()[0].endswith("[100] Deadlock: hlx_thumper") and "altre 2" in many["body"]
+
+    calls = []
+
+    class Resp:
+        status_code = 200
+
+        def __init__(self, data):
+            self.data = data
+
+        def json(self):
+            return self.data
+
+    def fake_post(url, json, headers, timeout):
+        calls.append(json["cursor"])
+        return Resp({"sent": 10, "statuses": {"201": 10}, "next": None if json["cursor"] else "c1"})
+
+    monkeypatch.setattr("hlxwatch.notifiers.webpush.requests.post", fake_post)
+    n = WebPushNotifier("https://bot.example/", "s", site)
+    assert n.send_groups("x", [AlertGroup("deadlock", "Deadlock", [hlx], 100, 1)]) is True
+    assert calls == [None, "c1"]                      # seconda pagina di browser con il cursore
+    assert n.send_text("report", "testo") is True and len(calls) == 2   # i report non vanno come notifiche

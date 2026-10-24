@@ -279,6 +279,20 @@ token, file, tipo di modifica e link al commit. Telegram: stesso contenuto in HT
 caratteri. Le nuove build Steam valgono `steam.build_score` (55): sopra la soglia di default, quindi
 notificate; abbassalo se non ti interessano.
 
+### Notifiche di sistema (sito e app Android)
+
+- **Sito**: il pulsante *Attiva notifiche* nell'intestazione iscrive il browser (Web Push). Il service worker
+  `sw.js` mostra le notifiche anche a sito chiuso. Le iscrizioni stanno nel KV `SUBS` del Worker
+  (`telegram-welcome/src/push.js`); a ogni novità il run chiama `POST /push/send` (notificatore `webpush`,
+  `notifiers.webpush` in config) e il Worker cifra il messaggio per ogni browser (RFC 8291) firmandolo con la
+  chiave VAPID (RFC 8292). Vanno solo le novità, non report, analisi AI e avvisi tecnici.
+  Configurazione, una volta: `.venv\Scripts\python telegram-welcome\setup_push.py` (crea `VAPID_PRIVATE_JWK` e
+  `PUSH_SECRET` in `.env` e li carica sul Worker e nei Secrets di GitHub; `--rotate` cambia `PUSH_SECRET`).
+  Non cambiare `VAPID_PRIVATE_JWK`: tutti i browser dovrebbero riattivare le notifiche.
+- **App Android**: `CheckJob` (JobScheduler, nessuna libreria esterna) legge `bot/ultime.json` ogni 30 minuti
+  circa e notifica le voci mai viste trovate negli ultimi 3 giorni. Al primo avvio chiede il permesso
+  (Android 13+) e manda una notifica di conferma.
+
 ## File locali (opzionale)
 
 1. Scarica `Source2Viewer-CLI` dalle release di [ValveResourceFormat](https://github.com/ValveResourceFormat/ValveResourceFormat).

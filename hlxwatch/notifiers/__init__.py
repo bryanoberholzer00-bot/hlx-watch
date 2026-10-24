@@ -7,10 +7,11 @@ from hlxwatch.models import Finding
 from hlxwatch.notifiers.base import Notifier, group_findings
 from hlxwatch.notifiers.discord import DiscordNotifier
 from hlxwatch.notifiers.telegram import TelegramNotifier
+from hlxwatch.notifiers.webpush import WebPushNotifier
 
 log = logging.getLogger(__name__)
 
-__all__ = ["Notifier", "DiscordNotifier", "TelegramNotifier", "load_notifiers", "notify_findings", "notify_text"]
+__all__ = ["Notifier", "DiscordNotifier", "TelegramNotifier", "WebPushNotifier", "load_notifiers", "notify_findings", "notify_text"]
 
 
 def load_notifiers(cfg: Config) -> list[Notifier]:
@@ -25,6 +26,13 @@ def load_notifiers(cfg: Config) -> list[Notifier]:
             notifiers.append(TelegramNotifier(cfg.telegram_token, cfg.telegram_chat_id))
         else:
             log.warning("Telegram abilitato ma TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID mancano in .env")
+    if cfg.get("notifiers.webpush.enabled", False):
+        secret, worker = cfg.env("PUSH_SECRET"), cfg.get("notifiers.webpush.worker_url")
+        if secret and worker:
+            site = str(cfg.get("general.site_url", "https://bryanoberholzer00-bot.github.io/hlx-watch/"))
+            notifiers.append(WebPushNotifier(worker, secret, site))
+        else:
+            log.warning("Notifiche di sistema abilitate ma mancano PUSH_SECRET in .env o notifiers.webpush.worker_url")
     return notifiers
 
 

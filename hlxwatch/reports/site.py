@@ -86,6 +86,8 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     env.globals.update(version=__version__, titles=titles,
                        generated=f"{now_local().strftime('%Y-%m-%d %H:%M')} ({tz_label()})")
     register_filters(env)
+    push = cfg.get("notifiers.webpush", {}) or {}
+    env.globals["push_url"] = str(push.get("worker_url", "")).rstrip("/") if push.get("enabled") else ""
 
     stats = db.stats()
     analyses = [load_analysis(r) for r in db.analyses(60)]
@@ -132,7 +134,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
                                                           encoding="utf-8")
     # icone e manifest: il sito si può aggiungere alla schermata Home ed è la base dell'app Android
     static = Path(__file__).parent / "site_static"
-    for f in static.glob("*.png"):
+    for f in [*static.glob("*.png"), static / "sw.js"]:       # sw.js: riceve le notifiche di sistema
         shutil.copyfile(f, out_dir / f.name)
     (out_dir / "manifest.webmanifest").write_text(json.dumps({
         "name": "HLX Watch", "short_name": "HLX Watch",
