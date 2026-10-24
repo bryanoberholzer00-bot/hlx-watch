@@ -91,12 +91,12 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_notify == 'true'
         run: python -m hlxwatch test-notify
 
-      - name: Scansione + report giornaliero se è ora
-        run: python -m hlxwatch cron
-
-      - name: Analisi AI su richiesta
+      - name: Analisi AI su richiesta (prima del giro automatico: non paga due volte)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.analyze == 'true'
         run: python -m hlxwatch analyze --send
+
+      - name: Scansione + report giornaliero se è ora
+        run: python -m hlxwatch cron
 
       - name: Report delle ultime 24 ore su richiesta
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.send_report == 'true'
