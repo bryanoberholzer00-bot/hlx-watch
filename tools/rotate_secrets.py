@@ -133,11 +133,17 @@ def main() -> int:
         print(f"== {s['label']} ==")
         print(f"   Come: {s['how']}")
         while True:
-            answer = input("   Copia il valore nuovo, poi premi Invio qui (s + Invio per saltare): ").strip().lower()
-            if answer == "s":
+            typed = input("   Copia il valore nuovo, poi premi SOLO Invio qui (s + Invio per saltare): ").strip()
+            if typed.lower() == "s":
                 print("   saltato\n")
                 break
-            value = read_clipboard()
+            if typed:
+                # il valore è stato incollato al prompt: lo cancello subito dallo schermo e lo uso
+                sys.stdout.write("\033[F\033[2K   (valore incollato: cancellato dallo schermo)\n")
+                sys.stdout.flush()
+                value = typed
+            else:
+                value = read_clipboard()
             if not value:
                 print("   Gli appunti sono vuoti: copia il valore e riprova.")
                 continue
