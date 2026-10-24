@@ -222,13 +222,20 @@ def summary_text(data: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def generate_report(db: Database, cfg: Config, *, day: date | None = None, days: int = 1,
+def generate_report(db: Database, cfg: Config, *, day: date | None = None, days: int = 1, hours: int | None = None,
                     fmt: str = "both", out_dir: Path | None = None) -> tuple[list[Path], dict[str, Any]]:
-    start, end = period_for(day, days)
+    """Report per giorno/i interi (day, days) oppure per le ultime `hours` ore fino ad adesso."""
+    if hours:
+        end = datetime.now(timezone.utc).replace(second=0, microsecond=0)
+        start = end - timedelta(hours=hours)
+    else:
+        start, end = period_for(day, days)
     data = collect_report_data(db, cfg, start, end)
+    if hours:
+        data["label"] = f"ultime {hours} ore"
     out_dir = out_dir or cfg.reports_dir
     out_dir.mkdir(parents=True, exist_ok=True)
-    stem = f"report-{(end - timedelta(seconds=1)).strftime('%Y-%m-%d')}" + (f"-{days}d" if days > 1 else "")
+    stem = f"report-{(end - timedelta(seconds=1)).strftime('%Y-%m-%d')}" + (f"-{hours}h" if hours else f"-{days}d" if days > 1 else "")
     paths: list[Path] = []
     if fmt in ("md", "both"):
         p = out_dir / f"{stem}.md"

@@ -8,7 +8,7 @@ general:
   db_path: ./data/hlxwatch.sqlite
   log_level: INFO
   scan_interval_minutes: 45              # 30-60 consigliato
-  daily_report_time: "09:00"             # ora locale del report giornaliero (modalità daemon)
+  daily_report_time: "07:05"             # ora (UTC su GitHub Actions) dopo la quale il primo run manda il report delle ultime 24 ore
   notify_min_score: 50                   # soglia punteggio per le notifiche
   notify_max_items: 25                   # max voci per notifica (per gioco)
   context_lines: 2                       # righe di contesto salvate attorno a ogni match

@@ -190,8 +190,12 @@ del run: scaricalo in `data/hlxwatch.sqlite` per sfogliarlo con la dashboard loc
    `https://<utente>.github.io/hlx-watch/`. GitHub Pages è gratis solo sui repository pubblici, e il
    sito è comunque visibile a chiunque abbia il link.
 
-Limiti: la pianificazione di GitHub può slittare di qualche minuto nelle ore di punta e la sorgente
-dei file locali non è disponibile.
+Limiti: la pianificazione di GitHub è inaffidabile (i run possono partire con ore di ritardo o essere
+saltati: in pratica se ne ottengono 4-10 al giorno invece di 48). Per questo il workflow usa il comando
+`cron`, che a ogni run manda il report delle ultime 24 ore se non è ancora stato mandato oggi ed è
+passata l'ora in `general.daily_report_time` (UTC). La sorgente dei file locali non è disponibile.
+Per una cadenza esatta serve un servizio esterno che chiami `workflow_dispatch` (es. cron-job.org con
+un token GitHub) oppure un server proprio con `daemon`.
 
 ### Docker
 

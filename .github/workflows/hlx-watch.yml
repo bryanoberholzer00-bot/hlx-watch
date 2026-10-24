@@ -1,6 +1,10 @@
-# HLX Watch su GitHub Actions: scansione ogni 30 minuti e report giornaliero,
+# HLX Watch su GitHub Actions: scansione periodica e report giornaliero,
 # senza un PC acceso. Il database SQLite sopravvive tra un run e l'altro grazie
 # alla cache di Actions e viene anche pubblicato come artifact scaricabile.
+#
+# NOTA sui cron di GitHub: vengono ritardati o saltati sotto carico (anche di ore).
+# Per questo il report giornaliero non è legato a un orario: ogni run pianificato lo manda
+# se non è ancora stato mandato oggi ed è passata l'ora in config (general.daily_report_time, UTC).
 #
 # Segreti da impostare nel repository (Settings -> Secrets and variables -> Actions):
 #   TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID      (oppure DISCORD_WEBHOOK_URL)
@@ -12,8 +16,7 @@ name: HLX Watch
 
 on:
   schedule:
-    - cron: "*/30 * * * *"     # scansione (GitHub può ritardarla di qualche minuto)
-    - cron: "5 7 * * *"        # report giornaliero alle 07:05 UTC (09:05 ora italiana estiva, 08:05 invernale)
+    - cron: "7,37 * * * *"     # minuti "strani": GitHub li serve con più regolarità di 0 e 30
   workflow_dispatch:
     inputs:
       backfill_months:
@@ -21,6 +24,10 @@ on:
         default: "0"
       test_notify:
         description: "Invia una notifica di prova a Discord/Telegram"
+        type: boolean
+        default: false
+      send_report:
+        description: "Invia subito il report delle ultime 24 ore"
         type: boolean
         default: false
 
@@ -78,13 +85,12 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_notify == 'true'
         run: python -m hlxwatch test-notify
 
-      - name: Scansione
-        if: github.event.schedule != '5 7 * * *'
-        run: python -m hlxwatch scan
+      - name: Scansione + report giornaliero se è ora
+        run: python -m hlxwatch cron
 
-      - name: Report giornaliero
-        if: github.event.schedule == '5 7 * * *'
-        run: python -m hlxwatch report --days 1 --send
+      - name: Report delle ultime 24 ore su richiesta
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.send_report == 'true'
+        run: python -m hlxwatch report --hours 24 --send
 
       - name: Salva il database per il prossimo run
         if: always()

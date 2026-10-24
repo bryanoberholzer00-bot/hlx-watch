@@ -67,6 +67,22 @@ def cmd_backfill(args: argparse.Namespace) -> int:
     return 1 if result.errors and not result.findings else 0
 
 
+def cmd_cron(args: argparse.Namespace) -> int:
+    """Un giro del daemon senza restare in esecuzione: scansione + eventuale report giornaliero.
+    Pensato per GitHub Actions o per l'Utilità di pianificazione di Windows."""
+    cfg, db = _open(args)
+    from hlxwatch.core import Pipeline
+    from hlxwatch.scheduler import maybe_daily_report
+    pipeline = Pipeline(cfg, db)
+    result = pipeline.run_scan(notify=not args.no_notify)
+    try:
+        if maybe_daily_report(cfg, db, pipeline, str(cfg.get("general.daily_report_time", "09:00"))):
+            log.info("Report giornaliero inviato")
+    except Exception:
+        log.exception("Report giornaliero fallito")
+    return 1 if result.errors and not result.findings else 0
+
+
 def cmd_daemon(args: argparse.Namespace) -> int:
     cfg, db = _open(args)
     from hlxwatch.core import Pipeline
@@ -82,7 +98,7 @@ def cmd_report(args: argparse.Namespace) -> int:
     cfg, db = _open(args)
     from hlxwatch.reports import generate_report, summary_text
     day = date.fromisoformat(args.date) if args.date else None
-    paths, data = generate_report(db, cfg, day=day, days=args.days, fmt=args.format)
+    paths, data = generate_report(db, cfg, day=day, days=args.days, hours=args.hours, fmt=args.format)
     print(summary_text(data))
     for p in paths:
         print(f"Report scritto: {p}")
@@ -201,9 +217,14 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("daemon", help="scansione periodica + report giornaliero")
     p.set_defaults(func=cmd_daemon)
 
+    p = sub.add_parser("cron", help="un giro solo: scansione + report giornaliero se è ora (per Actions o Task Scheduler)")
+    p.add_argument("--no-notify", action="store_true")
+    p.set_defaults(func=cmd_cron)
+
     p = sub.add_parser("report", help="genera il report Markdown/HTML")
     p.add_argument("--date", help="giorno YYYY-MM-DD (default oggi)")
     p.add_argument("--days", type=int, default=1, help="giorni coperti, a ritroso dalla data (default 1)")
+    p.add_argument("--hours", type=int, help="in alternativa: le ultime N ore fino ad adesso")
     p.add_argument("--format", choices=["md", "html", "both"], default="both")
     p.add_argument("--send", action="store_true", help="invia il riepilogo ai notificatori")
     p.set_defaults(func=cmd_report)

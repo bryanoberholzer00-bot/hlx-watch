@@ -15,14 +15,18 @@ log = logging.getLogger(__name__)
 
 
 def maybe_daily_report(cfg: Config, db: Database, pipeline: Pipeline, report_time: str) -> bool:
+    """Manda il report delle ultime 24 ore una volta al giorno, alla prima occasione dopo `report_time`.
+
+    Non dipende da un orario preciso: funziona sia nel daemon sia su GitHub Actions, dove i run
+    pianificati possono partire con ore di ritardo."""
     now = datetime.now()
     today = now.strftime("%Y-%m-%d")
     if db.get_state("daemon:last_report_day") == today or now.strftime("%H:%M") < report_time:
         return False
-    paths, data = generate_report(db, cfg, days=1, fmt="both")
+    paths, data = generate_report(db, cfg, hours=24, fmt="both")
     log.info("Report giornaliero generato: %s", ", ".join(str(p) for p in paths))
     if pipeline.notifiers:
-        notify_text(pipeline.notifiers, f"HLX Watch: report del {today}", summary_text(data))
+        notify_text(pipeline.notifiers, f"HLX Watch: report del {today} (ultime 24 ore)", summary_text(data))
     db.set_state("daemon:last_report_day", today)
     return True
 
