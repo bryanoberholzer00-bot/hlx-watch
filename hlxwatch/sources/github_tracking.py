@@ -211,13 +211,15 @@ class GitHubTrackingSource:
     def run(self, *, since: datetime | None = None, repos: list[str] | None = None,
             max_commits: int | None = None) -> list[Finding]:
         findings: list[Finding] = []
+        self.errors: list[str] = []
         for repo_cfg in tracked_repos(self.cfg, self.db):
             if repos and repo_cfg["name"] not in repos:
                 continue
             try:
                 findings += self.scan_repo(repo_cfg, since=since, max_commits=max_commits)
-            except Exception:
+            except Exception as exc:
                 log.exception("Sorgente GitHub: errore su %s, continuo con gli altri repository", repo_cfg.get("repo"))
+                self.errors.append(f"{repo_cfg.get('repo')}: {exc}")
         return findings
 
     def scan_repo(self, repo_cfg: dict[str, Any], *, since: datetime | None = None,

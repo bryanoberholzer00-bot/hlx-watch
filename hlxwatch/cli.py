@@ -48,7 +48,7 @@ def cmd_scan(args: argparse.Namespace) -> int:
     sources = tuple(s.strip() for s in args.sources.split(",") if s.strip())
     result = Pipeline(cfg, db).run_scan(sources=sources, notify=not args.no_notify, repos=args.repo or None,
                                         max_commits=args.max_commits)
-    return 1 if result.errors and not result.findings else 0
+    return 1 if result.all_failed else 0
 
 
 def cmd_backfill(args: argparse.Namespace) -> int:
@@ -66,7 +66,7 @@ def cmd_backfill(args: argparse.Namespace) -> int:
     stats = db.stats()
     log.info("Archivio: %d build/commit, %d voci, %d stringhe distinte", stats["builds"], stats["findings"],
              stats["seen_strings"])
-    return 1 if result.errors and not result.findings else 0
+    return 1 if result.all_failed else 0
 
 
 def cmd_export(args: argparse.Namespace) -> int:
@@ -97,7 +97,7 @@ def cmd_fullscan(args: argparse.Namespace) -> int:
     from hlxwatch.core import Pipeline
     result = Pipeline(cfg, db).run_scan(sources=("fullscan",), notify=not args.no_notify, repos=args.repo or None,
                                         force_full=True, heading="HLX Watch: scansione completa")
-    return 1 if result.errors and not result.findings else 0
+    return 1 if result.all_failed else 0
 
 
 def cmd_cron(args: argparse.Namespace) -> int:
@@ -118,9 +118,15 @@ def cmd_cron(args: argparse.Namespace) -> int:
     if now_local().strftime("%H:%M") >= report_time:
         try:
             _run_analysis(cfg, db, pipeline.notifiers, force=False, notify=not args.no_notify)
-        except Exception:
+            ai_error = None
+        except Exception as exc:
             log.exception("Analisi AI fallita")
-    return 1 if result.errors and not result.findings else 0
+            ai_error = f"{type(exc).__name__}: {exc}"
+        if not args.no_notify:
+            # credito esaurito o chiave non valida: avviso subito, senza aspettare tre run
+            urgent = bool(ai_error) and any(w in ai_error.lower() for w in ("credit", "authentication", "api key"))
+            pipeline.health.record("ai", ai_error is None, ai_error or "", immediate=urgent)
+    return 1 if result.all_failed else 0
 
 
 def _run_analysis(cfg: Config, db: "Database", notifiers: list, *, force: bool, notify: bool,

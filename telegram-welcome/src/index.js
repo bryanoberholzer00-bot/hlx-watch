@@ -92,7 +92,10 @@ async function stato(env, site) {
     ? `${esc(s.analisi.data)}: ${esc(s.analisi.titolo)}${s.analisi.novita_rilevanti ? "" : " (giornata tranquilla)"}`
     : "nessuna ancora";
   const repos = s.repo_scoperti.length ? `\nRepository scoperti e seguiti: ${s.repo_scoperti.map(esc).join(", ")}` : "";
-  return `<b>Stato di HLX Watch</b> (ora italiana)\n\n` +
+  const health = (s.fonti_in_errore || []).length
+    ? `⚠️ Fonti con errori: ${s.fonti_in_errore.map(esc).join(", ")}\n`
+    : "✅ Tutte le fonti funzionano\n";
+  return `<b>Stato di HLX Watch</b> (ora italiana)\n\n` + health +
     `Ultima scansione: <b>${esc(s.ultima_scansione)}</b>\n` +
     `Ultimo report giornaliero: ${esc(s.report_giornaliero)}\n` +
     `Ultima analisi AI: ${a}\n\n` +
@@ -140,7 +143,47 @@ async function answer(env, text, chatId) {
   }
 }
 
+// ------------------------------------------------------- controllo esterno
+// Gira ogni 6 ore (triggers.crons in wrangler.jsonc). Se il sito non viene aggiornato da 12 ore, i run su
+// GitHub non stanno partendo: è l'unico guasto che HLX Watch non può segnalare da solo. Senza memoria tra
+// un controllo e l'altro, avvisa quando il ritardo entra nelle finestre 12-18 ore e 48-54 ore: due avvisi
+// in tutto, non uno ogni 6 ore.
+const HOUR = 3600 * 1000;
+
+async function scheduledCheck(env) {
+  let ageHours;
+  try {
+    const s = await loadJson(env, "stato.json");
+    ageHours = (Date.now() - Date.parse(s.aggiornato_utc)) / HOUR;
+  } catch (err) {
+    ageHours = null;
+    console.log("controllo programmato: stato.json non leggibile", String(err));
+  }
+  const site = env.SITE_URL || DEFAULT_SITE;
+  let text = null;
+  if (ageHours === null || Number.isNaN(ageHours)) {
+    text = `⚠️ <b>HLX Watch: il sito non risponde</b>\nNon riesco a leggere lo stato su ${site}. Controlla GitHub Pages e i run su ${REPO}/actions`;
+  } else if ((ageHours >= 12 && ageHours < 18) || (ageHours >= 48 && ageHours < 54)) {
+    text = `⚠️ <b>HLX Watch è fermo da ${Math.floor(ageHours)} ore</b>\nIl sito non viene aggiornato: i run su GitHub non ` +
+      `partono o falliscono prima della fine.\nControlla: ${REPO}/actions\n(Se il repository è rimasto senza attività, ` +
+      `GitHub può aver disattivato la pianificazione: si riattiva dalla scheda Actions.)`;
+  }
+  if (text) {
+    console.log("controllo programmato: avviso", ageHours);
+    if (env.OWNER_CHAT_ID) await reply(env, env.OWNER_CHAT_ID, text);
+  } else if (ageHours >= 12) {
+    console.log("controllo programmato: fermo da", ageHours.toFixed(1), "ore, avviso già inviato o non ancora dovuto");
+  } else {
+    console.log("controllo programmato: tutto ok, aggiornato", ageHours.toFixed(1), "ore fa");
+  }
+  return text;
+}
+
 export default {
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(scheduledCheck(env));
+  },
+
   async fetch(request, env) {
     if (request.method !== "POST") {
       return new Response("HLX Watch bot: ok", { status: 200 });

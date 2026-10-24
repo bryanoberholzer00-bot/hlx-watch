@@ -16,6 +16,8 @@ from hlxwatch.dashboard.app import _row
 from hlxwatch.sources.first_seen import line_hash
 from hlxwatch.repos import followed_repos
 from hlxwatch.storage import Database
+from hlxwatch.health import Health
+from hlxwatch.storage.db import iso, utcnow
 from hlxwatch.timeutil import local, local_day, now_local
 
 INDEX_MIN_SCORE = 40
@@ -74,6 +76,10 @@ def export_bot_data(db: Database, cfg: Config, out_dir: Path, site_url: str) -> 
     content = json.loads(analysis["content"]) if analysis else {}
     stato = {
         "aggiornato": now_local().strftime("%Y-%m-%d %H:%M"),
+        "aggiornato_utc": iso(utcnow()),
+        "ultima_scansione_utc": stats.get("last_scan") or "",
+        "fonti_in_errore": [v["label"] + f" ({v['fails']} run)" for v in Health(cfg, db, []).summary().values()
+                            if not v["ok"]],
         "ultima_scansione": local(stats.get("last_scan")) if stats.get("last_scan") else "mai",
         "voci": stats["findings"], "alta": stats["findings_high"], "nuove": stats["findings_new"],
         "gia_presenti": stats.get("findings_present", 0), "commit": stats["builds"],

@@ -90,8 +90,10 @@ class SteamPicsSource:
         since = int(self.db.get_state("steam:changenumber") or 0)
         log.info("Steam PICS: login anonimo, info per %d app, modifiche dal change %s", len(appids), since or "n/d")
         data = self.call_worker(appids, since=since)
+        self.last_error = None
         if not data.get("ok"):
             log.error("Sorgente Steam PICS non disponibile: %s", data.get("error"))
+            self.last_error = str(data.get("error") or "errore sconosciuto")
             return [], []
 
         findings: list[Finding] = []

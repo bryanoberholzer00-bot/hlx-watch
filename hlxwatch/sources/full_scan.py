@@ -69,14 +69,16 @@ class FullScanSource:
             log.error("Scansione completa: git non trovato nel PATH")
             return []
         findings: list[Finding] = []
+        self.errors: list[str] = []
         for repo_cfg in tracked_repos(self.cfg, self.db):
             name = repo_cfg["name"]
             if (repos and name not in repos) or name in self.exclude:
                 continue
             try:
                 findings += self.scan_repo(repo_cfg)
-            except Exception:
+            except Exception as exc:
                 log.exception("Scansione completa: errore su %s, continuo con gli altri", name)
+                self.errors.append(f"{name}: {exc}")
         if not repos:
             self.db.set_state("fullscan:last_at", iso(utcnow()))
         return findings

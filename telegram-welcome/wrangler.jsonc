@@ -5,5 +5,7 @@
   "main": "src/index.js",
   "compatibility_date": "2026-09-01",
   "workers_dev": true,
+  // controllo esterno: ogni 6 ore verifica che il sito venga ancora aggiornato
+  "triggers": { "crons": ["23 */6 * * *"] },
   "observability": { "enabled": true }
 }

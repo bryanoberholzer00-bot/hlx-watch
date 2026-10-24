@@ -53,8 +53,7 @@ class RepoDiscovery:
             return []
         repos = self.list_repos()
         if not repos:
-            log.warning("Scoperta repository: nessuna risposta per l'organizzazione %s", self.org)
-            return []
+            raise RuntimeError(f"nessuna risposta da GitHub per l'organizzazione {self.org}")
         known = set(json.loads(self.db.get_state(KNOWN_KEY) or "[]"))
         names = {r["full_name"] for r in repos}
         if not known:
