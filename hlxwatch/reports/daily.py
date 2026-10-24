@@ -95,7 +95,8 @@ def _group(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def collect_report_data(db: Database, cfg: Config, start: datetime, end: datetime) -> dict[str, Any]:
-    rows = db.search_findings(since=start, until=end, limit=200_000, order="score")
+    rows = db.search_findings(since=start, until=end, limit=200_000, order="score",
+                              exclude_change_type=("baseline", "present"))
     findings: list[dict[str, Any]] = []
     for row in rows:
         item = dict(row)

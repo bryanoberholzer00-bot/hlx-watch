@@ -67,6 +67,15 @@ def cmd_backfill(args: argparse.Namespace) -> int:
     return 1 if result.errors and not result.findings else 0
 
 
+def cmd_fullscan(args: argparse.Namespace) -> int:
+    """Scansione completa del contenuto attuale dei repository (anche se non è ancora dovuta)."""
+    cfg, db = _open(args)
+    from hlxwatch.core import Pipeline
+    result = Pipeline(cfg, db).run_scan(sources=("fullscan",), notify=not args.no_notify, repos=args.repo or None,
+                                        force_full=True, heading="HLX Watch: scansione completa")
+    return 1 if result.errors and not result.findings else 0
+
+
 def cmd_cron(args: argparse.Namespace) -> int:
     """Un giro del daemon senza restare in esecuzione: scansione + eventuale report giornaliero.
     Pensato per GitHub Actions o per l'Utilità di pianificazione di Windows."""
@@ -135,7 +144,7 @@ def cmd_reevaluate(args: argparse.Namespace) -> int:
     drop: list[int] = []
     rescored = 0
     for r in rows:
-        change_type = "added" if r["change_type"] == "baseline" else r["change_type"]
+        change_type = "added" if r["change_type"] in ("baseline", "present") else r["change_type"]
         res = matchers.get(r["game"], default).analyze_line(r["text"], file_path=r["file_path"], change_type=change_type)
         if res is None:
             drop.append(r["id"])
@@ -208,7 +217,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_init)
 
     p = sub.add_parser("scan", help="una scansione completa di tutte le sorgenti")
-    p.add_argument("--sources", default="github,steam,local", help="elenco separato da virgola: github,steam,local")
+    p.add_argument("--sources", default="github,steam,local,fullscan",
+                   help="elenco separato da virgola: github,steam,local,fullscan (la scansione completa parte solo se è dovuta)")
     p.add_argument("--repo", action="append", help="limita a un repo per nome (cs2, dota2, deadlock); ripetibile")
     p.add_argument("--max-commits", type=int, help="commit massimi per repo (0 = tutti)")
     p.add_argument("--no-notify", action="store_true", help="non inviare notifiche")
@@ -223,6 +233,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("daemon", help="scansione periodica + report giornaliero")
     p.set_defaults(func=cmd_daemon)
+
+    p = sub.add_parser("fullscan", help="cerca le parole chiave in tutto il contenuto attuale dei repository")
+    p.add_argument("--repo", action="append", help="limita a un repo per nome; ripetibile")
+    p.add_argument("--no-notify", action="store_true")
+    p.set_defaults(func=cmd_fullscan)
 
     p = sub.add_parser("cron", help="un giro solo: scansione + report giornaliero se è ora (per Actions o Task Scheduler)")
     p.add_argument("--no-notify", action="store_true")

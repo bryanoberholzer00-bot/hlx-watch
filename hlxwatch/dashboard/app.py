@@ -18,8 +18,8 @@ from hlxwatch.storage import Database
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 PER_PAGE = 50
-CHANGE_TYPES = ["added", "removed", "changed", "file_added", "file_removed", "file_renamed", "build", "new_app", "baseline"]
-SOURCES = ["github", "steam_pics", "steam_apps", "local"]
+CHANGE_TYPES = ["added", "removed", "changed", "present", "file_added", "file_removed", "file_renamed", "build", "new_app", "baseline"]
+SOURCES = ["github", "fullscan", "steam_pics", "steam_apps", "local"]
 
 
 def _row(row: Any) -> dict[str, Any]:
@@ -100,7 +100,7 @@ def create_app(cfg: Config, db: Database) -> FastAPI:
     def index(request: Request, days: int = Query(90, ge=7, le=730)):
         stats = db.stats()
         highlights = [_row(r) for r in db.search_findings(min_score=50, limit=25, order="created_at",
-                                                          exclude_change_type="baseline")]
+                                                          exclude_change_type=("baseline", "present"))]
         return templates.TemplateResponse(request, "index.html", {
             "stats": stats, "games": stats["games"], "highlights": highlights,
             "chart": timeline_svg(db.timeline(days=days), days), "days": days,

@@ -10,12 +10,14 @@ from typing import Iterable
 from hlxwatch.config import Config
 from hlxwatch.models import Finding
 from hlxwatch.notifiers import load_notifiers, notify_findings
-from hlxwatch.sources import GitHubTrackingSource, LocalFilesSource, SteamNewAppsSource, SteamPicsSource
+from hlxwatch.sources import (FullScanSource, GitHubTrackingSource, LocalFilesSource, SteamNewAppsSource,
+                              SteamPicsSource)
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, utcnow
 
 log = logging.getLogger(__name__)
-ALL_SOURCES = ("github", "steam", "local")
+ALL_SOURCES = ("github", "steam", "local", "fullscan")
+SILENT_CHANGE_TYPES = ("baseline", "present")   # registrati senza avvisi (stato iniziale)
 
 
 @dataclass
@@ -33,15 +35,17 @@ class Pipeline:
         self.steam = SteamPicsSource(cfg, db)
         self.steam_apps = SteamNewAppsSource(cfg, db, self.steam)
         self.local = LocalFilesSource(cfg, db)
+        self.full = FullScanSource(cfg, db)
         self.notifiers = load_notifiers(cfg)
 
     def select_alerts(self, findings: Iterable[Finding]) -> list[Finding]:
         min_score = int(self.cfg.get("general.notify_min_score", 50))
-        return [f for f in findings if f.is_new and f.score >= min_score and f.change_type != "baseline"]
+        return [f for f in findings if f.is_new and f.score >= min_score and f.change_type not in SILENT_CHANGE_TYPES]
 
     def run_scan(self, *, sources: Iterable[str] = ALL_SOURCES, notify: bool = True,
                  github_since: datetime | None = None, repos: list[str] | None = None,
-                 max_commits: int | None = None, heading: str | None = None) -> ScanResult:
+                 max_commits: int | None = None, heading: str | None = None,
+                 force_full: bool = False) -> ScanResult:
         sources = tuple(sources)
         started = time.time()
         result = ScanResult()
@@ -74,6 +78,13 @@ class Pipeline:
             except Exception as exc:
                 log.exception("Sorgente file locali fallita")
                 result.errors.append(f"local: {exc}")
+
+        if "fullscan" in sources:
+            try:
+                result.findings += self.full.run(force=force_full, repos=repos)
+            except Exception as exc:
+                log.exception("Scansione completa fallita")
+                result.errors.append(f"fullscan: {exc}")
 
         result.alerts = self.select_alerts(result.findings)
         if result.alerts:

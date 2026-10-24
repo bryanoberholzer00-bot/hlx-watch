@@ -37,6 +37,29 @@ def export_findings(db: Database, limit: int = 25000) -> list[dict[str, Any]]:
     return out
 
 
+def present_groups(db: Database, limit: int = 60) -> list[dict[str, Any]]:
+    """Occorrenze 'già presenti' (scansione completa) raggruppate per cartella e parola chiave:
+    281 file di animazione nella stessa cartella diventano una riga sola."""
+    rows = [_row(r) for r in db.search_findings(change_type="present", limit=20000, order="score")]
+    groups: dict[tuple[str, str], dict[str, Any]] = {}
+    for r in rows:
+        folder = "/".join(r["file_path"].split("/")[:3])
+        kw = (r["keywords"] or ["?"])[0]
+        g = groups.setdefault((folder, kw), {"folder": folder, "keyword": kw, "games": set(), "count": 0,
+                                             "score": 0, "example": r, "files": set()})
+        g["games"].add(r["game"])
+        g["count"] += 1
+        g["files"].add(r["file_path"])
+        if r["score"] > g["score"]:
+            g["score"], g["example"] = r["score"], r
+    out = sorted(groups.values(), key=lambda g: (-g["score"], -len(g["games"]), g["folder"]))
+    for g in out:
+        g["games"] = sorted(g["games"])
+        g["n_files"] = len(g["files"])
+        g["severity"] = "high" if g["score"] >= 100 else "medium" if g["score"] >= 50 else "low"
+    return out[:limit]
+
+
 def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 180) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     env = Environment(loader=FileSystemLoader(str(TEMPLATES)), autoescape=select_autoescape(["html"]))
@@ -46,15 +69,15 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
 
     stats = db.stats()
     high = group_rows([_row(r) for r in db.search_findings(min_score=100, limit=300, order="created_at",
-                                                             exclude_change_type="baseline")])
+                                                             exclude_change_type=("baseline", "present"))])
     recent = group_rows([_row(r) for r in db.search_findings(min_score=50, limit=80, order="created_at",
-                                                               exclude_change_type="baseline")])
+                                                               exclude_change_type=("baseline", "present"))])
     index_html = env.get_template("index.html").render(
         stats=stats, high=high, recent=recent[:40],
         chart=timeline_svg(db.timeline(days=timeline_days), timeline_days, link="search.html?since={day}&until={day}"),
         timeline_days=timeline_days, tokens=[dict(r) for r in db.top_tokens(25)],
         builds=[dict(r) for r in db.recent_builds(15)], apps=[dict(r) for r in db.flagged_apps(20)],
-        steam_builds=[dict(r) for r in db.steam_builds(12)],
+        steam_builds=[dict(r) for r in db.steam_builds(12)], present=present_groups(db),
     )
     (out_dir / "index.html").write_text(index_html, encoding="utf-8")
     (out_dir / "search.html").write_text(env.get_template("search.html").render(games=stats["games"]), encoding="utf-8")

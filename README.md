@@ -64,9 +64,15 @@ hlx-watch/
    parole chiave fanno salire il punteggio.
 4. **File locali** (se abilitati): hash del VPK, lista file, estrazione dei file di testo, stringhe dai
    binari, tutto confrontato con lo snapshot precedente.
-5. Ogni riga interessante diventa un **finding** con punteggio, keyword, token, contesto e tipo di modifica
+5. **Scansione completa** (una volta al giorno, `full_scan` in config, comando `fullscan`): clone
+   superficiale senza storia di ogni repository (circa 600 MB e un minuto per tutti) e `git grep` delle
+   parole ad alto valore in tutti i file, compresi quelli che la ricerca di GitHub non indicizza e quelli
+   tagliati dai commit con più di 3000 file. Il primo giro registra le occorrenze come "present" (c'erano
+   già, nessun avviso, sezione dedicata sul sito); i giri successivi segnalano quelle nuove o sparite che
+   il monitoraggio dei commit non aveva già visto.
+6. Ogni riga interessante diventa un **finding** con punteggio, keyword, token, contesto e tipo di modifica
    (`added`, `removed`, `changed`, `file_added`, `file_removed`, `file_renamed`, `build`, `new_app`).
-6. **Deduplica**: il token (es. `hlx_fsr3_min_reactiveness`) o la riga normalizzata viene hashato in
+7. **Deduplica**: il token (es. `hlx_fsr3_min_reactiveness`) o la riga normalizzata viene hashato in
    `seen_strings`. Solo le stringhe mai viste prima con punteggio sopra `notify_min_score` generano una
    notifica. Tutto il resto finisce comunque nello storico.
 

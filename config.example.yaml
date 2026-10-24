@@ -70,6 +70,16 @@ github:
       # runtime VR: eventuale componente VR di hlx
     # Altri repo utili: SteamTracking/GameTracking-TF2
 
+full_scan:
+  enabled: true
+  interval_hours: 24                     # una scansione completa al giorno (le altre esecuzioni la saltano)
+  min_score: 50                          # registra solo le righe con punteggio almeno 50
+  # termini (regex estesa, senza distinzione maiuscole) che selezionano le righe da valutare:
+  # solo parole ad alto valore, le generiche come npc_ darebbero migliaia di righe
+  prefilter: "hlx|hl3|half[ _-]?life|left[ _-]?4[ _-]?dead|l4d3"
+  exclude_repos: []                      # nomi dei repo da non scansionare
+  max_findings_per_repo: 2000
+
 steam:
   enabled: true
   worker_timeout_seconds: 240            # il login anonimo PICS gira in un sottoprocesso isolato
@@ -165,6 +175,10 @@ keywords:
       weight: 40
       description: "half-life generico (rumoroso)"
       excludes: ["alyx", "half-life 2", "half_life_2", "half-life2", "hl2", "episode", "halflife2"]
+    - id: l4d3
+      pattern: '(?<![a-z0-9])(left[ _-]?4[ _-]?dead[ _-]?3|l4d3)(?![a-z0-9])'
+      weight: 60
+      description: "Left 4 Dead 3 (progetto Source 2 noto dal 2015): avviso se compare oltre al bug reporter"
     - id: npc
       pattern: "(?<![a-z0-9])(npc_[a-z0-9_]+|ai_basenpc|cai_basenpc|ai_base_npc)"
       weight: 15

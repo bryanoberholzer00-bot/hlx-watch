@@ -267,7 +267,7 @@ class Database:
         game: str | None = None,
         source: str | None = None,
         change_type: str | None = None,
-        exclude_change_type: str | None = None,
+        exclude_change_type: str | tuple[str, ...] | None = None,
         min_score: int | None = None,
         only_new: bool = False,
         since: datetime | None = None,
@@ -293,8 +293,9 @@ class Database:
             sql += " AND f.change_type = ?"
             params.append(change_type)
         if exclude_change_type:
-            sql += " AND f.change_type != ?"
-            params.append(exclude_change_type)
+            excluded = (exclude_change_type,) if isinstance(exclude_change_type, str) else tuple(exclude_change_type)
+            sql += " AND f.change_type NOT IN (" + ",".join("?" * len(excluded)) + ")"
+            params += list(excluded)
         if min_score is not None:
             sql += " AND f.score >= ?"
             params.append(min_score)
@@ -336,7 +337,9 @@ class Database:
             out = {
                 "findings": c.execute("SELECT COUNT(*) FROM findings").fetchone()[0],
                 "findings_new": c.execute("SELECT COUNT(*) FROM findings WHERE is_new = 1").fetchone()[0],
-                "findings_high": c.execute("SELECT COUNT(*) FROM findings WHERE score >= 100").fetchone()[0],
+                "findings_high": c.execute("SELECT COUNT(*) FROM findings WHERE score >= 100 "
+                                           "AND change_type NOT IN ('baseline', 'present')").fetchone()[0],
+                "findings_present": c.execute("SELECT COUNT(*) FROM findings WHERE change_type = 'present'").fetchone()[0],
                 "builds": c.execute("SELECT COUNT(*) FROM builds").fetchone()[0],
                 "seen_strings": c.execute("SELECT COUNT(*) FROM seen_strings").fetchone()[0],
                 "steam_apps": c.execute("SELECT COUNT(*) FROM steam_apps").fetchone()[0],

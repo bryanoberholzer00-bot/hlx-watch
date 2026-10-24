@@ -36,6 +36,27 @@
  </table>
 </section>
 
+{% if present %}
+<section>
+ <h2>Già presenti nel contenuto attuale ({{ stats.findings_present }} occorrenze, raggruppate per cartella)</h2>
+ <p class="muted">Trovate dalla scansione completa giornaliera di tutti i file, anche quelli troppo grandi per la ricerca di GitHub.
+ Erano già lì prima dell'inizio dell'archivio: le liste qui sopra mostrano solo i cambiamenti.
+ <a href="search.html?type=present">Vedi tutte</a></p>
+ <table>
+  <tr><th>Punti</th><th>Cartella</th><th>Giochi</th><th>File</th><th>Esempio</th></tr>
+  {% for g in present %}
+  <tr class="{{ g.severity }}">
+   <td><span class="badge {{ g.severity }}">{{ g.score }}</span></td>
+   <td><small>{{ g.folder }}</small><br><small class="muted">{{ g.keyword }}</small></td>
+   <td><small>{% for x in g.games %}{{ titles.get(x, x) }}{% if not loop.last %}, {% endif %}{% endfor %}</small></td>
+   <td>{{ g.n_files }}</td>
+   <td><code>{{ g.example.text[:110] }}</code><br><small class="muted">{{ g.example.file_path[-80:] }}{% if g.example.line_no %}:{{ g.example.line_no }}{% endif %}</small></td>
+  </tr>
+  {% endfor %}
+ </table>
+</section>
+{% endif %}
+
 <div class="grid2">
 <section>
  <h2>Ultime voci rilevanti (&ge;50)</h2>
