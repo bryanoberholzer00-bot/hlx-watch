@@ -5,9 +5,11 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -99,16 +101,49 @@ public class MainActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT, (int) (4 * getResources().getDisplayMetrics().density));
 
         FrameLayout root = new FrameLayout(this);
+        root.setBackgroundColor(0xFF1F2430);       // il colore dell'intestazione del sito dietro le barre di sistema
         root.addView(swipe, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         root.addView(progress, barParams);
         setContentView(root);
+        fitSystemBars(root);
 
         if (savedInstanceState != null) {
             web.restoreState(savedInstanceState);
         } else {
             web.loadUrl(HOME);
         }
+    }
+
+    /**
+     * Da Android 15 le app vengono disegnate da bordo a bordo, anche sotto la barra di stato e quella di
+     * navigazione. Lo chiediamo esplicitamente su tutte le versioni (così il comportamento è uguale ovunque)
+     * e lasciamo come margine lo spazio occupato dalle barre e dall'eventuale foro della fotocamera.
+     */
+    @SuppressWarnings("deprecation")
+    private void fitSystemBars(View root) {
+        if (Build.VERSION.SDK_INT >= 30) {
+            getWindow().setDecorFitsSystemWindows(false);
+        } else {
+            root.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+        }
+        getWindow().setStatusBarColor(0x00000000);
+        getWindow().setNavigationBarColor(0x00000000);
+        root.setOnApplyWindowInsetsListener((v, insets) -> {
+            int left, top, right, bottom;
+            if (Build.VERSION.SDK_INT >= 30) {
+                android.graphics.Insets bars = insets.getInsets(
+                        WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
+                left = bars.left; top = bars.top; right = bars.right; bottom = bars.bottom;
+            } else {
+                left = insets.getSystemWindowInsetLeft(); top = insets.getSystemWindowInsetTop();
+                right = insets.getSystemWindowInsetRight(); bottom = insets.getSystemWindowInsetBottom();
+            }
+            v.setPadding(left, top, right, bottom);
+            return insets;
+        });
+        root.requestApplyInsets();
     }
 
     private void openExternal(Uri uri) {
