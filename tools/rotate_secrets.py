@@ -129,7 +129,10 @@ def update_worker() -> bool:
 def main() -> int:
     print(__doc__.split("Uso")[0].strip(), "\n")
     done = []
-    for s in SECRETS:
+    # facoltativo: "rotate_secrets.py anthropic" chiede solo i segreti il cui nome contiene quella parola
+    only = [a.lower() for a in sys.argv[1:]]
+    selected = [s for s in SECRETS if not only or any(o in s["label"].lower() for o in only)]
+    for s in selected:
         print(f"== {s['label']} ==")
         print(f"   Come: {s['how']}")
         while True:
