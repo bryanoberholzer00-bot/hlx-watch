@@ -115,6 +115,11 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     (out_dir / "search.html").write_text(env.get_template("search.html").render(games=stats["games"]), encoding="utf-8")
 
     findings = export_findings(db)
+    from hlxwatch.reports.bot_data import export_bot_data
+    bot_info = export_bot_data(db, cfg, out_dir, str(cfg.get("general.site_url",
+                                                             "https://bryanoberholzer00-bot.github.io/hlx-watch/")))
+    log.info("Dati per il bot: %d ultime, indice di %d voci (%d KB)", bot_info["ultime"], bot_info["indice"],
+             bot_info["indice_kb"])
     (out_dir / "findings.json").write_text(json.dumps(findings, ensure_ascii=False, separators=(",", ":")),
                                            encoding="utf-8")
 

@@ -54,6 +54,14 @@ def main() -> int:
         "url": url, "secret_token": webhook_secret, "allowed_updates": ["message"], "drop_pending_updates": True,
     }).json()
     print("setWebhook:", r.get("ok"), r.get("description", ""))
+    commands = [
+        {"command": "ultime", "description": "Le ultime scoperte rilevanti"},
+        {"command": "cerca", "description": "Cerca nell'archivio, es. /cerca hlx_"},
+        {"command": "stato", "description": "Ultima scansione, numeri e ultima analisi AI"},
+        {"command": "help", "description": "Cosa fa il bot"},
+    ]
+    c = requests.post(f"{api}/setMyCommands", timeout=20, json={"commands": commands}).json()
+    print("menu dei comandi:", c.get("ok"))
     info = requests.get(f"{api}/getWebhookInfo", timeout=20).json().get("result", {})
     print("webhook attivo su:", info.get("url"), "| errori recenti:", info.get("last_error_message", "nessuno"))
     return 0 if r.get("ok") else 1
