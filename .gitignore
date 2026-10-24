@@ -5,3 +5,8 @@ data/
 config.yaml
 .env
 .pytest_cache/
+
+# Cloudflare Worker
+telegram-welcome/.dev.vars
+telegram-welcome/.wrangler/
+node_modules/

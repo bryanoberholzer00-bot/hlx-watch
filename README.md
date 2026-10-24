@@ -197,6 +197,24 @@ passata l'ora in `general.daily_report_time` (UTC). La sorgente dei file locali 
 Per una cadenza esatta serve un servizio esterno che chiami `workflow_dispatch` (es. cron-job.org con
 un token GitHub) oppure un server proprio con `daemon`.
 
+### Messaggio di benvenuto del bot (Cloudflare Worker, opzionale)
+
+Il bot è solo un mittente: per rispondere subito a /start e /help, anche a PC spento, la cartella
+`telegram-welcome/` contiene un Cloudflare Worker gratuito che riceve i messaggi via webhook. Al
+proprietario (TELEGRAM_CHAT_ID) risponde con un riepilogo di cosa riceverà, agli altri spiega che gli
+avvisi sono privati e linka dashboard e codice.
+
+```powershell
+cd telegram-welcome
+npx wrangler login                      # una volta, autorizza l'account Cloudflare nel browser
+npx wrangler deploy                     # stampa l'indirizzo https://hlx-watch-bot.<sottodominio>.workers.dev
+cd ..
+.venv\Scripts\python telegram-welcome\setup.py https://hlx-watch-bot.<sottodominio>.workers.dev
+```
+
+`setup.py` carica i segreti sul Worker e collega il webhook. Con il webhook attivo `getUpdates` non
+funziona più; `setup.py --remove` lo scollega.
+
 ### Docker
 
 ```bash
