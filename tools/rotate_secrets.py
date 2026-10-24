@@ -1,15 +1,15 @@
 """Rotazione dei segreti di HLX Watch senza farli passare dalla chat.
 
-Per ogni segreto: generi il valore nuovo sul sito del servizio, lo incolli qui (l'input è nascosto),
-lo script lo verifica con una chiamata reale e, solo se funziona, aggiorna .env, i Secrets di GitHub
-e, per Telegram, il Worker di Cloudflare con il webhook. Nessun valore viene stampato.
+Per ogni segreto: generi il valore nuovo sul sito del servizio, lo COPI e premi Invio qui. Lo script
+lo legge dagli appunti (niente incolla, niente valori a schermo), lo verifica con una chiamata reale e,
+solo se funziona, aggiorna .env, i Secrets di GitHub e, per Telegram, il Worker di Cloudflare con il
+webhook. Poi svuota gli appunti.
 
 Uso (dalla cartella hlx-watch):   .venv\\Scripts\\python tools\\rotate_secrets.py
-Premi Invio senza scrivere nulla per saltare un segreto.
+Scrivi s e premi Invio per saltare un segreto.
 """
 from __future__ import annotations
 
-import getpass
 import re
 import subprocess
 import sys
@@ -82,6 +82,25 @@ SECRETS = [
 ]
 
 
+def read_clipboard() -> str:
+    """Legge gli appunti senza stamparli: niente incolla nel terminale, niente valori a schermo."""
+    if sys.platform == "win32":
+        r = subprocess.run(["powershell", "-NoProfile", "-Command", "Get-Clipboard -Raw"],
+                           capture_output=True, text=True, encoding="utf-8", errors="replace")
+        return (r.stdout or "").strip()
+    for cmd in (["pbpaste"], ["xclip", "-selection", "clipboard", "-o"]):
+        try:
+            return subprocess.run(cmd, capture_output=True, text=True).stdout.strip()
+        except FileNotFoundError:
+            continue
+    return ""
+
+
+def clear_clipboard() -> None:
+    if sys.platform == "win32":
+        subprocess.run(["powershell", "-NoProfile", "-Command", "Set-Clipboard -Value ' '"], capture_output=True)
+
+
 def set_env(name: str, value: str) -> None:
     text = ENV.read_text(encoding="utf-8") if ENV.exists() else ""
     line = f"{name}={value}"
@@ -114,18 +133,26 @@ def main() -> int:
         print(f"== {s['label']} ==")
         print(f"   Come: {s['how']}")
         while True:
-            value = getpass.getpass("   Incolla il valore nuovo (input nascosto, Invio per saltare): ").strip()
-            if not value:
+            answer = input("   Copia il valore nuovo, poi premi Invio qui (s + Invio per saltare): ").strip().lower()
+            if answer == "s":
                 print("   saltato\n")
                 break
+            value = read_clipboard()
+            if not value:
+                print("   Gli appunti sono vuoti: copia il valore e riprova.")
+                continue
+            if any(ch.isspace() for ch in value) or len(value) > 300:
+                print("   Negli appunti non c'è un token (testo con spazi o troppo lungo): copia solo il valore.")
+                continue
             print("   verifico...", end=" ", flush=True)
             try:
                 problem = s["check"](value)
             except Exception as exc:                       # rete, ecc.: non salvo nulla
                 problem = f"verifica non riuscita ({type(exc).__name__})"
             if problem:
-                print(f"NON valido: {problem}. Riprova.")
+                print(f"NON valido: {problem}. Copia di nuovo il valore giusto e riprova.")
                 continue
+            clear_clipboard()
             print("valido.")
             set_env(s["env"], value)
             print(f"   .env aggiornato ({s['env']})")
