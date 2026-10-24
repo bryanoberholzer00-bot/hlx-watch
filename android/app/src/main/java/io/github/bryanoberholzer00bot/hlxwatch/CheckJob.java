@@ -59,7 +59,12 @@ public class CheckJob extends JobService {
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
                 .setPersisted(true)
                 .build();
-        js.schedule(job);
+        try {
+            js.schedule(job);
+        } catch (RuntimeException e) {
+            // se il sistema rifiuta la pianificazione l'app deve comunque aprirsi: niente controllo in background
+            Log.w(TAG, "controllo in background non pianificato: " + e);
+        }
     }
 
     static void createChannel(Context context) {

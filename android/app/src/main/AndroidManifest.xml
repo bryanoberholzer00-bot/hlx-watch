@@ -5,6 +5,8 @@
     <!-- notifiche di sistema per le novità, e controllo programmato che riparte dopo un riavvio -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- da Android 14 serve per programmare un controllo che aspetta la connessione a internet -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
