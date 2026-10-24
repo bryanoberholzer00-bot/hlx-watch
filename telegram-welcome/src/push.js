@@ -156,7 +156,8 @@ function authorized(request, env) {
   return diff === 0;
 }
 
-const WELCOME = JSON.stringify({
+const welcome = (request) => JSON.stringify({
+  ack: `${new URL(request.url).origin}/push/ack`,
   title: "HLX Watch: notifiche attive",
   body: "Riceverai un avviso quando compare una novità rilevante (HLX, Half-Life 3, nuove build...).",
   url: "./", tag: "hlx-benvenuto",
@@ -185,7 +186,7 @@ export async function handlePush(request, env) {
     }
     await env.SUBS.put(key, "1", { metadata: record });
     let status = null;
-    try { status = await sendOne(env, record, WELCOME, {}); } catch (err) { console.log("benvenuto", String(err)); }
+    try { status = await sendOne(env, record, welcome(request), {}); } catch (err) { console.log("benvenuto", String(err)); }
     if (status === 404 || status === 410 || status === 403) {
       // il servizio push rifiuta subito l'indirizzo (o la chiave): inutile tenerlo
       await env.SUBS.delete(key);
@@ -206,7 +207,8 @@ export async function handlePush(request, env) {
     if (!authorized(request, env)) return json(request, { error: "non autorizzato" }, 403);
     let body;
     try { body = await request.json(); } catch { return json(request, { error: "json non valido" }, 400); }
-    const payload = JSON.stringify(body.message || {});
+    // il service worker del sito risponde su /push/ack: così si sa se la notifica è stata davvero mostrata
+    const payload = JSON.stringify({ ...(body.message || {}), ack: `${new URL(request.url).origin}/push/ack` });
     if (payload.length > 3000) return json(request, { error: "messaggio troppo lungo" }, 400);
     const page = await env.SUBS.list({ prefix: "sub:", limit: BATCH, cursor: body.cursor || undefined });
     const vapidCache = {};
@@ -223,6 +225,13 @@ export async function handlePush(request, env) {
       }
     }
     return json(request, { sent: page.keys.length, statuses, removed, next: page.list_complete ? null : page.cursor });
+  }
+
+  if (path === "/push/ack" && request.method === "POST") {
+    let info = {};
+    try { info = JSON.parse(await request.text()); } catch { /* ignorato */ }
+    console.log("conferma di consegna", String(info.tag || "").slice(0, 40), String(info.esito || "").slice(0, 200));
+    return new Response(null, { status: 204, headers: cors(request) });
   }
 
   if (path === "/push/count" && request.method === "GET") {

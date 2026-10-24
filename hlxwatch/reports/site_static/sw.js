@@ -11,14 +11,20 @@ self.addEventListener("push", (event) => {
   } catch (err) {
     data = { body: event.data ? event.data.text() : "" };
   }
-  event.waitUntil(self.registration.showNotification(data.title || "HLX Watch", {
+  const shown = self.registration.showNotification(data.title || "HLX Watch", {
     body: data.body || "Nuove scoperte nei dati dei giochi Valve.",
     icon: "icon-192.png",
     badge: "badge-96.png",
     tag: data.tag || "hlx-watch",
     renotify: true,
     data: { url: data.url || "./" },
-  }));
+  });
+  // conferma di consegna al bot (solo l'etichetta del messaggio e l'esito, nessun dato del dispositivo)
+  const report = (esito) => data.ack
+    ? fetch(data.ack, { method: "POST", headers: { "Content-Type": "text/plain" },
+                        body: JSON.stringify({ tag: data.tag || "", esito }) }).catch(() => {})
+    : undefined;
+  event.waitUntil(shown.then(() => report("mostrata"), (err) => report("errore: " + err)));
 });
 
 self.addEventListener("notificationclick", (event) => {
