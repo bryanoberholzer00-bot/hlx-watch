@@ -24,7 +24,8 @@ ENV = dotenv_values(HERE.parent / ".env")
 def wrangler_secret(name: str, value: str) -> None:
     npx = shutil.which("npx") or "npx"
     proc = subprocess.run([npx, "--yes", "wrangler@4", "secret", "put", name], input=value, text=True,
-                          capture_output=True, cwd=HERE, shell=sys.platform == "win32")
+                          encoding="utf-8", errors="replace", capture_output=True, cwd=HERE,
+                          shell=sys.platform == "win32")
     if proc.returncode != 0:
         raise SystemExit(f"wrangler secret put {name} fallito:\n{proc.stderr[-800:]}")
     print(f"segreto {name}: caricato")
