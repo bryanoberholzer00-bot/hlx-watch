@@ -105,6 +105,10 @@ async function sendOne(env, subscription, payload, vapidCache) {
     },
     body,
   });
+  if (res.status >= 400) {
+    // il servizio push spiega il rifiuto nel testo della risposta: utile per capire i problemi
+    console.log("rifiuto del servizio push", origin, res.status, (await res.text()).slice(0, 300));
+  }
   return res.status;
 }
 
