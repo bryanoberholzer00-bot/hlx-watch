@@ -69,6 +69,20 @@ github:
       repo: SteamTracking/GameTracking-SteamVR
       branch: master
       # runtime VR: eventuale componente VR di hlx
+    - name: steamworks
+      title: "Documentazione Steamworks"
+      repo: SteamTracking/SteamworksDocumentation
+      branch: master
+      ignore_keywords: [half_life]       # cita spesso i giochi Half-Life esistenti; "Half-Life 3" resta coperto
+      since: "2026-04-24T00:00:00Z"      # prima lettura: sei mesi di storia, poi solo i commit nuovi
+      # funzioni nuove documentate per gli sviluppatori prima dell'uscita
+    - name: steamhelp
+      title: "Pagine di aiuto di Steam"
+      repo: SteamTracking/SteamHelpTracking
+      branch: main
+      ignore_keywords: [half_life]
+      since: "2026-04-24T00:00:00Z"
+      # articoli di supporto, anche per prodotti non ancora usciti
     # Altri repo utili: SteamTracking/GameTracking-TF2
 
 ai:
