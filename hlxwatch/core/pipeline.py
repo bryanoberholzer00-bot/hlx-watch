@@ -16,7 +16,7 @@ from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, utcnow
 
 log = logging.getLogger(__name__)
-ALL_SOURCES = ("github", "steam", "local", "fullscan")
+ALL_SOURCES = ("discovery", "github", "steam", "local", "fullscan")
 SILENT_CHANGE_TYPES = ("baseline", "present")   # registrati senza avvisi (stato iniziale)
 
 
@@ -36,6 +36,8 @@ class Pipeline:
         self.steam_apps = SteamNewAppsSource(cfg, db, self.steam)
         self.local = LocalFilesSource(cfg, db)
         self.full = FullScanSource(cfg, db)
+        from hlxwatch.sources.discovery import RepoDiscovery
+        self.discovery = RepoDiscovery(cfg, db, self.github.client)
         self.notifiers = load_notifiers(cfg)
 
     def select_alerts(self, findings: Iterable[Finding]) -> list[Finding]:
@@ -50,6 +52,13 @@ class Pipeline:
         started = time.time()
         result = ScanResult()
         log.info("=== Scansione avviata (sorgenti: %s) ===", ", ".join(sources))
+
+        if "discovery" in sources:
+            try:
+                result.findings += self.discovery.run()
+            except Exception as exc:
+                log.exception("Scoperta dei repository fallita")
+                result.errors.append(f"discovery: {exc}")
 
         if "github" in sources:
             try:

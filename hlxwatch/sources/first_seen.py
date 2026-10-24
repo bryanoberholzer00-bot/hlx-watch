@@ -16,6 +16,7 @@ from typing import Any
 
 from hlxwatch.config import Config
 from hlxwatch.sources.github_tracking import GitHubClient
+from hlxwatch.repos import tracked_repos
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, utcnow
 
@@ -40,7 +41,7 @@ class FirstSeenResolver:
                                              cfg.github_token)
         self.max_bytes = int(cfg.get("github.fallback_max_bytes", 25 * 1024 * 1024))
         self.max_pages = int(self.fcfg.get("max_commit_pages", 20))
-        self.repos = {r["name"]: r for r in cfg.github_repos}
+        self.repos = {r["name"]: r for r in tracked_repos(cfg, db)}
         self.downloads = 0
 
     # ------------------------------------------------------------ github

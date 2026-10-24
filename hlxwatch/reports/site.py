@@ -17,6 +17,7 @@ from hlxwatch import __version__
 from hlxwatch.config import Config
 from hlxwatch.dashboard.app import _row, group_rows, timeline_svg
 from hlxwatch.reports.daily import collect_report_data, period_for, render_html
+from hlxwatch.repos import tracked_repos
 from hlxwatch.storage import Database
 from hlxwatch.timeutil import local_day, now_local, register_filters, tz_label
 
@@ -102,7 +103,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     (out_dir / "index.html").write_text(index_html, encoding="utf-8")
     kw = cfg.keywords
     (out_dir / "metodologia.html").write_text(env.get_template("metodologia.html").render(
-        repos=cfg.github_repos, steam_apps=[a.get("title", a.get("name")) for a in cfg.steam_watch_apps],
+        repos=tracked_repos(cfg, db), steam_apps=[a.get("title", a.get("name")) for a in cfg.steam_watch_apps],
         full_scan={**{"interval_hours": 24, "min_score": 50, "prefilter": ""}, **(cfg.get("full_scan", {}) or {})},
         keywords=kw.get("items", []), codenames=kw.get("codenames", []) or [], codename_weight=kw.get("codename_weight", 30),
         bonuses=kw.get("bonuses", {}) or {}, severity={"high": 100, "medium": 50, **(kw.get("severity") or {})},

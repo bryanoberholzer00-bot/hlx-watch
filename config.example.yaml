@@ -83,6 +83,12 @@ first_seen:
   max_downloads_per_run: 60              # versioni di file scaricate per run: il lavoro si completa in più run
   max_commit_pages: 20                   # fino a 2000 commit di storia per file
 
+repo_discovery:
+  enabled: true                          # a ogni run elenca i repository dell'organizzazione e avvisa dei nuovi
+  org: SteamTracking
+  auto_follow: true                      # i nuovi GameTracking-* vengono seguiti da soli, dalla data di creazione
+  base_score: 70                         # punteggio di un repository nuovo (sopra la soglia: avviso su Telegram)
+
 full_scan:
   enabled: true
   interval_hours: 24                     # una scansione completa al giorno (le altre esecuzioni la saltano)

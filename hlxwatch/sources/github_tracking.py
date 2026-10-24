@@ -21,6 +21,7 @@ from hlxwatch import __version__
 from hlxwatch.analyzers import KeywordMatcher, analyze_line_sets, analyze_patch
 from hlxwatch.config import Config
 from hlxwatch.models import BuildInfo, Finding
+from hlxwatch.repos import tracked_repos
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, parse_iso, utcnow
 
@@ -210,7 +211,7 @@ class GitHubTrackingSource:
     def run(self, *, since: datetime | None = None, repos: list[str] | None = None,
             max_commits: int | None = None) -> list[Finding]:
         findings: list[Finding] = []
-        for repo_cfg in self.cfg.github_repos:
+        for repo_cfg in tracked_repos(self.cfg, self.db):
             if repos and repo_cfg["name"] not in repos:
                 continue
             try:
@@ -232,6 +233,8 @@ class GitHubTrackingSource:
             if last_sha:
                 stop_at = last_sha
                 since = (last_date - timedelta(days=2)) if last_date else None
+            elif repo_cfg.get("since") and parse_iso(repo_cfg["since"]):
+                since = parse_iso(repo_cfg["since"]) - timedelta(days=1)    # repository scoperto: dalla sua nascita
             else:
                 since = utcnow() - timedelta(days=int(self.cfg.get("github.initial_days", 7)))
         if max_commits is None:

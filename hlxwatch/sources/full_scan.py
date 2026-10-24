@@ -26,6 +26,7 @@ from typing import Any
 from hlxwatch.analyzers import KeywordMatcher
 from hlxwatch.config import Config
 from hlxwatch.models import BuildInfo, Finding
+from hlxwatch.repos import tracked_repos
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, parse_iso, utcnow
 
@@ -68,7 +69,7 @@ class FullScanSource:
             log.error("Scansione completa: git non trovato nel PATH")
             return []
         findings: list[Finding] = []
-        for repo_cfg in self.cfg.github_repos:
+        for repo_cfg in tracked_repos(self.cfg, self.db):
             name = repo_cfg["name"]
             if (repos and name not in repos) or name in self.exclude:
                 continue

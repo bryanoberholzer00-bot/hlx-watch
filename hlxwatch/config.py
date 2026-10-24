@@ -92,6 +92,8 @@ class Config:
         return self.get("steam.watch_apps", []) or []
 
     def game_title(self, name: str) -> str:
+        if name == "steamtracking":
+            return "SteamTracking (nuovi repository)"
         for repo in self.get("github.repos", []) or []:
             if repo.get("name") == name:
                 return repo.get("title", name)

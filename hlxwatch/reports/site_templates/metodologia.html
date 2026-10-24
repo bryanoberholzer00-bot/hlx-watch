@@ -22,6 +22,7 @@
   <tr><td><a href="https://github.com/{{ r.repo }}">{{ r.repo }}</a></td><td>{{ r.title }}{% if r.ignore_keywords %} <small class="muted">(ignorate: {{ r.ignore_keywords|join(', ') }})</small>{% endif %}</td>
       <td><small>diff di ogni commit + scansione completa giornaliera</small></td></tr>
   {% endfor %}
+  <tr><td>Organizzazione <a href="https://github.com/SteamTracking">SteamTracking</a></td><td>elenco dei repository: uno nuovo (GameTracking-*) indica di solito un gioco Valve con file su Steam</td><td><small>a ogni run; i nuovi GameTracking-* vengono seguiti da soli dalla data di creazione</small></td></tr>
   <tr><td>Steam PICS (login anonimo)</td><td>build per branch, depot, metadati di {{ steam_apps|join(', ') }}; elenco delle app cambiate</td><td><small>a ogni run</small></td></tr>
   <tr><td>Steam Web API</td><td>elenco completo delle app, per riconoscere quelle nuove</td><td><small>una volta al giorno</small></td></tr>
  </table>
@@ -82,6 +83,7 @@
   <tr><td><code>file_added</code> / <code>file_removed</code> / <code>file_renamed</code></td><td>il percorso stesso del file contiene una parola chiave</td></tr>
   <tr><td><code>present</code></td><td>trovata dalla scansione completa: c'era già, non è una modifica recente</td></tr>
   <tr><td><code>build</code></td><td>nuova build Steam su un branch</td></tr>
+  <tr><td><code>new_repo</code></td><td>nuovo repository nell'organizzazione SteamTracking</td></tr>
   <tr><td><code>new_app</code></td><td>nuova app Steam con un segnale (Valve, nome sospetto, parole chiave)</td></tr>
  </table>
  <ul>

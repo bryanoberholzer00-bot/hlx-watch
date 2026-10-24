@@ -47,7 +47,7 @@ def _compile(pattern: str, case_sensitive: bool = False) -> re.Pattern[str]:
 
 def mixed_case(word: str) -> bool:
     """True per 'hLX' o 'HLx'; False per 'hlx', 'HLX', 'Hlx', 'hlx_Foo' (parti separate da _ valutate a sé)."""
-    for part in word.replace("-", "_").split("_"):
+    for part in re.split(r"[_\-\s]+", word):
         letters = [ch for ch in part if ch.isalpha()]
         if len(letters) < 2:
             continue
@@ -116,13 +116,11 @@ class KeywordMatcher:
         for kw in self.keywords:
             if kw.id in self.ignore:
                 continue
-            m = kw.regex.search(text)
-            if not m:
-                continue
             if any(ex.search(text) for ex in kw.excludes):
                 continue
-            if mixed_case(m.group(0)):
-                # "hLX", "HLx": sequenze casuali nei dump dei binari, non identificatori
+            # la prima corrispondenza con maiuscole normali: "hLX", "HLx" sono sequenze casuali dei dump binari
+            m = next((c for c in kw.regex.finditer(text) if not mixed_case(c.group(0))), None)
+            if m is None:
                 continue
             matches.append(Match(kw, m.start(), m.end()))
         if matches and self.global_excludes:
