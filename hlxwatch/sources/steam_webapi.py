@@ -193,10 +193,10 @@ class SteamNewAppsSource:
         flagged = score >= 50
         self.db.update_app_details(appid, name, app_type, developer, publisher,
                                    info.get("_change_number"), flagged, "; ".join(reasons) or None)
-        if score <= 0:
+        if score <= 0 or tags == ["private_app"]:
+            # app privata senza altri segnali: resta nella tabella delle app (pagina "App Steam"),
+            # ma non diventa una voce: ne nascono centinaia al giorno e intaserebbero report e timeline
             return []
-        if "private_app" in tags and len(tags) == 1 and self.db.build_exists("steam", "steam", f"app:{appid}"):
-            return []   # già registrata come privata: niente doppioni finché resta tale
         text = (f"Nuova app {appid}: {name or '(senza nome)'} [{app_type or 'tipo ?'}] "
                 f"dev={developer or '?'} pub={publisher or '?'}")
         build = BuildInfo(game="steam", source="steam", ref=f"app:{appid}", date=utcnow(),

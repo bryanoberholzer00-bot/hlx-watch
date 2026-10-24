@@ -144,8 +144,15 @@ def cmd_reevaluate(args: argparse.Namespace) -> int:
                             (res.score, __import__("json").dumps(res.keywords), res.token, r["id"]))
             rescored += 1
     db.conn.executemany("DELETE FROM findings WHERE id = ?", [(i,) for i in drop])
+    # app private senza altri segnali, registrate come voci dalle versioni precedenti
+    private = db.conn.execute(
+        "SELECT id, build_id FROM findings WHERE change_type = 'new_app' AND keywords = '[\"private_app\"]'").fetchall()
+    db.conn.executemany("DELETE FROM findings WHERE id = ?", [(r["id"],) for r in private])
+    db.conn.executemany("DELETE FROM builds WHERE id = ? AND NOT EXISTS (SELECT 1 FROM findings WHERE build_id = ?)",
+                        [(r["build_id"], r["build_id"]) for r in private if r["build_id"]])
     db.conn.commit()
-    log.info("Rivalutazione: %d voci esaminate, %d eliminate, %d con punteggio aggiornato", len(rows), len(drop), rescored)
+    log.info("Rivalutazione: %d voci esaminate, %d eliminate, %d con punteggio aggiornato, %d app private rimosse",
+             len(rows), len(drop), rescored, len(private))
     return 0
 
 
