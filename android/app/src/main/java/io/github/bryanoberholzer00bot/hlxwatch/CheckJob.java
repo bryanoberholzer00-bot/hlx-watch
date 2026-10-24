@@ -119,11 +119,16 @@ public class CheckJob extends JobService {
         prefs.edit().putStringSet("seen", keep).apply();
 
         createChannel(context);
-        if (firstRun) {
+        // conferma una sola volta, ma solo quando le notifiche sono davvero permesse: il primo controllo
+        // può partire prima che l'utente risponda alla richiesta del permesso
+        if (!prefs.getBoolean("welcomed", false) && notificationsAllowed(context)) {
             show(context, 1, "HLX Watch: notifiche attive",
                     "Riceverai una notifica quando compare una novità rilevante. Si disattivano dalle impostazioni "
                             + "di Android, alla voce notifiche dell'app.", MainActivity.HOME);
-            return;
+            prefs.edit().putBoolean("welcomed", true).apply();
+        }
+        if (firstRun) {
+            return;                 // la prima volta si registrano solo le voci presenti, senza notificarle
         }
         if (fresh.isEmpty()) {
             return;
@@ -157,6 +162,11 @@ public class CheckJob extends JobService {
             url = MainActivity.HOME + "search.html?new=1&min=50";
         }
         show(context, (int) (now / 1000), title, body.toString().trim(), url);
+    }
+
+    private static boolean notificationsAllowed(Context context) {
+        NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        return nm != null && nm.areNotificationsEnabled();
     }
 
     @SuppressWarnings("deprecation")
