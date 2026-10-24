@@ -5,6 +5,7 @@ Non serve un server: la ricerca nello storico avviene nel browser su findings.js
 from __future__ import annotations
 
 import json
+import shutil
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
@@ -122,6 +123,19 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
         start, end = period_for(None, days)
         (reports_dir / f"report-{days}d.html").write_text(render_html(collect_report_data(db, cfg, start, end)),
                                                           encoding="utf-8")
+    # icone e manifest: il sito si può aggiungere alla schermata Home ed è la base dell'app Android
+    static = Path(__file__).parent / "site_static"
+    for f in static.glob("*.png"):
+        shutil.copyfile(f, out_dir / f.name)
+    (out_dir / "manifest.webmanifest").write_text(json.dumps({
+        "name": "HLX Watch", "short_name": "HLX Watch",
+        "description": "Riferimenti a HLX nei dati pubblici dei giochi Valve su Source 2",
+        "start_url": "./", "scope": "./", "display": "standalone", "lang": "it",
+        "background_color": "#15181e", "theme_color": "#1f2430",
+        "icons": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+                  {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+                  {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}],
+    }, ensure_ascii=False, indent=1), encoding="utf-8")
     (out_dir / ".nojekyll").touch()
     log.info("Sito generato in %s: %d voci esportate, %d ad alta rilevanza", out_dir, len(findings), len(high))
     return out_dir

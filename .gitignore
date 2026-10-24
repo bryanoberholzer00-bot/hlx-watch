@@ -10,3 +10,10 @@ config.yaml
 telegram-welcome/.dev.vars
 telegram-welcome/.wrangler/
 node_modules/
+
+# Chiave di firma dell'app Android: tenerne una copia di sicurezza fuori dal repository
+android/release-key.p12
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties

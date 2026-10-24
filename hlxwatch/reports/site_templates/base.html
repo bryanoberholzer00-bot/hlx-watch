@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}HLX Watch{% endblock %}</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#1f2430">
 <style>
  :root{--accent:#e8743b;--bg:#f6f7f9;--card:#fff;--line:#e2e5ea;--muted:#6b7280;--text:#1f2937;--th:#f0f2f5;--code:#eef0f3;--hover:#fafbfc;color-scheme:light dark}
  @media (prefers-color-scheme: dark){:root{--bg:#15181e;--card:#1f2430;--line:#323847;--muted:#9aa3b2;--text:#e5e7eb;--th:#272d3a;--code:#2b3140;--hover:#242a37}}
@@ -52,6 +56,6 @@
  <span class="muted" style="margin-left:auto;font-size:.8rem">aggiornato {{ generated }}</span>
 </header>
 <main>{% block content %}{% endblock %}</main>
-<footer>HLX Watch v{{ version }} &middot; dati pubblici da SteamTracking/GameTracking-* e Steam PICS</footer>
+<footer>HLX Watch v{{ version }} &middot; dati pubblici da SteamTracking/GameTracking-* e Steam PICS &middot; <a href="https://github.com/bryanoberholzer00-bot/hlx-watch/releases/download/android-latest/hlx-watch.apk">app Android (APK)</a></footer>
 </body>
 </html>

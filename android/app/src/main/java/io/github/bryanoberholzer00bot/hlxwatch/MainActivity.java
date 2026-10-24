@@ -1,0 +1,146 @@
+package io.github.bryanoberholzer00bot.hlxwatch;
+
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
+import android.widget.ProgressBar;
+
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+/**
+ * HLX Watch per Android: il sito pubblicato su GitHub Pages in una WebView a schermo intero.
+ * Il contenuto resta quello del sito, quindi l'app non va reinstallata quando i dati cambiano.
+ * Le pagine del sito si aprono nell'app; GitHub, Steam e gli altri link esterni nel browser.
+ */
+public class MainActivity extends Activity {
+
+    private static final String HOME = "https://bryanoberholzer00-bot.github.io/hlx-watch/";
+    private static final String HOST = "bryanoberholzer00-bot.github.io";
+    private static final String PATH = "/hlx-watch";
+
+    private WebView web;
+    private SwipeRefreshLayout swipe;
+    private ProgressBar progress;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        web = new WebView(this);
+        WebSettings s = web.getSettings();
+        s.setJavaScriptEnabled(true);          // la ricerca del sito filtra i dati nel browser
+        s.setDomStorageEnabled(true);
+        s.setCacheMode(WebSettings.LOAD_DEFAULT);
+        s.setLoadWithOverviewMode(true);
+        s.setUseWideViewPort(true);
+        s.setBuiltInZoomControls(true);
+        s.setDisplayZoomControls(false);
+
+        web.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                Uri uri = request.getUrl();
+                if (HOST.equals(uri.getHost()) && uri.getPath() != null && uri.getPath().startsWith(PATH)) {
+                    return false;                 // pagina del sito: resta nell'app
+                }
+                openExternal(uri);                // commit su GitHub, Steam, CSV...: nel browser
+                return true;
+            }
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                progress.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                progress.setVisibility(View.GONE);
+                swipe.setRefreshing(false);
+            }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                if (request.isForMainFrame()) {
+                    swipe.setRefreshing(false);
+                    view.loadDataWithBaseURL(HOME, offlinePage(), "text/html", "utf-8", null);
+                }
+            }
+        });
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                progress.setProgress(newProgress);
+            }
+        });
+
+        swipe = new SwipeRefreshLayout(this);
+        swipe.setColorSchemeColors(0xFFE8743B);
+        swipe.addView(web, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        // trascinare verso il basso aggiorna solo quando la pagina è già in cima
+        swipe.setOnChildScrollUpCallback((parent, child) -> web.getScrollY() > 0);
+        swipe.setOnRefreshListener(() -> web.reload());
+
+        progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        progress.setMax(100);
+        FrameLayout.LayoutParams barParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, (int) (4 * getResources().getDisplayMetrics().density));
+
+        FrameLayout root = new FrameLayout(this);
+        root.addView(swipe, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        root.addView(progress, barParams);
+        setContentView(root);
+
+        if (savedInstanceState != null) {
+            web.restoreState(savedInstanceState);
+        } else {
+            web.loadUrl(HOME);
+        }
+    }
+
+    private void openExternal(Uri uri) {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, uri));
+        } catch (ActivityNotFoundException ignored) {
+            // nessuna app per aprire il link: non succede nulla
+        }
+    }
+
+    private static String offlinePage() {
+        return "<!doctype html><html lang=it><head><meta name=viewport content='width=device-width,initial-scale=1'>"
+                + "<style>body{font-family:sans-serif;background:#15181e;color:#e5e7eb;display:flex;"
+                + "flex-direction:column;align-items:center;justify-content:center;height:90vh;text-align:center;padding:1rem}"
+                + "a{background:#e8743b;color:#fff;padding:.7rem 1.4rem;border-radius:6px;text-decoration:none}</style></head>"
+                + "<body><h2>Nessuna connessione</h2><p>HLX Watch ha bisogno di internet per mostrare i dati aggiornati.</p>"
+                + "<p><a href='" + HOME + "'>Riprova</a></p></body></html>";
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        web.saveState(outState);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void onBackPressed() {
+        if (web.canGoBack()) {
+            web.goBack();
+        } else {
+            super.onBackPressed();
+        }
+    }
+}

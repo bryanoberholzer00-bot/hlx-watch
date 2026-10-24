@@ -224,6 +224,17 @@ Telegram. Nei giorni senza novità la chiamata viene saltata e non costa nulla.
 - Fallback: se i filtri di sicurezza del modello rifiutassero la richiesta, il parametro
   `fallbacks: "default"` la fa ripetere automaticamente su un altro modello Claude.
 
+### App Android
+
+La cartella `android/` contiene un'app nativa minima: il sito in una WebView a schermo intero, con icona,
+aggiornamento trascinando verso il basso, tasto indietro e link esterni (commit, Steam) aperti nel browser.
+Il workflow `.github/workflows/android.yml` la compila a ogni modifica di `android/` e pubblica l'APK firmato
+nella release `android-latest`: https://github.com/bryanoberholzer00-bot/hlx-watch/releases/download/android-latest/hlx-watch.apk
+
+Firma: la chiave PKCS12 sta nei Secrets `ANDROID_KEYSTORE_B64` / `ANDROID_KEYSTORE_PASSWORD` e in
+`android/release-key.p12` (escluso da git, password in `.env`). Va conservata: senza la stessa chiave Android
+non installa un aggiornamento sopra la versione precedente. Icone: `python tools/make_icons.py`.
+
 ### Messaggio di benvenuto del bot (Cloudflare Worker, opzionale)
 
 Il bot è solo un mittente: per rispondere subito a /start e /help, anche a PC spento, la cartella

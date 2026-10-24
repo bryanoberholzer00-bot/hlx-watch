@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema chiaro: con il telefono in modalità chiara il sito usa i colori chiari -->
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">#1f2430</item>
+        <item name="android:colorPrimaryDark">#1f2430</item>
+        <item name="android:colorAccent">#e8743b</item>
+        <item name="android:statusBarColor">#1f2430</item>
+        <item name="android:navigationBarColor">#1f2430</item>
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+</resources>

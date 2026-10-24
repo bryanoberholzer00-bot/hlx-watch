@@ -1,0 +1,50 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Versione: il numero del run di GitHub Actions, così ogni APK si installa sopra il precedente.
+def runNumber = (System.getenv("GITHUB_RUN_NUMBER") ?: "1") as Integer
+def keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+
+android {
+    namespace 'io.github.bryanoberholzer00bot.hlxwatch'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'io.github.bryanoberholzer00bot.hlxwatch'
+        minSdk 24
+        targetSdk 35
+        versionCode runNumber
+        versionName "1.0.${runNumber}"
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePath) {
+                storeFile file(keystorePath)
+                storeType 'pkcs12'
+                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias 'hlxwatch'
+                keyPassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (keystorePath) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+}
