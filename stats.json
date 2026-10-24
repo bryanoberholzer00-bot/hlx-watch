@@ -1,0 +1,28 @@
+{
+  "findings": 9389,
+  "findings_new": 2953,
+  "findings_high": 26,
+  "findings_present": 365,
+  "builds": 1257,
+  "seen_strings": 3251,
+  "steam_apps": 268165,
+  "steam_apps_flagged": 0,
+  "steam_builds": 15,
+  "last_scan": "2026-10-24T20:47:45Z",
+  "games": [
+    "alyx",
+    "cs2",
+    "deadlock",
+    "dota2",
+    "steamvr",
+    "steamworks"
+  ],
+  "per_game": {
+    "alyx": 308,
+    "cs2": 1031,
+    "deadlock": 1682,
+    "dota2": 6365,
+    "steamvr": 2,
+    "steamworks": 1
+  }
+}
