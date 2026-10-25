@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 import shutil
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -16,9 +16,10 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from hlxwatch import __version__
 from hlxwatch.config import Config
 from hlxwatch.dashboard.app import _row, group_rows, timeline_svg
-from hlxwatch.reports.daily import collect_report_data, period_for, render_html
+from hlxwatch.reports.daily import collect_report_data, render_html
 from hlxwatch.repos import tracked_repos
 from hlxwatch.storage import Database
+from hlxwatch.storage.db import utcnow
 from hlxwatch.links import link_label
 from hlxwatch.timeutil import local_day, now_local, register_filters, tz_label
 
@@ -128,10 +129,12 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
 
     reports_dir = out_dir / "reports"
     reports_dir.mkdir(exist_ok=True)
-    for days in (1, 7, 30):
-        start, end = period_for(None, days)
-        (reports_dir / f"report-{days}d.html").write_text(render_html(collect_report_data(db, cfg, start, end)),
-                                                          encoding="utf-8")
+    # finestre mobili che finiscono adesso, come il report su Telegram: al mattino "oggi" sarebbe quasi vuoto
+    end = utcnow().replace(second=0, microsecond=0)
+    for days, label in ((1, "ultime 24 ore"), (7, "ultimi 7 giorni"), (30, "ultimi 30 giorni")):
+        data = collect_report_data(db, cfg, end - timedelta(days=days), end)
+        data["label"] = label
+        (reports_dir / f"report-{days}d.html").write_text(render_html(data), encoding="utf-8")
     # icone e manifest: il sito si può aggiungere alla schermata Home ed è la base dell'app Android
     static = Path(__file__).parent / "site_static"
     for f in [*static.glob("*.png"), static / "sw.js"]:       # sw.js: riceve le notifiche di sistema
