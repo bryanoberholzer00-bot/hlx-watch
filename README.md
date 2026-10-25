@@ -327,7 +327,10 @@ di file giganteschi, `general.notify_min_score` regola quante notifiche ricevi.
 - **Organizzazione GitHub**: i repo sono ora sotto `SteamTracking` (il vecchio `SteamDatabase` fa
   redirect). `GameTracking-HalfLifeAlyx` esiste ed è configurato con `half_life` ignorato.
 - **Deadlock via PICS**: in anonimo l'app espone solo info parziali (`_missing_token`), depot e build
-  non sono visibili. Il gioco è comunque seguito tramite `GameTracking-Deadlock`.
+  non sono visibili. Il gioco è comunque seguito tramite `GameTracking-Deadlock`, e le nuove build si
+  ricavano dalla patch di `game/citadel/steam.inf` (`ClientVersion`) nei suoi commit: opzioni
+  `build_from_steam_inf` e `build_score` del repository (45 di default, sotto la soglia di notifica,
+  perché nelle settimane di aggiornamento escono anche 3-5 build al giorno).
 - **Lista app Steam**: il vecchio endpoint pubblico `ISteamApps/GetAppList/v2` non risponde più (404).
   Con `STEAM_WEB_API_KEY` si usa `IStoreService/GetAppList`; senza chiave vale l'euristica degli appid
   (un'app esistente ma con id superiore alla frontiera può essere segnalata come nuova la prima volta

@@ -28,6 +28,21 @@ from hlxwatch.storage.db import iso, parse_iso, utcnow
 log = logging.getLogger(__name__)
 
 BUILDID_RE = re.compile(r"build\s*id\D{0,5}(\d{5,})", re.IGNORECASE)
+STEAM_INF_RE = re.compile(r"^([+-])(ClientVersion|SourceRevision|VersionDate)=(.*)$", re.MULTILINE)
+
+
+def steam_inf_build(patch: str) -> dict[str, str] | None:
+    """Nuova versione del gioco dalla patch di steam.inf: serve dove Steam in anonimo non mostra le build
+    (Deadlock). Restituisce None se ClientVersion non cambia (per esempio cambia solo l'orario)."""
+    new: dict[str, str] = {}
+    old: dict[str, str] = {}
+    for sign, key, value in STEAM_INF_RE.findall(patch):
+        (new if sign == "+" else old)[key] = value.strip()
+    version = new.get("ClientVersion")
+    if not version or version == old.get("ClientVersion"):
+        return None
+    return {"version": version, "previous": old.get("ClientVersion", ""),
+            "revision": new.get("SourceRevision", ""), "date": new.get("VersionDate", "")}
 FILES_PER_PAGE = 300
 COMMITS_PER_PAGE = 100
 
@@ -320,6 +335,10 @@ class GitHubTrackingSource:
 
             # 2) il contenuto
             patch = entry.get("patch")
+            if patch and repo_cfg.get("build_from_steam_inf") and path.endswith("steam.inf"):
+                info = steam_inf_build(patch)
+                if info:
+                    findings.append(self._steam_inf_finding(repo_cfg, path, info))
             if patch:
                 findings += analyze_patch(patch, game=name, source="github", file_path=path, matcher=matcher,
                                           context_lines=self.context_lines, max_findings=self.max_findings)
@@ -345,6 +364,19 @@ class GitHubTrackingSource:
             if len(fallback_entries) > 20:
                 log.info("[%s] %s: diff manuale completato in %.0fs", name, sha[:10], time.time() - started)
         return findings
+
+    def _steam_inf_finding(self, repo_cfg: dict[str, Any], path: str, info: dict[str, str]) -> Finding:
+        name = repo_cfg["name"]
+        title = self.cfg.game_title(name)
+        text = f"{title}: nuova build {info['version']}" + (f" (prima {info['previous']})" if info["previous"] else "")
+        details = [f"revisione {info['revision']}" if info["revision"] else "", info["date"]]
+        log.info("[%s] nuova build dal file steam.inf: %s", name, info["version"])
+        return Finding(
+            game=name, source="github", file_path=path, change_type="build", text=text,
+            # punteggio per repository: Deadlock pubblica anche 3-5 build al giorno, sotto la soglia di notifica
+            score=int(repo_cfg.get("build_score", self.cfg.get("steam.build_score", 55))), keywords=["steam_build"],
+            token=f"build:{name}:{info['version']}", context=", ".join(d for d in details if d),
+        )
 
     def _fallback_diff(self, name: str, repo: str, sha: str, parent_sha: str | None,
                        entry: dict[str, Any], matcher: KeywordMatcher) -> list[Finding]:

@@ -46,6 +46,8 @@ github:
       title: "Deadlock"
       repo: SteamTracking/GameTracking-Deadlock
       branch: master
+      build_from_steam_inf: true         # Steam in anonimo non mostra le build: si leggono da steam.inf
+      build_score: 45                    # anche 3-5 build al giorno: nel report e sul sito, senza notifica (50+ = notifica)
       appid: 1422450
     - name: alyx
       title: "Half-Life: Alyx"
