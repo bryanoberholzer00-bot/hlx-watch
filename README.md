@@ -334,12 +334,16 @@ di file giganteschi, `general.notify_min_score` regola quante notifiche ricevi.
 - **Lista app Steam**: il vecchio endpoint pubblico `ISteamApps/GetAppList/v2` non risponde più (404).
   Con `STEAM_WEB_API_KEY` si usa `IStoreService/GetAppList`; senza chiave vale l'euristica degli appid
   (un'app esistente ma con id superiore alla frontiera può essere segnalata come nuova la prima volta
-  che cambia; il punteggio filtra comunque quelle non Valve).
+  che cambia; il punteggio filtra comunque quelle non Valve). Su GitHub Actions la chiave è nei Secrets,
+  quindi si usa la lista completa.
 - **Commit enormi**: l'API di GitHub espone al massimo 3000 file per commit; oltre, i file restanti non
-  vengono analizzati (viene loggato un avviso). Per i commit di GameTracking è un caso raro.
+  vengono analizzati nel diff (viene loggato un avviso). Per i commit di GameTracking è un caso raro, e
+  la scansione completa giornaliera (`full_scan`) legge comunque tutti i file: al massimo una voce arriva
+  con fino a 24 ore di ritardo.
 - **Libreria `steam`**: usa gevent; per questo gira in un sottoprocesso con timeout. Se l'installazione
-  fallisce, il resto funziona e la sorgente Steam viene saltata con un errore nel log.
-- Fuso orario: i dati restano in UTC (come GitHub, Steam e i runner di Actions, senza ambiguità con l'ora
+  fallisce, il resto funziona e la sorgente Steam viene saltata con un errore nel log; il controllo di
+  salute (`health`) avvisa su Telegram dopo 3 run di fila con errori e quando torna a funzionare.
+- **Fuso orario**: i dati restano in UTC (come GitHub, Steam e i runner di Actions, senza ambiguità con l'ora
   legale); orari mostrati, giorni dei report e ora del report giornaliero seguono `general.timezone`
   (default `Europe/Rome`), quindi il report resta alla stessa ora anche al cambio dell'ora.
 
