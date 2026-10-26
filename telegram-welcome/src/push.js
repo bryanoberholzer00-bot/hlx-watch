@@ -167,6 +167,81 @@ const welcome = (request) => JSON.stringify({
   url: "./", tag: "hlx-benvenuto",
 });
 
+// ------------------------------------------------------------------ invio e orario di silenzio
+async function sendPage(env, payload, cursor, limit = BATCH) {
+  const page = await env.SUBS.list({ prefix: "sub:", limit, cursor });
+  const vapidCache = {};
+  const statuses = {};
+  let removed = 0;
+  for (const k of page.keys) {
+    if (!k.metadata) continue;
+    let status;
+    try { status = await sendOne(env, k.metadata, payload, vapidCache); } catch (err) { status = String(err).slice(0, 60); }
+    statuses[status] = (statuses[status] || 0) + 1;
+    if (status === 404 || status === 410) {          // il browser ha revocato l'iscrizione
+      await env.SUBS.delete(k.name);
+      removed += 1;
+    }
+  }
+  return { sent: page.keys.length, statuses, removed, next: page.list_complete ? null : page.cursor };
+}
+
+// Ora italiana (con l'ora legale gestita da Intl): silenzio da QUIET_START a QUIET_END, di default 23-8.
+export function localHour(env, now = new Date()) {
+  return Number(new Intl.DateTimeFormat("en-GB", {
+    timeZone: env.QUIET_TZ || "Europe/Rome", hour: "2-digit", hourCycle: "h23",
+  }).format(now));
+}
+
+export function isQuiet(env, now = new Date()) {
+  const start = Number(env.QUIET_START ?? 23);
+  const end = Number(env.QUIET_END ?? 8);
+  if (start === end) return false;
+  const h = localHour(env, now);
+  return start > end ? (h >= start || h < end) : (h >= start && h < end);
+}
+
+const PENDING = "pending:notte";
+
+async function queueForMorning(env, message) {
+  const list = JSON.parse((await env.SUBS.get(PENDING)) || "[]");
+  list.push({ title: String(message.title || ""), body: String(message.body || ""), url: String(message.url || "") });
+  await env.SUBS.put(PENDING, JSON.stringify(list.slice(-50)));
+}
+
+export function morningSummary(list, site) {
+  if (list.length === 1) return { ...list[0], tag: `hlx-mattino-${Date.now()}` };
+  const lines = list.slice(0, 4).map((m) => `• ${m.title.replace(/^HLX Watch:\s*/, "")}`);
+  if (list.length > 4) lines.push(`… e altri ${list.length - 4} avvisi`);
+  return {
+    title: `HLX Watch: novità della notte (${list.length} avvisi)`,
+    body: lines.join("\n"),
+    url: `${site}search.html?new=1&min=50`,
+    tag: `hlx-mattino-${Date.now()}`,
+  };
+}
+
+// Chiamata ogni ora dal cron del Worker: finito il silenzio, manda il riassunto e svuota la coda.
+export async function flushMorning(env, site, ackOrigin) {
+  if (!env.SUBS || !env.VAPID_PRIVATE_JWK || isQuiet(env)) return null;
+  const raw = await env.SUBS.get(PENDING);
+  if (!raw) return null;
+  const list = JSON.parse(raw);
+  await env.SUBS.delete(PENDING);
+  if (!list.length) return null;
+  const payload = JSON.stringify({ ...morningSummary(list, site), ack: `${ackOrigin}/push/ack` });
+  const total = { sent: 0, removed: 0 };
+  let cursor;
+  do {
+    const res = await sendPage(env, payload, cursor, 50);
+    total.sent += res.sent;
+    total.removed += res.removed;
+    cursor = res.next || undefined;
+  } while (cursor);
+  console.log("riassunto della notte inviato", list.length, "avvisi a", total.sent, "browser");
+  return total;
+}
+
 export async function handlePush(request, env) {
   const path = new URL(request.url).pathname;
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(request) });
@@ -211,24 +286,16 @@ export async function handlePush(request, env) {
     if (!authorized(request, env)) return json(request, { error: "non autorizzato" }, 403);
     let body;
     try { body = await request.json(); } catch { return json(request, { error: "json non valido" }, 400); }
-    // il service worker del sito risponde su /push/ack: così si sa se la notifica è stata davvero mostrata
-    const payload = JSON.stringify({ ...(body.message || {}), ack: `${new URL(request.url).origin}/push/ack` });
-    if (payload.length > 3000) return json(request, { error: "messaggio troppo lungo" }, 400);
-    const page = await env.SUBS.list({ prefix: "sub:", limit: BATCH, cursor: body.cursor || undefined });
-    const vapidCache = {};
-    const statuses = {};
-    let removed = 0;
-    for (const k of page.keys) {
-      if (!k.metadata) continue;
-      let status;
-      try { status = await sendOne(env, k.metadata, payload, vapidCache); } catch (err) { status = String(err).slice(0, 60); }
-      statuses[status] = (statuses[status] || 0) + 1;
-      if (status === 404 || status === 410) {          // il browser ha revocato l'iscrizione
-        await env.SUBS.delete(k.name);
-        removed += 1;
-      }
+    const message = body.message || {};
+    // di notte le novità si mettono da parte: alle 8 parte un solo riassunto (le prove passano sempre)
+    if (!message.urgente && isQuiet(env)) {
+      if (!body.cursor) await queueForMorning(env, message);
+      return json(request, { queued: true, sent: 0, statuses: {}, removed: 0, next: null });
     }
-    return json(request, { sent: page.keys.length, statuses, removed, next: page.list_complete ? null : page.cursor });
+    // il service worker del sito risponde su /push/ack: così si sa se la notifica è stata davvero mostrata
+    const payload = JSON.stringify({ ...message, ack: `${new URL(request.url).origin}/push/ack` });
+    if (payload.length > 3000) return json(request, { error: "messaggio troppo lungo" }, 400);
+    return json(request, await sendPage(env, payload, body.cursor || undefined));
   }
 
   if (path === "/push/ack" && request.method === "POST") {

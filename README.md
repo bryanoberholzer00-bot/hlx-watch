@@ -289,8 +289,12 @@ notificate; abbassalo se non ti interessano.
   Configurazione, una volta: `.venv\Scripts\python telegram-welcome\setup_push.py` (crea `VAPID_PRIVATE_JWK` e
   `PUSH_SECRET` in `.env` e li carica sul Worker e nei Secrets di GitHub; `--rotate` cambia `PUSH_SECRET`).
   Non cambiare `VAPID_PRIVATE_JWK`: tutti i browser dovrebbero riattivare le notifiche.
+  **Orario di silenzio**: dalle 23 alle 8 (ora italiana, `QUIET_START`/`QUIET_END`/`QUIET_TZ` in
+  `telegram-welcome/wrangler.jsonc`) il Worker mette da parte le novità nel KV e un cron orario manda alle 8
+  un solo riassunto ("novità della notte"). Le notifiche di prova (`urgente`) passano sempre.
 - **App Android**: `CheckJob` (JobScheduler, nessuna libreria esterna) legge `bot/ultime.json` ogni 30 minuti
-  circa e notifica le voci mai viste trovate negli ultimi 3 giorni. Al primo avvio chiede il permesso
+  circa e notifica le voci mai viste trovate negli ultimi 3 giorni; dalle 23 alle 8 (ora del telefono) non
+  notifica e alla prima verifica dopo le 8 mostra tutto insieme. Al primo avvio chiede il permesso
   (Android 13+) e manda una notifica di conferma.
 
 ## File locali (opzionale)

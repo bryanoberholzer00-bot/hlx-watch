@@ -80,3 +80,32 @@ def test_webpush_message_and_pages(monkeypatch):
     assert n.send_groups("x", [AlertGroup("deadlock", "Deadlock", [hlx], 100, 1)]) is True
     assert calls == [None, "c1"]                      # seconda pagina di browser con il cursore
     assert n.send_text("report", "testo") is True and len(calls) == 2   # i report non vanno come notifiche
+
+
+def test_webpush_test_message_is_urgent_and_queue_is_ok(monkeypatch):
+    from hlxwatch.models import Finding
+    from hlxwatch.notifiers.base import AlertGroup
+    from hlxwatch.notifiers.webpush import WebPushNotifier
+    sent = []
+
+    class Resp:
+        status_code = 200
+
+        def __init__(self, data):
+            self.data = data
+
+        def json(self):
+            return self.data
+
+    def fake_post(url, json, headers, timeout):
+        sent.append(json["message"])
+        return Resp({"queued": True, "sent": 0, "next": None})      # come risponde il bot di notte
+
+    monkeypatch.setattr("hlxwatch.notifiers.webpush.requests.post", fake_post)
+    f = Finding(game="cs2", source="github", file_path="a", change_type="added", text="x", score=100,
+                keywords=["hlx"], token="hlx")
+    n = WebPushNotifier("https://bot.example", "s", "https://example.org/")
+    groups = [AlertGroup("cs2", "Counter-Strike 2", [f], 100, 1)]
+    assert n.send_groups("HLX Watch: notifica di prova", groups) is True
+    assert n.send_groups("HLX Watch: novità", groups) is True        # trattenuta di notte: non è un errore
+    assert sent[0].get("urgente") is True and "urgente" not in sent[1]

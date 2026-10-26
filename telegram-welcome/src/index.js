@@ -8,7 +8,7 @@
 // Notifiche di sistema del sito (percorsi /push/...): vedi src/push.js
 // Variabili facoltative: SITE_URL (default il sito pubblico), DRY_RUN=1 (risponde nella risposta HTTP: per i test)
 
-import { handlePush } from "./push.js";
+import { flushMorning, handlePush } from "./push.js";
 
 const DEFAULT_SITE = "https://bryanoberholzer00-bot.github.io/hlx-watch/";
 const REPO = "https://github.com/bryanoberholzer00-bot/hlx-watch";
@@ -182,9 +182,17 @@ async function scheduledCheck(env) {
   return text;
 }
 
+const BOT_ORIGIN = "https://hlx-watch-bot.bryan-oberholzer00.workers.dev";
+const MORNING_CRON = "7 * * * *";
+
 export default {
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(scheduledCheck(env));
+    if (event.cron === MORNING_CRON) {
+      // ogni ora: finito l'orario di silenzio manda il riassunto delle notifiche trattenute di notte
+      ctx.waitUntil(flushMorning(env, env.SITE_URL || DEFAULT_SITE, BOT_ORIGIN));
+    } else {
+      ctx.waitUntil(scheduledCheck(env));
+    }
   },
 
   async fetch(request, env) {

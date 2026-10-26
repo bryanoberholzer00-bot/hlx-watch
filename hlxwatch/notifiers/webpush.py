@@ -4,6 +4,7 @@ Il run non conosce i browser iscritti: manda il messaggio al Worker (POST /push/
 cifra e lo inoltra a ognuno. Il Worker lavora a gruppi di pochi browser per chiamata, quindi qui si
 ripete la chiamata finché non restituisce next = null.
 Vanno solo le novità: report giornalieri, analisi AI e avvisi tecnici restano su Telegram.
+Dalle 23 alle 8 (ora italiana) il bot le mette da parte e alle 8 manda un solo riassunto; le prove passano sempre.
 """
 from __future__ import annotations
 
@@ -52,7 +53,10 @@ class WebPushNotifier(Notifier):
     def send_groups(self, heading: str, groups: list[AlertGroup]) -> bool:
         if not groups:
             return True
-        payload = {"message": self.message(groups, self.site_url), "cursor": None}
+        message = self.message(groups, self.site_url)
+        if "prova" in heading.lower():
+            message["urgente"] = True       # le notifiche di prova arrivano anche nell'orario di silenzio
+        payload = {"message": message, "cursor": None}
         headers = {"Authorization": f"Bearer {self.secret}"}
         delivered, statuses = 0, {}
         for _ in range(MAX_CALLS):
@@ -65,6 +69,9 @@ class WebPushNotifier(Notifier):
                 log.error("Bot delle notifiche: risposta %s %s", response.status_code, response.text[:200])
                 return False
             data = response.json()
+            if data.get("queued"):
+                log.info("Notifiche di sistema: orario di silenzio, il bot le manda nel riassunto del mattino")
+                return True
             delivered += int(data.get("sent", 0))
             for status, n in (data.get("statuses") or {}).items():
                 statuses[status] = statuses.get(status, 0) + n

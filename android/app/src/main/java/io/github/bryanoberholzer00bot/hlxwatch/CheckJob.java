@@ -110,6 +110,22 @@ public class CheckJob extends JobService {
                 fresh.add(it);
             }
         }
+        createChannel(context);
+        // conferma una sola volta, ma solo quando le notifiche sono davvero permesse: il primo controllo
+        // può partire prima che l'utente risponda alla richiesta del permesso (la conferma arriva anche di notte)
+        if (!prefs.getBoolean("welcomed", false) && notificationsAllowed(context)) {
+            show(context, 1, "HLX Watch: notifiche attive",
+                    "Riceverai una notifica quando compare una novità rilevante (di notte, dalle 23 alle 8, "
+                            + "le trovi riassunte al mattino). Si disattivano dalle impostazioni di Android, "
+                            + "alla voce notifiche dell'app.", MainActivity.HOME);
+            prefs.edit().putBoolean("welcomed", true).apply();
+        }
+        // orario di silenzio: le novità della notte non si segnano come viste, così alla prima
+        // verifica dopo le 8 arrivano tutte insieme in una sola notifica
+        if (!firstRun && inQuietHours()) {
+            return;
+        }
+
         // si ricordano le voci attuali più quelle già viste (con un limite, per non crescere all'infinito)
         Set<String> keep = new HashSet<>(current);
         for (String s : seen) {
@@ -118,15 +134,6 @@ public class CheckJob extends JobService {
         }
         prefs.edit().putStringSet("seen", keep).apply();
 
-        createChannel(context);
-        // conferma una sola volta, ma solo quando le notifiche sono davvero permesse: il primo controllo
-        // può partire prima che l'utente risponda alla richiesta del permesso
-        if (!prefs.getBoolean("welcomed", false) && notificationsAllowed(context)) {
-            show(context, 1, "HLX Watch: notifiche attive",
-                    "Riceverai una notifica quando compare una novità rilevante. Si disattivano dalle impostazioni "
-                            + "di Android, alla voce notifiche dell'app.", MainActivity.HOME);
-            prefs.edit().putBoolean("welcomed", true).apply();
-        }
         if (firstRun) {
             return;                 // la prima volta si registrano solo le voci presenti, senza notificarle
         }
@@ -162,6 +169,14 @@ public class CheckJob extends JobService {
             url = MainActivity.HOME + "search.html?new=1&min=50";
         }
         show(context, (int) (now / 1000), title, body.toString().trim(), url);
+    }
+
+    static final int QUIET_START = 23;      // dalle 23...
+    static final int QUIET_END = 8;         // ...alle 8, ora del telefono
+
+    static boolean inQuietHours() {
+        int h = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
+        return h >= QUIET_START || h < QUIET_END;
     }
 
     private static boolean notificationsAllowed(Context context) {

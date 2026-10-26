@@ -5,8 +5,10 @@
   "main": "src/index.js",
   "compatibility_date": "2026-09-01",
   "workers_dev": true,
-  // controllo esterno: ogni 6 ore verifica che il sito venga ancora aggiornato
-  "triggers": { "crons": ["23 */6 * * *"] },
+  // ogni 6 ore il controllo esterno (il sito viene ancora aggiornato?); ogni ora il riassunto del mattino delle notifiche trattenute di notte
+  "triggers": { "crons": ["23 */6 * * *", "7 * * * *"] },
+  // orario di silenzio delle notifiche di sistema (ora italiana): dalle 23 alle 8
+  "vars": { "QUIET_START": "23", "QUIET_END": "8", "QUIET_TZ": "Europe/Rome" },
   // iscrizioni alle notifiche di sistema del sito (src/push.js); segreti VAPID_PRIVATE_JWK e PUSH_SECRET
   "kv_namespaces": [{ "binding": "SUBS", "id": "3953cebed25949fc8c39ea05674d00d4" }],
   "observability": { "enabled": true }

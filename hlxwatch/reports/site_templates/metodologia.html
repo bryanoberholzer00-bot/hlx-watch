@@ -116,9 +116,11 @@
    (<a href="{{ repo_url }}/raw/data/findings.csv">findings.csv</a>).</li>
   <li><b>JSON</b> usato dalla ricerca del sito: <a href="findings.json">findings.json</a>.</li>
   <li><b>App Android</b>: <a href="https://github.com/bryanoberholzer00-bot/hlx-watch/releases/download/android-latest/hlx-watch.apk">hlx-watch.apk</a> (apre questo sito; si aggiorna installando l'APK nuovo sopra il vecchio).
-   Ogni 30 minuti circa controlla le ultime scoperte e manda una notifica di sistema per quelle nuove.</li>
+   Ogni 30 minuti circa controlla le ultime scoperte e manda una notifica di sistema per quelle nuove
+   (dalle 23 alle 8 le trattiene e le mostra insieme al mattino).</li>
   <li><b>Notifiche di sistema dal sito</b>: il pulsante <i>Attiva notifiche</i> nell'intestazione (Chrome, Edge e
-   Firefox su PC e Android; su iPhone solo dopo aver aggiunto il sito alla schermata Home). Arrivano le stesse novità
+   Firefox su PC e Android; su iPhone solo dopo aver aggiunto il sito alla schermata Home). Dalle 23 alle 8 vengono trattenute
+   e arrivano in un solo riassunto al mattino. Arrivano le stesse novità
    degli avvisi Telegram (punteggio ≥ {{ notify_min_score }}), non i report. Viene salvato solo l'indirizzo anonimo che il
    browser fornisce per le notifiche, nel bot su Cloudflare; disattivandole dal pulsante viene cancellato.</li>
   <li><b>Codice</b> dello strumento: <a href="{{ repo_url }}">{{ repo_url }}</a>.</li>
