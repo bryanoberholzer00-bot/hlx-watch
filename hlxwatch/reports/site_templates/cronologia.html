@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Cronologia HLX - HLX Watch{% endblock %}
+{% block content %}
+<style>
+ .tl{list-style:none;margin:0;padding:0 0 0 1.2rem;border-left:3px solid var(--line)}
+ .tl li{position:relative;margin:0 0 1.2rem}
+ .tl li::before{content:"";position:absolute;left:-1.72rem;top:.35rem;width:.8rem;height:.8rem;border-radius:50%;background:var(--accent)}
+ .tl li.media::before{background:#fb8c00} .tl li.bassa::before,.tl li.rumore::before{background:#90a4ae}
+ .tl .when{font-size:.85rem;color:var(--muted)} .tl h3{margin:.15rem 0 .35rem;font-size:1.05rem}
+ .tl p{margin:.3rem 0;line-height:1.45} .tl .meta{font-size:.82rem;color:var(--muted)}
+ .lvl{display:inline-block;padding:0 .45rem;border-radius:4px;font-size:.75rem;font-weight:600;color:#fff;margin-left:.3rem}
+ .lvl.alta{background:#e53935} .lvl.media{background:#fb8c00} .lvl.bassa,.lvl.rumore{background:#90a4ae}
+ .year{font-weight:700;margin:1rem 0 .6rem -1.2rem;padding-left:.2rem;color:var(--muted)}
+ .tl code{display:inline-block;margin-top:.2rem}
+</style>
+<h1>Cronologia HLX</h1>
+<section>
+ <p>Gli indizi più importanti su <b>HLX</b>, il presunto nome in codice di Half-Life 3, trovati nei dati pubblici dei giochi Valve.
+ Ogni voce raccoglie righe dello stesso tipo, anche se compaiono in più giochi. La data è la <b>prima comparsa</b> nei dati tracciati da SteamTracking
+ ("almeno dal" vuol dire che c'era già quando il tracciamento è iniziato, quindi può essere più vecchia).</p>
+ <p class="muted">Le spiegazioni sono scritte da {{ ai_model }} e riviste a mano; la pagina si aggiorna da sola quando compare un nuovo indizio.
+ Rilevanza: <span class="lvl alta">alta</span> indizio concreto di lavoro su HLX, <span class="lvl media">media</span> riferimento reale ma vecchio o indiretto,
+ <span class="lvl bassa">bassa</span> curiosità. Per il dettaglio di ogni riga usa la <a href="search.html">ricerca</a>.</p>
+</section>
+<section>
+{% if not data.entries %}<p class="muted">Nessun indizio ancora classificato.</p>{% endif %}
+<ul class="tl">
+{% set ns = namespace(year="") %}
+{% for e in data.entries %}
+ {% if e.anno != ns.year %}{% set ns.year = e.anno %}<div class="year">{{ e.anno }}</div>{% endif %}
+ <li class="{{ e.rilevanza }}">
+  <div class="when">{% if e.rimosso and e.data == e.rimosso %}rimosso il {{ e.rimosso }}{% else %}{{ e.data }}{% if e.rimosso %} &middot; rimosso il {{ e.rimosso }}{% endif %}{% endif %}<span class="lvl {{ e.rilevanza }}">{{ e.rilevanza }}</span></div>
+  <h3>{{ e.titolo }}</h3>
+  <p>{{ e.spiegazione }}</p>
+  <div class="meta">{{ e.giochi|join(", ") }} &middot; {{ e.righe }} {{ "riga" if e.righe == 1 else "righe" }}
+   {% if e.fonte %} &middot; <a href="{{ e.fonte }}">{{ e.fonte|linklabel }} della prima comparsa</a>{% endif %}
+   {% if e.cerca %} &middot; <a href="search.html?q={{ e.cerca|urlencode }}">tutte le voci</a>{% endif %}</div>
+  <code>{{ e.esempi[0] }}</code>
+ </li>
+{% endfor %}
+</ul>
+</section>
+{% if data.noise %}
+<section>
+ <details><summary class="muted">Scartati come rumore ({{ data.noise|length }})</summary>
+ <ul class="tl">
+ {% for e in data.noise %}
+  <li class="rumore"><div class="when">{{ e.data }}</div><h3>{{ e.titolo }}</h3><p>{{ e.spiegazione }}</p>
+   <div class="meta">{{ e.giochi|join(", ") }} &middot; {{ e.righe }} righe</div></li>
+ {% endfor %}
+ </ul></details>
+</section>
+{% endif %}
+{% if data.unclassified %}<p class="muted">{{ data.unclassified }} gruppi di righe in attesa di classificazione.</p>{% endif %}
+{% endblock %}

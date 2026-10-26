@@ -99,6 +99,12 @@ first_seen:
   max_downloads_per_run: 60              # versioni di file scaricate per run: il lavoro si completa in più run
   max_commit_pages: 20                   # fino a 2000 commit di storia per file
 
+timeline:
+  enabled: true                          # pagina Cronologia HLX: indizi >= min_score raggruppati dall'AI
+  min_score: 100
+  nascondi: []                           # id degli indizi da non mostrare (es. [t7])
+  rilevanza: {}                          # correzioni a mano, es. {t5: alta}
+
 weekly:
   enabled: true                          # riepilogo della settimana su Telegram, il lunedì dopo il report
 

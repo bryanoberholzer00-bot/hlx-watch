@@ -114,6 +114,9 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
         global_excludes=kw.get("global_excludes", []) or [], notify_min_score=cfg.get("general.notify_min_score", 50),
         ai_model="Claude Opus 5.5", repo_url=str(cfg.get("general.repo_url", "https://github.com/bryanoberholzer00-bot/hlx-watch")),
     ), encoding="utf-8")
+    from hlxwatch.timeline import build_entries
+    (out_dir / "cronologia.html").write_text(env.get_template("cronologia.html").render(
+        data=build_entries(cfg, db), ai_model="Claude Opus 5.5"), encoding="utf-8")
     (out_dir / "analisi.html").write_text(env.get_template("analisi.html").render(analyses=analyses),
                                            encoding="utf-8")
     (out_dir / "search.html").write_text(env.get_template("search.html").render(games=stats["games"]), encoding="utf-8")

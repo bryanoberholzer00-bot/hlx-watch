@@ -114,6 +114,12 @@ def cmd_cron(args: argparse.Namespace) -> int:
             log.info("Report giornaliero inviato")
     except Exception:
         log.exception("Report giornaliero fallito")
+    # cronologia HLX: classifica con l'AI solo i gruppi di righe mai visti (di solito nessuno, costo zero)
+    try:
+        from hlxwatch.timeline import update_timeline
+        update_timeline(cfg, db)
+    except Exception:
+        log.exception("Cronologia HLX: aggiornamento fallito")
     # riepilogo settimanale su Telegram: il lunedì (o al primo giro dopo), la settimana appena conclusa
     try:
         from hlxwatch.weekly import maybe_weekly
