@@ -243,11 +243,14 @@ class Database:
             ).fetchall()
 
     # --------------------------------------------------------------- findings
-    def add_finding(self, finding: Finding, build_id: int | None = None) -> Finding:
-        """Salva il finding, determina se la stringa è nuova (deduplica) e aggiorna seen_strings."""
+    def add_finding(self, finding: Finding, build_id: int | None = None,
+                    created_at: datetime | None = None) -> Finding:
+        """Salva il finding, determina se la stringa è nuova (deduplica) e aggiorna seen_strings.
+        `created_at` serve all'archeologia: le voci storiche portano la data del loro commit, non quella di oggi,
+        così non finiscono tra le "ultime" scoperte, nei report del giorno o nelle notifiche."""
         kind, value = finding.dedup_key
         h = dedup_hash(kind, value)
-        now = iso(utcnow())
+        now = iso(created_at or utcnow())
         with self._lock:
             seen = self.conn.execute("SELECT hits FROM seen_strings WHERE hash = ?", (h,)).fetchone()
             finding.is_new = seen is None

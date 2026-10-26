@@ -35,6 +35,10 @@ on:
         description: "Invia subito il report delle ultime 24 ore"
         type: boolean
         default: false
+      archeologia:
+        description: "Archeologia: cerca le righe HLX in tutta la storia dei repository (una volta sola, circa un'ora)"
+        type: boolean
+        default: false
 
 concurrency:
   group: hlx-watch
@@ -99,6 +103,10 @@ jobs:
 
       - name: Riapplica le regole attuali all'archivio (dopo modifiche al config)
         run: python -m hlxwatch reevaluate
+
+      - name: "Archeologia su richiesta: tutta la storia dei repository dal 2016"
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.archeologia == 'true'
+        run: python -m hlxwatch archeologia --workdir "$RUNNER_TEMP/archeologia"
 
       - name: Notifica di prova
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_notify == 'true'

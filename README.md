@@ -279,6 +279,14 @@ token, file, tipo di modifica e link al commit. Telegram: stesso contenuto in HT
 caratteri. Le nuove build Steam valgono `steam.build_score` (55): sopra la soglia di default, quindi
 notificate; abbassalo se non ti interessano.
 
+### Archeologia: tutta la storia dei repository
+
+`python -m hlxwatch archeologia` (o la casella *archeologia* del workflow) clona ogni repository con tutta
+la storia (CS2 e Dota 2 dal 2016) e con `git log -G` trova ogni riga HLX mai aggiunta o tolta, anche se oggi
+non c'è più. Le righe passano dagli stessi filtri della scansione normale; le voci prendono la data del
+loro commit, quindi non finiscono tra le ultime scoperte né nelle notifiche, ma nella ricerca per data e
+nella Cronologia. I commit già nell'archivio si saltano: si può rilanciare senza doppioni.
+
 ### Cronologia HLX
 
 La pagina `cronologia.html` del sito mette in fila gli indizi importanti (voci con punteggio >= 100), ognuno con

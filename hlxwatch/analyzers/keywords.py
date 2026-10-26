@@ -58,6 +58,7 @@ def mixed_case(word: str) -> bool:
     return False
 
 
+MACHINE_CODE_RE = re.compile(r"[A-Za-z0-9\\@`]\$[A-Za-z]")
 ALLOWED_PUNCT = frozenset(" \t\"'_./\\-:=,;()[]{}<>!&|#*+%$")
 
 
@@ -67,6 +68,10 @@ def looks_like_garbage(text: str) -> bool:
     stripped = text.strip()
     if len(stripped) < 4:
         return False
+    # frammenti di codice macchina nei dump dei binari: '$' attaccato a lettere o cifre (D$HL3, t$HL3, \$HL3).
+    # Nei testi veri '$' segue uno spazio o una virgoletta ($basetexture, "$HOME")
+    if len(stripped) < 40 and MACHINE_CODE_RE.search(stripped):
+        return True
     alnum = sum(ch.isalnum() for ch in stripped)
     if alnum / len(stripped) < 0.45 or stripped.count("\\") >= 4:
         return True

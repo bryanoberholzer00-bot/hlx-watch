@@ -178,6 +178,17 @@ def cmd_weekly(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_archeologia(args: argparse.Namespace) -> int:
+    """Cerca in tutta la storia dei repository le righe HLX aggiunte o tolte (una volta sola; nessuna notifica)."""
+    cfg, db = _open(args)
+    from hlxwatch.sources.archaeology import run_archaeology
+    summary = run_archaeology(cfg, db, names=args.repo, workdir=args.workdir, keep=args.keep)
+    for name, st in summary.items():
+        print(f"{name}: {st['commit_con_righe']} commit con voci, {st['voci']} voci "
+              f"({st['nuove']} stringhe mai viste), {st['commit_gia_noti']} già noti, {st['secondi']} s")
+    return 0
+
+
 def cmd_daemon(args: argparse.Namespace) -> int:
     cfg, db = _open(args)
     from hlxwatch.core import Pipeline
@@ -341,6 +352,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--days", type=int, help="analizza le novità degli ultimi N giorni (default: dall'ultima analisi)")
     p.add_argument("--send", action="store_true", help="invia il riepilogo ai notificatori se ci sono novità")
     p.set_defaults(func=cmd_analyze)
+
+    p = sub.add_parser("archeologia", help="cerca in tutta la storia dei repository le righe HLX aggiunte o tolte")
+    p.add_argument("--repo", action="append", help="limita a un repo per nome; ripetibile")
+    p.add_argument("--workdir", help="cartella per le copie dei repository (default: temporanea)")
+    p.add_argument("--keep", action="store_true", help="non cancellare le copie alla fine")
+    p.set_defaults(func=cmd_archeologia)
 
     p = sub.add_parser("weekly", help="riepilogo della settimana precedente (anteprima; --send per Telegram)")
     p.add_argument("--send", action="store_true", help="invia il riepilogo su Telegram")
