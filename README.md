@@ -279,6 +279,15 @@ token, file, tipo di modifica e link al commit. Telegram: stesso contenuto in HT
 caratteri. Le nuove build Steam valgono `steam.build_score` (55): sopra la soglia di default, quindi
 notificate; abbassalo se non ti interessano.
 
+### Riepilogo settimanale
+
+Il lunedì, al primo giro dopo `general.daily_report_time` (o al primo giro successivo, se il lunedì
+non ne parte nessuno), arriva su Telegram il riepilogo della settimana conclusa, da lunedì a domenica:
+commit e build per gioco, voci rilevanti e una sintesi di Claude con i punti principali e cosa tenere
+d'occhio (`hlxwatch/weekly.py`). Senza voci rilevanti l'AI non viene chiamata. Il costo (circa 0,03 $)
+rientra in `ai.monthly_budget_usd`. Si spegne con `weekly.enabled: false`; anteprima senza invio:
+`python -m hlxwatch weekly` (con `--send` lo manda).
+
 ### Notifiche di sistema (sito e app Android)
 
 - **Sito**: il pulsante *Attiva notifiche* nell'intestazione iscrive il browser (Web Push). Il service worker

@@ -114,6 +114,12 @@ def cmd_cron(args: argparse.Namespace) -> int:
             log.info("Report giornaliero inviato")
     except Exception:
         log.exception("Report giornaliero fallito")
+    # riepilogo settimanale su Telegram: il lunedì (o al primo giro dopo), la settimana appena conclusa
+    try:
+        from hlxwatch.weekly import maybe_weekly
+        maybe_weekly(cfg, db, pipeline.notifiers if not args.no_notify else [], report_time, send=not args.no_notify)
+    except Exception:
+        log.exception("Riepilogo settimanale fallito")
     # analisi AI: una volta al giorno, nella stessa finestra del report, solo se ci sono novità
     if now_local().strftime("%H:%M") >= report_time:
         try:
@@ -150,6 +156,19 @@ def cmd_analyze(args: argparse.Namespace) -> int:
     print(f"{content.get('titolo')}\n\n{content.get('sintesi')}")
     for h in content.get("ipotesi", []):
         print(f"- [{h.get('fiducia')}] {h.get('titolo')}")
+    return 0
+
+
+def cmd_weekly(args: argparse.Namespace) -> int:
+    """Riepilogo della settimana precedente: anteprima a schermo, oppure invio su Telegram con --send."""
+    cfg, db = _open(args)
+    from hlxwatch.notifiers import load_notifiers
+    from hlxwatch.weekly import last_week, maybe_weekly, weekly_title
+    report_time = str(cfg.get("general.daily_report_time", "09:00"))
+    text = maybe_weekly(cfg, db, load_notifiers(cfg), report_time, force=True, send=args.send)
+    print(weekly_title(*last_week()))
+    print()
+    print(text or "")
     return 0
 
 
@@ -316,6 +335,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--days", type=int, help="analizza le novità degli ultimi N giorni (default: dall'ultima analisi)")
     p.add_argument("--send", action="store_true", help="invia il riepilogo ai notificatori se ci sono novità")
     p.set_defaults(func=cmd_analyze)
+
+    p = sub.add_parser("weekly", help="riepilogo della settimana precedente (anteprima; --send per Telegram)")
+    p.add_argument("--send", action="store_true", help="invia il riepilogo su Telegram")
+    p.set_defaults(func=cmd_weekly)
 
     p = sub.add_parser("fullscan", help="cerca le parole chiave in tutto il contenuto attuale dei repository")
     p.add_argument("--repo", action="append", help="limita a un repo per nome; ripetibile")

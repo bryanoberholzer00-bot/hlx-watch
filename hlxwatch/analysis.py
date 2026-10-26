@@ -223,7 +223,8 @@ class Analyzer:
 
     def month_spend(self) -> float:
         start = utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        return self.db.analyses_cost_since(start)
+        extra = float(self.db.get_state(f"ai:extra_cost:{start:%Y-%m}") or 0)     # riepiloghi settimanali
+        return self.db.analyses_cost_since(start) + extra
 
     def run(self, *, force: bool = False, days: int | None = None) -> dict[str, Any] | None:
         if not self.enabled():

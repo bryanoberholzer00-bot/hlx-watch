@@ -98,6 +98,9 @@ first_seen:
   max_downloads_per_run: 60              # versioni di file scaricate per run: il lavoro si completa in più run
   max_commit_pages: 20                   # fino a 2000 commit di storia per file
 
+weekly:
+  enabled: true                          # riepilogo della settimana su Telegram, il lunedì dopo il report
+
 health:
   enabled: true                          # avvisi su Telegram quando qualcosa si ferma, e quando riparte
   failure_threshold: 3                   # run di fila con errori prima dell'avviso (credito AI esaurito: subito)
