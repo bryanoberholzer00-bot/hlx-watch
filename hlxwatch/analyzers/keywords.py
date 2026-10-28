@@ -58,6 +58,7 @@ def mixed_case(word: str) -> bool:
     return False
 
 
+STRINGS_DUMP_RE = re.compile(r"(_strings\.txt$|(^|/)strings/)", re.IGNORECASE)
 MACHINE_CODE_RE = re.compile(r"[A-Za-z0-9\\@`]\$[A-Za-z]")
 ALLOWED_PUNCT = frozenset(" \t\"'_./\\-:=,;()[]{}<>!&|#*+%$")
 
@@ -78,6 +79,18 @@ def looks_like_garbage(text: str) -> bool:
     weird = sum(1 for ch in stripped if not ch.isalnum() and ch not in ALLOWED_PUNCT)
     letters = sum(ch.isalpha() for ch in stripped)
     return weird >= 1 and letters < 6
+
+
+def bare_fragment(text: str, matches: list[Match]) -> bool:
+    """Nei dump di stringhe dei binari (steamclient.txt, *_strings.txt) una riga cortissima fatta solo della
+    parola chiave e di simboli ('hlx)', 't(hlx', '#hl3') è una sequenza casuale di byte, non una stringa."""
+    stripped = text.strip()
+    if len(stripped) > 8:
+        return False
+    best = max(matches, key=lambda m: m.end - m.start)
+    outside = stripped[: max(0, best.start - (len(text) - len(text.lstrip())))]
+    outside += stripped[best.end - (len(text) - len(text.lstrip())):]
+    return sum(ch.isalpha() for ch in outside) <= 1
 
 
 class KeywordMatcher:
@@ -168,6 +181,8 @@ class KeywordMatcher:
             return None
         matches = self.find(text)
         if not matches:
+            return None
+        if STRINGS_DUMP_RE.search(file_path) and bare_fragment(text, matches):
             return None
         score = self.base_score(matches)
         if score < self.severity["high"] and looks_like_garbage(text):

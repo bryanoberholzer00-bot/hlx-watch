@@ -88,6 +88,22 @@ def test_binary_garbage_is_ignored(matcher):
     assert res is not None and res.token == "hlx_core"
 
 
+def test_hl2_achievements_are_low(matcher):
+    res = matcher.analyze_line('"[english]HLX_KILL_ENEMIES_WITHPHYSICS_NAME" "Bone Breaker"',
+                               file_path="game/csgo/resource/csgo_english.txt")
+    assert res is not None and res.score == 30 and res.keywords == ["hl2_achievement"]
+    assert matcher.analyze_line("r_hlx_fsr3_min_reactiveness", file_path="game/bin/win64/engine2_strings.txt").score >= 100
+
+
+def test_bare_fragments_in_string_dumps(matcher):
+    for line in ("hlx-", "t(hlx", "#(hlx", "hlx", "hlx)}", "~hlx", ":HL3", "hlx="):
+        assert matcher.analyze_line(line, file_path="Strings/steamclient.txt") is None, line
+        assert matcher.analyze_line(line, file_path="game/bin/win64/OpenImageDenoise_strings.txt") is None, line
+    assert matcher.analyze_line('"hlx"', file_path="game/core/tools/bugreporter/config.txt") is not None
+    assert matcher.analyze_line("mod != hlx", file_path="game/bin/win64/particles_strings.txt") is not None
+    assert matcher.analyze_line("hlx_group_x", file_path="game/bin/win64/engine2_strings.txt") is not None
+
+
 def test_ignore_ids():
     cfg = yaml.safe_load((PACKAGE_ROOT / "config.example.yaml").read_text(encoding="utf-8"))
     m = KeywordMatcher(cfg["keywords"], ignore_ids=["half_life"])

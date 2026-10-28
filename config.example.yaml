@@ -103,6 +103,7 @@ timeline:
   enabled: true                          # pagina Cronologia HLX: indizi >= min_score raggruppati dall'AI
   min_score: 100
   nascondi: []                           # id degli indizi da non mostrare (es. [t7])
+  include_keywords: [hl2_achievement]    # voci sotto min_score da mostrare comunque come contesto
   rilevanza: {}                          # correzioni a mano, es. {t5: alta}
 
 weekly:
@@ -206,10 +207,16 @@ keywords:
       pattern: "(?<![a-z0-9])hlx(?![a-z0-9])"
       weight: 100
       description: "hlx come parola isolata"
+      excludes: ["hlx_kill_"]            # obiettivi HLX_* di Half-Life 2 (vedi hl2_achievement)
     - id: hlx_prefix
       pattern: "(?<![a-z0-9])hlx_[a-z0-9_]+"
       weight: 110
       description: "identificatori hlx_* (ConVar, variabili, file)"
+      excludes: ["hlx_kill_"]
+    - id: hl2_achievement
+      pattern: "(?<![a-z0-9])hlx_kill_[a-z0-9_]+"
+      weight: 30
+      description: "obiettivi HLX_KILL_* di Half-Life 2 e degli Episodi (2007): il prefisso HLX esisteva già, non è un gioco nuovo"
     - id: hlx_path
       pattern: "(maps|models|scripts|materials|sounds|particles|resource|scenes|soundevents|panorama|cfg|animations|weapons|characters)[/\\\\]hlx"
       weight: 130

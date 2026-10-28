@@ -86,11 +86,18 @@ def _repo_base(url: str | None) -> str:
     return ""
 
 
-def collect_groups(db: Database, min_score: int = 100) -> dict[str, dict[str, Any]]:
+def collect_groups(db: Database, min_score: int = 100,
+                   include_keywords: list[str] | None = None) -> dict[str, dict[str, Any]]:
+    # include_keywords: voci sotto la soglia da tenere come contesto (es. gli obiettivi HLX_ di Half-Life 2)
+    cond = "f.score >= ?"
+    params: list[Any] = [min_score]
+    for kw in include_keywords or []:
+        cond += " OR f.keywords LIKE ?"
+        params.append(f'%"{kw}"%')
     rows = db.conn.execute(
         "SELECT f.*, b.url AS build_url, b.date AS build_date FROM findings f LEFT JOIN builds b ON b.id = f.build_id "
-        "WHERE f.score >= ? AND f.change_type NOT IN ('baseline', 'build', 'new_app') ORDER BY f.score DESC",
-        (min_score,)).fetchall()
+        f"WHERE ({cond}) AND f.change_type NOT IN ('baseline', 'build', 'new_app') ORDER BY f.score DESC",
+        params).fetchall()
     groups: dict[str, dict[str, Any]] = {}
     for r in map(dict, rows):
         key = group_key(r["text"])
@@ -209,7 +216,8 @@ def update_timeline(cfg: Config, db: Database, client: Any = None) -> int:
     tcfg = cfg.get("timeline", {}) or {}
     if not tcfg.get("enabled", True):
         return 0
-    return classify(cfg, db, collect_groups(db, int(tcfg.get("min_score", 100))), client)
+    groups = collect_groups(db, int(tcfg.get("min_score", 100)), tcfg.get("include_keywords") or [])
+    return classify(cfg, db, groups, client)
 
 
 # ------------------------------------------------------------------- pagina
@@ -220,7 +228,7 @@ def _sort_key(item: dict[str, Any]) -> str:
 def build_entries(cfg: Config, db: Database) -> dict[str, Any]:
     """Indizi pronti per la pagina, dal più recente al più vecchio (quelli senza data in fondo)."""
     tcfg = cfg.get("timeline", {}) or {}
-    groups = collect_groups(db, int(tcfg.get("min_score", 100)))
+    groups = collect_groups(db, int(tcfg.get("min_score", 100)), tcfg.get("include_keywords") or [])
     state = load_state(db)
     hidden = set(tcfg.get("nascondi", []) or [])
     overrides = tcfg.get("rilevanza", {}) or {}
