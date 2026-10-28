@@ -279,6 +279,14 @@ token, file, tipo di modifica e link al commit. Telegram: stesso contenuto in HT
 caratteri. Le nuove build Steam valgono `steam.build_score` (55): sopra la soglia di default, quindi
 notificate; abbassalo se non ti interessano.
 
+### Universo Half-Life nel motore condiviso
+
+La parola chiave `hl_universe` (45 punti) cerca creature, armi, luoghi e personaggi di Half-Life (antlion,
+headcrab, vortigaunt, manhack, Combine, gravity gun, Black Mesa, City 17...) nei file condivisi di CS2, Dota 2 e
+Deadlock. Sotto la soglia di notifica, ma un'entità FGD o un file nuovo la superano. `path_excludes` esclude
+cosmetici, traduzioni, elenchi di file e dump di librerie esterne; la parola è ignorata nei repo di Alyx, del
+client Steam, di SteamVR e della documentazione (`ignore_keywords`).
+
 ### Nomi di progetto nuovi e file sorvegliati
 
 `hlxwatch/analyzers/codenames.py` guarda i posti in cui Valve scrive i nomi in codice (`mod != nome`,

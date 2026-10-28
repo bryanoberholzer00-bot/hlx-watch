@@ -54,12 +54,12 @@ github:
       repo: SteamTracking/GameTracking-HalfLifeAlyx
       branch: master
       appid: 546560
-      ignore_keywords: [half_life]       # in un repo di Half-Life la parola è solo rumore
+      ignore_keywords: [half_life, hl_universe]       # in un repo di Half-Life la parola è solo rumore
     - name: steamclient
       title: "Client Steam"
       repo: SteamTracking/SteamTracking
       branch: master
-      ignore_keywords: [half_life]       # la UI di Steam cita i giochi Half-Life esistenti; "Half-Life 3" ha la sua regola
+      ignore_keywords: [half_life, hl_universe]       # la UI di Steam cita i giochi Half-Life esistenti; "Half-Life 3" ha la sua regola
       # file del client Steam: stringhe, localizzazione, flag di funzionalità (Deadlock vi comparve prima dell'annuncio)
     - name: protobufs
       title: "Protobuf Steam"
@@ -71,18 +71,19 @@ github:
       repo: SteamTracking/GameTracking-SteamVR
       branch: master
       # runtime VR: eventuale componente VR di hlx
+      ignore_keywords: [hl_universe]
     - name: steamworks
       title: "Documentazione Steamworks"
       repo: SteamTracking/SteamworksDocumentation
       branch: master
-      ignore_keywords: [half_life]       # cita spesso i giochi Half-Life esistenti; "Half-Life 3" resta coperto
+      ignore_keywords: [half_life, hl_universe]       # cita spesso i giochi Half-Life esistenti; "Half-Life 3" resta coperto
       since: "2026-04-24T00:00:00Z"      # prima lettura: sei mesi di storia, poi solo i commit nuovi
       # funzioni nuove documentate per gli sviluppatori prima dell'uscita
     - name: steamhelp
       title: "Pagine di aiuto di Steam"
       repo: SteamTracking/SteamHelpTracking
       branch: main
-      ignore_keywords: [half_life]
+      ignore_keywords: [half_life, hl_universe]
       since: "2026-04-24T00:00:00Z"
       # articoli di supporto, anche per prodotti non ancora usciti
     # Altri repo utili: SteamTracking/GameTracking-TF2
@@ -153,7 +154,7 @@ steam:
     - {appid: 730,     name: cs2,      title: "Counter-Strike 2"}
     - {appid: 570,     name: dota2,    title: "Dota 2"}
     - {appid: 1422450, name: deadlock, title: "Deadlock"}
-    - {appid: 546560,  name: alyx,     title: "Half-Life: Alyx", ignore_keywords: [half_life]}
+    - {appid: 546560,  name: alyx,     title: "Half-Life: Alyx", ignore_keywords: [half_life, hl_universe]}
   # NOTA: Deadlock (1422450) in anonimo espone solo info parziali (depot e build richiedono un token):
   # viene comunque seguito tramite il repo GameTracking-Deadlock.
   new_apps:
@@ -249,6 +250,14 @@ keywords:
       weight: 40
       description: "half-life generico (rumoroso)"
       excludes: ["alyx", "half-life 2", "half_life_2", "half-life2", "hl2", "episode", "halflife2"]
+    - id: hl_universe
+      # creature, armi, luoghi e personaggi di Half-Life nei file condivisi di CS2, Dota 2 e Deadlock
+      # (esclusa Alyx). 45 punti: sotto la soglia di notifica, ma un'entità FGD o un file nuovo la superano.
+      pattern: "(?<![a-z0-9])(antlions?|headcrabs?|vortigaunts?|manhacks?|hopper[ _]?mines?|houndeyes?|bullsquids?|nihilanth|zombine|combine[ _](soldier|elite|guard|metrocop|gunship|dropship|strider|barrier|overwatch|citadel)|npc_combine[a-z0-9_]*|npc_strider|npc_antlion[a-z0-9_]*|npc_headcrab[a-z0-9_]*|npc_zombie[a-z0-9_]*|gravity[ _]?gun|hev[ _]?suit|crowbar|black[ _]?mesa|city[ _]?17|nova[ _]?prospekt|ravenholm|gordon[ _]freeman|g[ _-]?man(?![a-z])|xen(?![a-z0-9]))"
+      weight: 45
+      description: "universo Half-Life nel motore condiviso"
+      # cosmetici, traduzioni, elenchi di file e dump di librerie esterne: lì queste parole sono normali
+      path_excludes: ["items_game\\.txt$", "csgo_english\\.txt$", "/localization/", "readonly_tools_asset_info", "pak01_dir\\.txt$", "^manifests/", "Qt5Core_strings", "nvngx_dlss_strings", "readme", "\\.md$"]
     - id: l4d3
       pattern: '(?<![a-z0-9])(left[ _-]?4[ _-]?dead[ _-]?3|l4d3)(?![a-z0-9])'
       weight: 60

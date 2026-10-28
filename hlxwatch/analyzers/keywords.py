@@ -24,6 +24,7 @@ class Keyword:
     weight: int
     description: str = ""
     excludes: list[re.Pattern[str]] = field(default_factory=list)
+    path_excludes: list[re.Pattern[str]] = field(default_factory=list)    # file in cui la parola non conta
 
 
 @dataclass
@@ -106,6 +107,7 @@ class KeywordMatcher:
                     weight=int(item.get("weight", 10)),
                     description=item.get("description", ""),
                     excludes=[_compile(x) for x in item.get("excludes", []) or []],
+                    path_excludes=[_compile(x) for x in item.get("path_excludes", []) or []],
                 )
             except (KeyError, re.error) as exc:
                 log.error("Keyword non valida %r: %s", item, exc)
@@ -129,12 +131,14 @@ class KeywordMatcher:
         self.ignore = {str(x) for x in ignore_ids}
 
     # ------------------------------------------------------------------ base
-    def find(self, text: str) -> list[Match]:
+    def find(self, text: str, file_path: str = "") -> list[Match]:
         matches: list[Match] = []
         for kw in self.keywords:
             if kw.id in self.ignore:
                 continue
             if any(ex.search(text) for ex in kw.excludes):
+                continue
+            if file_path and any(ex.search(file_path) for ex in kw.path_excludes):
                 continue
             # la prima corrispondenza con maiuscole normali: "hLX", "HLx" sono sequenze casuali dei dump binari
             m = next((c for c in kw.regex.finditer(text) if not mixed_case(c.group(0))), None)
@@ -179,7 +183,7 @@ class KeywordMatcher:
         """Ritorna None se la riga non contiene nulla di interessante."""
         if not text or len(text) > 20000:
             return None
-        matches = self.find(text)
+        matches = self.find(text, file_path)
         if not matches:
             return None
         if STRINGS_DUMP_RE.search(file_path) and bare_fragment(text, matches):
