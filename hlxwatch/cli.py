@@ -237,7 +237,8 @@ def cmd_reevaluate(args: argparse.Namespace) -> int:
     default = KeywordMatcher(cfg.keywords)
     rows = db.conn.execute(
         "SELECT id, game, text, file_path, change_type, score, keywords FROM findings "
-        "WHERE change_type NOT IN ('build', 'new_app')").fetchall()
+        "WHERE change_type NOT IN ('build', 'new_app', 'codename') "
+        "AND keywords NOT LIKE '%watched_file%'").fetchall()
     drop: list[int] = []
     rescored = 0
     for r in rows:

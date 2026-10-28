@@ -19,6 +19,8 @@ from requests.adapters import HTTPAdapter
 
 from hlxwatch import __version__
 from hlxwatch.analyzers import KeywordMatcher, analyze_line_sets, analyze_patch
+from hlxwatch.analyzers.codenames import CodenameTracker
+from hlxwatch.analyzers.diff_analyzer import parse_patch
 from hlxwatch.config import Config
 from hlxwatch.models import BuildInfo, Finding
 from hlxwatch.repos import tracked_repos
@@ -27,6 +29,7 @@ from hlxwatch.storage.db import iso, parse_iso, utcnow
 
 log = logging.getLogger(__name__)
 
+TRIVIAL_LINE = re.compile(r"[\s{}\[\]()/,;]*")      # parentesi e punteggiatura: non sono righe di contenuto
 BUILDID_RE = re.compile(r"build\s*id\D{0,5}(\d{5,})", re.IGNORECASE)
 STEAM_INF_RE = re.compile(r"^([+-])(ClientVersion|SourceRevision|VersionDate)=(.*)$", re.MULTILINE)
 
@@ -215,6 +218,9 @@ class GitHubTrackingSource:
         )
         self.text_ext = tuple(str(e).lower() for e in (cfg.get("github.text_extensions", []) or []))
         self.ignore_patterns = [re.compile(p) for p in (cfg.get("github.ignore_path_patterns", []) or [])]
+        self.codenames = CodenameTracker(cfg, db)
+        self.watched = [(re.compile(str(w["pattern"]), re.IGNORECASE), str(w.get("title", w["pattern"])),
+                         int(w.get("score", 50))) for w in (cfg.get("watched_files", []) or []) if w.get("pattern")]
         self.context_lines = int(cfg.get("general.context_lines", 2))
         self.max_findings = int(cfg.get("general.max_findings_per_file", 400))
         self.fallback_max = int(cfg.get("github.fallback_max_bytes", 25 * 1024 * 1024))
@@ -335,6 +341,9 @@ class GitHubTrackingSource:
 
             # 2) il contenuto
             patch = entry.get("patch")
+            if patch:
+                lines = [(dl.op, dl.text) for hunk in parse_patch(patch) for dl in hunk if dl.op in "+-"]
+                findings += self._extra_findings(name, path, lines, matcher)
             if patch and repo_cfg.get("build_from_steam_inf") and path.endswith("steam.inf"):
                 info = steam_inf_build(patch)
                 if info:
@@ -365,6 +374,29 @@ class GitHubTrackingSource:
                 log.info("[%s] %s: diff manuale completato in %.0fs", name, sha[:10], time.time() - started)
         return findings
 
+    def _extra_findings(self, name: str, path: str, lines: list[tuple[str, str]],
+                        matcher: KeywordMatcher) -> list[Finding]:
+        """Oltre alle parole chiave: nomi di progetto mai visti e ogni riga cambiata nei file sorvegliati."""
+        out: list[Finding] = []
+        watched = next(((title, score) for regex, title, score in self.watched if regex.search(path)), None)
+        shown = 0
+        for op, text in lines:
+            stripped = text.strip()
+            if not stripped:
+                continue
+            change_type = "added" if op == "+" else "removed"
+            if op == "+":
+                f = self.codenames.check(text, path, game=name, change_type=change_type)
+                if f:
+                    out.append(f)
+            if watched and shown < 50 and not TRIVIAL_LINE.fullmatch(stripped) \
+                    and matcher.analyze_line(text, file_path=path, change_type=change_type) is None:
+                out.append(Finding(game=name, source="github", file_path=path, change_type=change_type,
+                                   text=stripped[:500], score=watched[1], keywords=["watched_file"],
+                                   context=f"file sorvegliato: {watched[0]}"))
+                shown += 1
+        return out
+
     def _steam_inf_finding(self, repo_cfg: dict[str, Any], path: str, info: dict[str, str]) -> Finding:
         name = repo_cfg["name"]
         title = self.cfg.game_title(name)
@@ -394,5 +426,8 @@ class GitHubTrackingSource:
             return []
         old_lines, new_lines = old_text.splitlines(), new_text.splitlines()
         log.debug("[%s] diff manuale di %s (%d -> %d righe)", name, path, len(old_lines), len(new_lines))
-        return analyze_line_sets(old_lines, new_lines, game=name, source="github", file_path=path,
+        old_set, new_set = set(old_lines), set(new_lines)
+        extra = self._extra_findings(name, path, [("+", ln) for ln in new_lines if ln not in old_set]
+                                     + [("-", ln) for ln in old_lines if ln not in new_set], matcher)
+        return extra + analyze_line_sets(old_lines, new_lines, game=name, source="github", file_path=path,
                                  matcher=matcher, context_lines=self.context_lines, max_findings=self.max_findings)

@@ -1,0 +1,101 @@
+"""Nomi di progetto mai visti nei posti dove Valve li scrive.
+
+Le parole chiave trovano solo nomi già noti (hlx, hl3...). Qui invece si guardano i *posti* in cui compaiono
+i nomi in codice dei progetti, qualunque siano:
+  - le espressioni `mod != nome` / `mod == nome` degli strumenti (opzioni riservate a un progetto);
+  - prodotti, componenti e sezioni della configurazione del bug reporter;
+  - le cartelle di progetto nei percorsi `source2/main/content/<nome>` e `.../game/<nome>`.
+Un nome che non è nella lista dei noti (config `codenames.known` più quelli imparati) diventa una voce
+"codename" ad alto punteggio. Alla prima scansione completa i nomi presenti vengono solo imparati, senza
+avvisi (stato `codenames:learned`); da lì in poi ogni nome nuovo è un avviso.
+"""
+from __future__ import annotations
+
+import json
+import logging
+import re
+from typing import Any
+
+from hlxwatch.config import Config
+from hlxwatch.models import Finding
+from hlxwatch.storage import Database
+from hlxwatch.storage.db import iso, utcnow
+
+log = logging.getLogger(__name__)
+
+BUGREPORTER_FILE = re.compile(r"bugreporter/config\.txt$", re.IGNORECASE)
+PLACES: list[tuple[str, re.Pattern[str], str, re.Pattern[str] | None]] = [
+    ("mod", re.compile(r"\bmod\s*[!=]=\s*(?P<name>[A-Za-z0-9_]+)"), "espressione mod != / == degli strumenti", None),
+    ("bugreporter", re.compile(r'"(?:product|component)"\s+"(?P<name>[^"]+)"', re.IGNORECASE),
+     "prodotto o componente del bug reporter", BUGREPORTER_FILE),
+    ("bugreporter_block", re.compile(r'^\s*"(?P<name>[A-Za-z0-9_ ]+)"\s*$'), "sezione del bug reporter", BUGREPORTER_FILE),
+    ("content_dir", re.compile(r"source2[\\/]main[\\/](?:content|game)[\\/](?P<name>[A-Za-z0-9_]+)", re.IGNORECASE),
+     "cartella di progetto nei percorsi degli strumenti", None),
+]
+# parole che compaiono in quei posti ma non sono nomi di progetto
+GENERIC = {"other", "unassigned", "default", "bugreporter", "none", "core", "tools", "---", "version", "owner",
+           "severity", "priority", "category", "product", "component", "main", "bin", "sdk"}
+# regex estesa per `git grep -i -E` della scansione completa: seleziona le righe dei tre posti
+PREFILTER = r'mod *[!=]=|"(product|component)"|source2[\\/]main[\\/](content|game)[\\/]'
+STATE_SEEN = "codenames:seen"
+STATE_LEARNED = "codenames:learned"
+
+
+def normalize(name: str) -> str:
+    return " ".join(name.strip().lower().split())
+
+
+def detect(text: str, file_path: str = "") -> list[tuple[str, str, str]]:
+    """(posto, nome normalizzato, descrizione) per ogni nome di progetto che compare nella riga."""
+    out: list[tuple[str, str, str]] = []
+    for place, regex, desc, file_re in PLACES:
+        if file_re is not None and not file_re.search(file_path or ""):
+            continue
+        for m in regex.finditer(text):
+            name = normalize(m.group("name"))
+            if len(name) < 2 or name.isdigit() or name in GENERIC:
+                continue
+            if (place, name) not in [(p, n) for p, n, _ in out]:
+                out.append((place, name, desc))
+    return out
+
+
+class CodenameTracker:
+    def __init__(self, cfg: Config, db: Database):
+        self.cfg = cfg
+        self.db = db
+        ccfg: dict[str, Any] = cfg.get("codenames", {}) or {}
+        self.enabled = bool(ccfg.get("enabled", True))
+        self.score = int(ccfg.get("score", 120))
+        self.seen: dict[str, dict[str, Any]] = json.loads(db.get_state(STATE_SEEN) or "{}")
+        self.known: set[str] = {normalize(str(n)) for n in (ccfg.get("known") or [])} | set(self.seen)
+
+    @property
+    def learned(self) -> bool:
+        return self.db.get_state(STATE_LEARNED) == "1"
+
+    def finish_learning(self) -> None:
+        if not self.learned:
+            self.db.set_state(STATE_LEARNED, "1")
+            log.info("Nomi di progetto: fase di apprendimento conclusa, %d nomi noti", len(self.known))
+
+    def check(self, text: str, file_path: str, *, game: str, change_type: str = "added") -> Finding | None:
+        """Registra i nomi nuovi; dopo l'apprendimento restituisce una voce per il primo nome mai visto."""
+        if not self.enabled:
+            return None
+        for place, name, desc in detect(text, file_path):
+            if name in self.known:
+                continue
+            self.known.add(name)
+            self.seen[name] = {"posto": place, "gioco": game, "file": file_path, "quando": iso(utcnow())}
+            self.db.set_state(STATE_SEEN, json.dumps(self.seen, ensure_ascii=False))
+            if not self.learned:
+                log.info("[%s] nome di progetto imparato: '%s' (%s)", game, name, desc)
+                continue
+            log.warning("[%s] NOME DI PROGETTO MAI VISTO: '%s' in %s (%s)", game, name, file_path, desc)
+            return Finding(
+                game=game, source="github", file_path=file_path, change_type="codename",
+                text=text.strip()[:500], score=self.score, keywords=["codename_new"], token=f"codename:{name}",
+                context=f"nome di progetto '{name}' mai visto: {desc}",
+            )
+        return None

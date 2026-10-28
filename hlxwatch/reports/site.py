@@ -20,6 +20,7 @@ from hlxwatch.reports.daily import collect_report_data, render_html
 from hlxwatch.repos import tracked_repos
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import utcnow
+from hlxwatch.analyzers.codenames import CodenameTracker
 from hlxwatch.links import link_label
 from hlxwatch.timeutil import local_day, now_local, register_filters, tz_label
 
@@ -112,6 +113,8 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
         keywords=kw.get("items", []), codenames=kw.get("codenames", []) or [], codename_weight=kw.get("codename_weight", 30),
         bonuses=kw.get("bonuses", {}) or {}, severity={"high": 100, "medium": 50, **(kw.get("severity") or {})},
         global_excludes=kw.get("global_excludes", []) or [], notify_min_score=cfg.get("general.notify_min_score", 50),
+        project_names=sorted(CodenameTracker(cfg, db).known), codename_score=int((cfg.get("codenames", {}) or {}).get("score", 120)),
+        watched_files=cfg.get("watched_files", []) or [],
         ai_model="Claude Opus 5.5", repo_url=str(cfg.get("general.repo_url", "https://github.com/bryanoberholzer00-bot/hlx-watch")),
     ), encoding="utf-8")
     from hlxwatch.timeline import build_entries

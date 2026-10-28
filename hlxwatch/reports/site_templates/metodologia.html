@@ -49,6 +49,15 @@
 </section>
 
 <section>
+ <h2>Nomi di progetto nuovi e file sorvegliati</h2>
+ <p>Le parole chiave trovano solo nomi già noti. Per accorgersi di un progetto con un nome diverso, HLX Watch guarda i
+ <b>posti</b> in cui Valve scrive i nomi in codice: le espressioni <code>mod != nome</code> degli strumenti, prodotti e
+ componenti del bug reporter, le cartelle <code>source2/main/content/nome</code>. Un nome che non è tra quelli noti diventa
+ una voce "codename" da {{ codename_score }} punti. Nomi noti finora: {{ project_names|join(", ") }}.</p>
+ <p>File sorvegliati, dove ogni riga cambiata diventa una voce anche senza parole chiave:
+ {% for w in watched_files %}<code>{{ w.pattern }}</code> ({{ w.title }}, {{ w.score }} punti){% if not loop.last %}; {% endif %}{% endfor %}.</p>
+</section>
+<section>
  <h2>Parole chiave e punteggio</h2>
  <p>Punteggio di una riga = peso della parola chiave più forte + 25% dei pesi delle altre + bonus, fino a 250.
  Rilevanza <b>alta</b> da {{ severity.high }} punti, <b>media</b> da {{ severity.medium }}. Le notifiche partono per righe

@@ -279,6 +279,15 @@ token, file, tipo di modifica e link al commit. Telegram: stesso contenuto in HT
 caratteri. Le nuove build Steam valgono `steam.build_score` (55): sopra la soglia di default, quindi
 notificate; abbassalo se non ti interessano.
 
+### Nomi di progetto nuovi e file sorvegliati
+
+`hlxwatch/analyzers/codenames.py` guarda i posti in cui Valve scrive i nomi in codice (`mod != nome`,
+prodotti/componenti/sezioni del bug reporter, cartelle `source2/main/content/<nome>`): un nome che non è in
+`codenames.known` né tra quelli imparati (stato `codenames:seen`) diventa una voce `codename` da 120 punti,
+quindi avviso immediato e indizio in cronologia. Alla prima scansione completa i nomi presenti vengono solo
+imparati (stato `codenames:learned`). `watched_files` elenca i file in cui ogni riga aggiunta o tolta è una
+voce anche senza parole chiave (bug reporter 60 punti, `gameinfo.gi` 50).
+
 ### Archeologia: tutta la storia dei repository
 
 `python -m hlxwatch archeologia` (o la casella *archeologia* del workflow) clona ogni repository con tutta

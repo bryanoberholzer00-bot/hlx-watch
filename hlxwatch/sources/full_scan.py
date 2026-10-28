@@ -23,6 +23,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
+from hlxwatch.analyzers.codenames import PREFILTER as CODENAME_PREFILTER, CodenameTracker
 from hlxwatch.analyzers import KeywordMatcher
 from hlxwatch.config import Config
 from hlxwatch.models import BuildInfo, Finding
@@ -50,7 +51,8 @@ class FullScanSource:
         self.timeout = int(self.fcfg.get("git_timeout_seconds", 1800))
         self.exclude = {str(x) for x in (self.fcfg.get("exclude_repos") or [])}
         codenames = [re.escape(str(c)) for c in (cfg.keywords.get("codenames") or []) if str(c).strip()]
-        self.prefilter = "|".join([self.fcfg.get("prefilter") or DEFAULT_PREFILTER, *codenames])
+        self.prefilter = "|".join([self.fcfg.get("prefilter") or DEFAULT_PREFILTER, *codenames, CODENAME_PREFILTER])
+        self.codenames = CodenameTracker(cfg, db)
         self.ignore_patterns = [re.compile(p) for p in (cfg.get("github.ignore_path_patterns", []) or [])]
         self.max_per_repo = int(self.fcfg.get("max_findings_per_repo", 2000))
 
@@ -81,6 +83,8 @@ class FullScanSource:
                 self.errors.append(f"{name}: {exc}")
         if not repos:
             self.db.set_state("fullscan:last_at", iso(utcnow()))
+            if not self.errors:
+                self.codenames.finish_learning()      # da qui in poi un nome mai visto è un avviso
         return findings
 
     # ------------------------------------------------------------------ git
@@ -137,9 +141,14 @@ class FullScanSource:
         matcher = KeywordMatcher(self.cfg.keywords, ignore_ids=repo_cfg.get("ignore_keywords", []) or [])
 
         current: dict[str, tuple[str, int, str, Any]] = {}
+        codename_findings: list[Finding] = []
         for file_path, line_no, text in self.grep(path):
             if any(p.search(file_path) for p in self.ignore_patterns):
                 continue
+            f = self.codenames.check(text, file_path, game=name, change_type="present")
+            if f:
+                f.source, f.line_no = "fullscan", line_no
+                codename_findings.append(f)
             res = matcher.analyze_line(text, file_path=file_path, change_type="added")
             if res is None or res.score < self.min_score:
                 continue
@@ -156,7 +165,7 @@ class FullScanSource:
         build = BuildInfo(game=name, source="fullscan", ref=f"tree:{sha[:12]}", date=utcnow(),
                           url=f"https://github.com/{repo}/tree/{sha}",
                           message=f"Scansione completa del contenuto ({len(new_keys)} occorrenze)")
-        findings: list[Finding] = []
+        findings: list[Finding] = list(codename_findings)
 
         def make(file_path: str, line_no: int | None, text: str, res: Any, change_type: str) -> Finding:
             return Finding(game=name, source="fullscan", file_path=file_path, change_type=change_type, text=text,

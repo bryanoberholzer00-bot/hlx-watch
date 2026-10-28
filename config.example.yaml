@@ -99,6 +99,21 @@ first_seen:
   max_downloads_per_run: 60              # versioni di file scaricate per run: il lavoro si completa in più run
   max_commit_pages: 20                   # fino a 2000 commit di storia per file
 
+codenames:
+  enabled: true                          # nomi di progetto mai visti dove Valve li scrive (mod != X, bug reporter, content/X)
+  score: 120                             # sopra la soglia alta: avviso immediato e voce in cronologia
+  known: [csgo, cs2, dota, dota2, hlx, hlvr, "half-life vr", hl3, left4dead3, rpg, citadel, core,
+          "source 2 tools", steamvr, steampal]
+  # i nomi presenti alla prima scansione completa vengono imparati senza avvisi (stato codenames:learned)
+
+watched_files:                           # ogni riga aggiunta o tolta diventa una voce, anche senza parole chiave
+  - pattern: "tools/bugreporter/config\\.txt$"
+    title: "configurazione del bug reporter"
+    score: 60
+  - pattern: "(^|/)gameinfo\\.gi$"
+    title: "gameinfo.gi (definizione del gioco)"
+    score: 50
+
 timeline:
   enabled: true                          # pagina Cronologia HLX: indizi >= min_score raggruppati dall'AI
   min_score: 100
