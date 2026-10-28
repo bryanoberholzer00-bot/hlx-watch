@@ -255,6 +255,7 @@ keywords:
       pattern: "(?<![a-z0-9])(antlions?|headcrabs?|vortigaunts?|manhacks?|hopper[ _]?mines?|houndeyes?|bullsquids?|nihilanth|zombine|combine[ _](soldier|elite|guard|metrocop|gunship|dropship|strider|barrier|overwatch|citadel)|npc_combine[a-z0-9_]*|npc_strider|npc_antlion[a-z0-9_]*|npc_headcrab[a-z0-9_]*|npc_zombie[a-z0-9_]*|gravity[ _]?gun|hev[ _]?suit|crowbar|black[ _]?mesa|city[ _]?17|nova[ _]?prospekt|ravenholm|gordon[ _]freeman|g[ _-]?man(?![a-z])|xen(?![a-z0-9]))"
       weight: 45
       description: "universo Half-Life nel motore condiviso"
+      excludes: ["hlx_kill_"]            # gli obiettivi HLX_KILL_* di Half-Life 2 restano a 30 punti
       # cosmetici, traduzioni, elenchi di file e dump di librerie esterne: lì queste parole sono normali
       path_excludes: ["items_game\\.txt$", "csgo_english\\.txt$", "/localization/", "readonly_tools_asset_info", "pak01_dir\\.txt$", "^manifests/", "Qt5Core_strings", "nvngx_dlss_strings", "readme", "\\.md$"]
     - id: l4d3
