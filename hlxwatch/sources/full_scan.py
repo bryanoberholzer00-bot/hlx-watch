@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Any
 
 from hlxwatch.analyzers.codenames import PREFILTER as CODENAME_PREFILTER, CodenameTracker
+from hlxwatch.analyzers.localization import GREP_PATTERN as LOC_GREP, LocalizationTracker, prefix_counts
 from hlxwatch.analyzers import KeywordMatcher
 from hlxwatch.config import Config
 from hlxwatch.models import BuildInfo, Finding
@@ -53,6 +54,7 @@ class FullScanSource:
         codenames = [re.escape(str(c)) for c in (cfg.keywords.get("codenames") or []) if str(c).strip()]
         self.prefilter = "|".join([self.fcfg.get("prefilter") or DEFAULT_PREFILTER, *codenames, CODENAME_PREFILTER])
         self.codenames = CodenameTracker(cfg, db)
+        self.localization = LocalizationTracker(cfg, db)
         self.ignore_patterns = [re.compile(p) for p in (cfg.get("github.ignore_path_patterns", []) or [])]
         self.max_per_repo = int(self.fcfg.get("max_findings_per_repo", 2000))
 
@@ -134,10 +136,22 @@ class FullScanSource:
                 continue
         return out
 
+    def token_counts(self, path: Path) -> dict[str, int]:
+        """famiglia -> numero di token nei file *_english.txt del repository (per il rilevatore di localizzazione)."""
+        proc = self._git(["-c", "grep.threads=4", "grep", "-h", "-o", "-I", "-E", "-e", LOC_GREP,
+                          "HEAD", "--", "*_english.txt"], cwd=path, check=False)
+        if proc.returncode not in (0, 1):
+            raise RuntimeError(f"git grep (localizzazione) fallito: {proc.stderr.decode('utf-8', 'replace')[-400:]}")
+        return dict(prefix_counts(proc.stdout.decode("utf-8", "replace").splitlines()))
+
     # ----------------------------------------------------------------- scan
     def scan_repo(self, repo_cfg: dict[str, Any]) -> list[Finding]:
         name, repo = repo_cfg["name"], repo_cfg["repo"]
         path, sha = self.update_mirror(repo_cfg)
+        loc_findings = self.localization.learn(name, self.token_counts(path),
+                                               score_override=repo_cfg.get("loc_prefix_score"))
+        for f in loc_findings:
+            f.source = "fullscan"
         matcher = KeywordMatcher(self.cfg.keywords, ignore_ids=repo_cfg.get("ignore_keywords", []) or [])
 
         current: dict[str, tuple[str, int, str, Any]] = {}
@@ -165,7 +179,7 @@ class FullScanSource:
         build = BuildInfo(game=name, source="fullscan", ref=f"tree:{sha[:12]}", date=utcnow(),
                           url=f"https://github.com/{repo}/tree/{sha}",
                           message=f"Scansione completa del contenuto ({len(new_keys)} occorrenze)")
-        findings: list[Finding] = list(codename_findings)
+        findings: list[Finding] = [*codename_findings, *loc_findings]
 
         def make(file_path: str, line_no: int | None, text: str, res: Any, change_type: str) -> Finding:
             return Finding(game=name, source="fullscan", file_path=file_path, change_type=change_type, text=text,

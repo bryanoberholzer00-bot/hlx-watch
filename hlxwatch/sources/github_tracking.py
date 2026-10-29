@@ -20,6 +20,7 @@ from requests.adapters import HTTPAdapter
 from hlxwatch import __version__
 from hlxwatch.analyzers import KeywordMatcher, analyze_line_sets, analyze_patch
 from hlxwatch.analyzers.codenames import CodenameTracker
+from hlxwatch.analyzers.localization import LocalizationTracker
 from hlxwatch.analyzers.diff_analyzer import parse_patch
 from hlxwatch.config import Config
 from hlxwatch.models import BuildInfo, Finding
@@ -219,6 +220,8 @@ class GitHubTrackingSource:
         self.text_ext = tuple(str(e).lower() for e in (cfg.get("github.text_extensions", []) or []))
         self.ignore_patterns = [re.compile(p) for p in (cfg.get("github.ignore_path_patterns", []) or [])]
         self.codenames = CodenameTracker(cfg, db)
+        self.localization = LocalizationTracker(cfg, db)
+        self._repo_by_name = {r["name"]: r for r in tracked_repos(cfg, db)}
         self.watched = [(re.compile(str(w["pattern"]), re.IGNORECASE), str(w.get("title", w["pattern"])),
                          int(w.get("score", 50))) for w in (cfg.get("watched_files", []) or []) if w.get("pattern")]
         self.context_lines = int(cfg.get("general.context_lines", 2))
@@ -343,7 +346,7 @@ class GitHubTrackingSource:
             patch = entry.get("patch")
             if patch:
                 lines = [(dl.op, dl.text) for hunk in parse_patch(patch) for dl in hunk if dl.op in "+-"]
-                findings += self._extra_findings(name, path, lines, matcher)
+                findings += self._extra_findings(name, path, lines, matcher, status=status)
             if patch and repo_cfg.get("build_from_steam_inf") and path.endswith("steam.inf"):
                 info = steam_inf_build(patch)
                 if info:
@@ -375,9 +378,12 @@ class GitHubTrackingSource:
         return findings
 
     def _extra_findings(self, name: str, path: str, lines: list[tuple[str, str]],
-                        matcher: KeywordMatcher) -> list[Finding]:
-        """Oltre alle parole chiave: nomi di progetto mai visti e ogni riga cambiata nei file sorvegliati."""
-        out: list[Finding] = []
+                        matcher: KeywordMatcher, status: str = "modified") -> list[Finding]:
+        """Oltre alle parole chiave: nomi di progetto mai visti, famiglie di token di localizzazione nuove
+        e ogni riga cambiata nei file sorvegliati."""
+        out: list[Finding] = self.localization.check_file(
+            name, path, (t for op, t in lines if op == "+"), file_added=(status == "added"),
+            score_override=(self._repo_by_name.get(name) or {}).get("loc_prefix_score"))
         watched = next(((title, score) for regex, title, score in self.watched if regex.search(path)), None)
         shown = 0
         for op, text in lines:
@@ -428,6 +434,7 @@ class GitHubTrackingSource:
         log.debug("[%s] diff manuale di %s (%d -> %d righe)", name, path, len(old_lines), len(new_lines))
         old_set, new_set = set(old_lines), set(new_lines)
         extra = self._extra_findings(name, path, [("+", ln) for ln in new_lines if ln not in old_set]
-                                     + [("-", ln) for ln in old_lines if ln not in new_set], matcher)
+                                     + [("-", ln) for ln in old_lines if ln not in new_set], matcher,
+                                     status=status or "modified")
         return extra + analyze_line_sets(old_lines, new_lines, game=name, source="github", file_path=path,
                                  matcher=matcher, context_lines=self.context_lines, max_findings=self.max_findings)

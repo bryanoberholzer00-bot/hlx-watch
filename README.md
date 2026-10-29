@@ -72,7 +72,7 @@ hlx-watch/
    il monitoraggio dei commit non aveva già visto.
 6. Ogni riga interessante diventa un **finding** con punteggio, keyword, token, contesto e tipo di modifica
    (`added`, `removed`, `changed`, `file_added`, `file_removed`, `file_renamed`, `build`, `new_app`,
-   `new_repo`, `codename`, `structure`).
+   `new_repo`, `codename`, `structure`, `localization`).
 7. **Deduplica**: il token (es. `hlx_fsr3_min_reactiveness`) o la riga normalizzata viene hashato in
    `seen_strings`. Solo le stringhe mai viste prima con punteggio sopra `notify_min_score` generano una
    notifica. Tutto il resto finisce comunque nello storico.
@@ -309,7 +309,15 @@ voce anche senza parole chiave (bug reporter 60 punti, `gameinfo.gi` 50).
 l'API dei contenuti le cartelle sotto `game/` e i file di `manifests/` (uno per depot Steam) dei giochi, e le
 cartelle di `SteamTracking/Protobufs` (un protocollo di rete per gioco). Il primo giro registra gli elenchi
 (stato `structure:<gioco>:<percorso>`); poi ogni voce nuova è una voce `structure` da 100 punti (di più se il
-nome contiene una parola chiave) e ogni voce sparita una da 60. Sezione `structure` del config.
+nome contiene una parola chiave) e ogni voce sparita una da 60. Vale anche per i dump delle DLL in `game/bin/win64`
+e in `game/<gamedir>/bin/win64` (chiave `gamedir` del repository). Sezione `structure` del config.
+
+`hlxwatch/analyzers/localization.py` guarda le **famiglie di token** dei file di localizzazione `*_english.txt`
+(`"CSGO_Cfg_Items" "Items"`: famiglia `csgo`), il posto in cui Valve è obbligata a scrivere il nome del progetto.
+La prima scansione completa impara le famiglie di ogni repository (stato `locprefix:<gioco>`, da `git grep`
+sui file inglesi); poi un file `*_english.txt` nuovo è una voce `localization` da 100 punti e una famiglia mai
+vista con almeno `localization.min_tokens` testi in un commit (o nella scansione completa) una da 60, una volta
+sola. Deadlock ha `loc_prefix_score: 45` perché ogni eroe nuovo porta circa 1900 testi con il suo nome.
 
 ### Archeologia: tutta la storia dei repository
 
@@ -413,7 +421,7 @@ di file giganteschi, `general.notify_min_score` regola quante notifiche ricevi.
 - **Rami di compilazione**: i nomi `buildworker\<ramo>` si trovano nei dump delle stringhe delle DLL, che GitHub
   non mostra come patch: nei commit passano dal diff manuale (file fino a 25 MB), nella scansione completa
   dal prefiltro. Un nome nuovo lo si vede quindi al più tardi alla scansione completa del giorno dopo.
-- **Struttura dei repository**: una chiamata all'API dei contenuti per posto a ogni run (circa dieci); GitHub
+- **Struttura dei repository**: una chiamata all'API dei contenuti per posto a ogni run (circa venti); GitHub
   elenca al massimo 1000 voci per cartella, più che sufficienti per `game/` e `manifests/`.
 - **Fuso orario**: i dati restano in UTC (come GitHub, Steam e i runner di Actions, senza ambiguità con l'ora
   legale); orari mostrati, giorni dei report e ora del report giornaliero seguono `general.timezone`

@@ -32,6 +32,10 @@ DEFAULT_PLACES: list[dict[str, Any]] = [
     {"path": "game", "kind": "dirs", "title": "cartella sotto game/", "repos": "games"},
     {"path": "manifests", "kind": "files", "title": "depot Steam (file manifest)", "repos": "games"},
     {"path": "", "kind": "dirs", "title": "protocollo di rete (cartella dei Protobuf)", "repos": ["protobufs"]},
+    # binari: ogni file è il dump di una DLL, una DLL nuova è un sottosistema nuovo del motore o del gioco;
+    # {gamedir} è la cartella del gioco (csgo, dota, citadel, hlvr: chiave `gamedir` del repository)
+    {"path": "game/bin/win64", "kind": "files", "title": "binario del motore (dump di una DLL)", "repos": "games"},
+    {"path": "game/{gamedir}/bin/win64", "kind": "files", "title": "binario del gioco (dump di una DLL)", "repos": "games"},
 ]
 
 
@@ -68,8 +72,15 @@ class StructureWatch:
                     ok = True
                 else:
                     ok = repo_cfg["name"] in (selector or [])
-                if ok:
-                    out.append((repo_cfg, place))
+                if not ok:
+                    continue
+                path = str(place.get("path") or "")
+                expanded = place
+                if "{gamedir}" in path:
+                    if not repo_cfg.get("gamedir"):
+                        continue
+                    expanded = {**place, "path": path.replace("{gamedir}", str(repo_cfg["gamedir"]))}
+                out.append((repo_cfg, expanded))
         return out
 
     def listing(self, repo_cfg: dict[str, Any], place: dict[str, Any]) -> dict[str, str] | None:

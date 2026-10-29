@@ -37,11 +37,13 @@ github:
       repo: SteamTracking/GameTracking-CS2
       branch: master
       appid: 730
+      gamedir: csgo                      # cartella del gioco sotto game/ (binari, localizzazione)
     - name: dota2
       title: "Dota 2"
       repo: SteamTracking/GameTracking-Dota2
       branch: master
       appid: 570
+      gamedir: dota
     - name: deadlock
       title: "Deadlock"
       repo: SteamTracking/GameTracking-Deadlock
@@ -49,11 +51,14 @@ github:
       build_from_steam_inf: true         # Steam in anonimo non mostra le build: si leggono da steam.inf
       build_score: 45                    # anche 3-5 build al giorno: nel report e sul sito, senza notifica (50+ = notifica)
       appid: 1422450
+      gamedir: citadel
+      loc_prefix_score: 45               # ogni eroe nuovo porta ~1900 testi col suo nome: sul sito, senza notifica
     - name: alyx
       title: "Half-Life: Alyx"
       repo: SteamTracking/GameTracking-HalfLifeAlyx
       branch: master
       appid: 546560
+      gamedir: hlvr
       ignore_keywords: [half_life, hl_universe]       # in un repo di Half-Life la parola è solo rumore
     - name: steamclient
       title: "Client Steam"
@@ -124,6 +129,13 @@ structure:                               # forma dei repository, senza parole ch
   score: 100                             # cartella nuova sotto game/, depot nuovo in manifests/, cartella nuova nei Protobuf
   score_removed: 60                      # voce sparita: sopra la soglia di notifica, ma sotto la rilevanza alta
   # places: [{path: game, kind: dirs, title: "...", repos: games}]   repos = games | all | [nomi]; default nel codice
+
+localization:                            # famiglie di token nei file *_english.txt (CSGO_, DOTA_, Citadel_, HLVR_...)
+  enabled: true
+  min_tokens: 20                         # una famiglia mai vista conta se porta almeno tanti testi in un commit
+  score_new_file: 100                    # file di localizzazione nuovo: un progetto nuovo ha i suoi file
+  score_new_prefix: 60                   # famiglia nuova in un file esistente (i repository possono abbassarlo: loc_prefix_score)
+  # le famiglie presenti vengono imparate alla prima scansione completa (stato locprefix:<gioco>)
 
 archaeology:
   # giochi Source 2 dismessi, conservati da SteamTracking: solo per l'archeologia (comando `archeologia`),

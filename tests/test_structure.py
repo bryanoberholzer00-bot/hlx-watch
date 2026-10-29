@@ -39,6 +39,8 @@ def test_targets_only_game_repos_and_protobufs(tmp_path):
     w = StructureWatch(cfg, db, FakeClient())
     pairs = {(r["name"], p["path"]) for r, p in w.targets()}
     assert ("cs2", "game") in pairs and ("deadlock", "manifests") in pairs and ("protobufs", "") in pairs
+    assert ("cs2", "game/bin/win64") in pairs and ("cs2", "game/csgo/bin/win64") in pairs
+    assert ("alyx", "game/hlvr/bin/win64") in pairs and not any("{gamedir}" in p for _, p in pairs)
     assert not any(name in ("steamvr", "steamclient", "steamworks") for name, _ in pairs)   # senza appid: niente game/
     db.close()
 

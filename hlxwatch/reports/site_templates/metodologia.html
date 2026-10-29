@@ -48,7 +48,13 @@
   <li><b>Struttura dei repository.</b> A ogni run si confrontano gli elenchi delle cartelle sotto <code>game/</code> e dei
   file in <code>manifests/</code> (un file per depot Steam) di ogni gioco, e delle cartelle del repository dei Protobuf
   (un protocollo di rete per gioco): una voce che prima non c'era diventa una voce <code>structure</code> da
-  {{ structure_score }} punti, anche se nessun file scrive il nome del progetto.</li>
+  {{ structure_score }} punti, anche se nessun file scrive il nome del progetto. Lo stesso per i dump delle DLL in
+  <code>game/bin/win64</code> e nella cartella del gioco: una DLL nuova è un sottosistema nuovo.</li>
+  <li><b>Famiglie di token di localizzazione.</b> Ogni testo a schermo è un token <code>"Famiglia_Nome"</code> nei file
+  <code>*_english.txt</code> (<code>CSGO_</code>, <code>DOTA_</code>, <code>Citadel_</code>, <code>HLVR_</code>): è il posto in cui
+  Valve è obbligata a scrivere il nome del progetto. Le famiglie presenti vengono imparate alla prima scansione completa;
+  poi un file di localizzazione nuovo vale {{ loc.score_new_file }} punti e una famiglia mai vista con almeno
+  {{ loc.min_tokens }} testi in un commit {{ loc.score_new_prefix }} (Deadlock meno: ogni eroe nuovo porta la sua famiglia).</li>
  </ol>
 </section>
 
@@ -99,7 +105,8 @@
   <tr><td><code>build</code></td><td>nuova build Steam su un branch</td></tr>
   <tr><td><code>new_repo</code></td><td>nuovo repository nell'organizzazione SteamTracking</td></tr>
   <tr><td><code>codename</code></td><td>nome di progetto mai visto in uno dei posti dove Valve li scrive</td></tr>
-  <tr><td><code>structure</code></td><td>cartella, depot o protocollo di rete comparso (o sparito) nella struttura di un repository</td></tr>
+  <tr><td><code>structure</code></td><td>cartella, depot, DLL o protocollo di rete comparso (o sparito) nella struttura di un repository</td></tr>
+  <tr><td><code>localization</code></td><td>file di localizzazione nuovo o famiglia di token di localizzazione mai vista</td></tr>
   <tr><td><code>new_app</code></td><td>nuova app Steam con un segnale (Valve, nome sospetto, parole chiave)</td></tr>
  </table>
  <ul>
