@@ -43,7 +43,8 @@ def test_targets_only_game_repos_and_protobufs(tmp_path):
     assert ("alyx", "game/hlvr/bin/win64") in pairs and not any("{gamedir}" in p for _, p in pairs)
     assert not any(name in ("steamclient", "steamworks") for name, _ in pairs)   # senza appid: niente game/
     assert {p for n, p in pairs if n == "steamvr"} == {"drivers", "resources/rendermodels", "resources/input",
-        "drivers/frame_controller/resources/rendermodels", "drivers/deckard/resources/rendermodels"}   # solo l'hardware
+        "drivers/frame_controller/resources/rendermodels", "drivers/deckard/resources/rendermodels",
+        "drivers/frame_controller/resources/input"}   # solo l'hardware
     db.close()
 
 

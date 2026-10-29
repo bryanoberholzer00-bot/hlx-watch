@@ -327,8 +327,16 @@ la riga vecchia e quella nuova. Verificato il 2026-10-29: dei sette nomi HLX tol
 di suoni di prova senza prefisso): la tecnologia HLX passa al motore comune o a Deadlock.
 
 Il controllo della struttura guarda anche l'hardware di SteamVR: cartelle dei driver (oggi ci sono `deckard`,
-`frame_hmd`, `frame_controller`), modelli 3D dei dispositivi e profili dei controlli. Su Steam sono seguiti anche
+`frame_hmd`, `frame_controller`), modelli 3D dei dispositivi, profili dei controlli e i file dei comandi per i
+controller Steam Frame (un file per gioco: un gioco nuovo che li supporta). Su Steam sono seguiti anche
 Half-Life, Half-Life 2 e i due Episodi.
+
+Hardware Valve, con il metodo dei data miner di SteamVR: il campo `controller_type` dei profili è un posto per i
+nomi in codice (`vr_device`, 60 punti, `codenames.place_scores`); i posti aggiunti dopo imparano in silenzio alla
+prima scansione completa (stato `codenames:learned_places`). Manifesti, impostazioni, firmware e profili dei driver
+Valve sono file sorvegliati (55 punti), e la parola chiave `valve_hardware` (45 punti, fuori dai file dei giochi)
+segue Deckard, Fremont, Ibex, Galileo, Neptune e i controller Roy. Le rinomine dei commit già nell'archivio sono
+state recuperate una volta sola (stato `renames:backfill`), con la data del loro commit.
 
 `hlxwatch/analyzers/orphans.py` cerca le **entità senza padrone**: alla scansione completa legge le definizioni
 condivise delle entità (`game/core/*.fgd`), le classi C++ di ogni gioco (`DumpSource2/entities/server.fgd` e

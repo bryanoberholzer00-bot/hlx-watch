@@ -43,6 +43,8 @@ DEFAULT_PLACES: list[dict[str, Any]] = [
     {"path": "resources/input", "kind": "files", "title": "profilo dei controlli di SteamVR", "repos": ["steamvr"]},
     {"path": "drivers/frame_controller/resources/rendermodels", "kind": "dirs", "title": "modello 3D dei controller Steam Frame", "repos": ["steamvr"]},
     {"path": "drivers/deckard/resources/rendermodels", "kind": "dirs", "title": "modello 3D del visore Deckard", "repos": ["steamvr"]},
+    # un file di comandi per un gioco che non c'era: un gioco nuovo (o non annunciato) che supporta Steam Frame
+    {"path": "drivers/frame_controller/resources/input", "kind": "files", "title": "gioco con i comandi per i controller Steam Frame", "repos": ["steamvr"]},
 ]
 
 

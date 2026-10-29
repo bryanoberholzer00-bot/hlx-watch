@@ -422,6 +422,41 @@ class GitHubTrackingSource:
                 shown += 1
         return out
 
+    def backfill_renames(self, max_files: int = 200) -> int:
+        """Una volta sola: cerca le rinomine nei commit già nell'archivio. Prima che esistesse il controllo una
+        rinomina (hlx.hrtf_basic diventato core.hrtf_basic) risultava solo una riga HLX tolta. Per ogni file con
+        righe HLX tolte si confrontano la versione del commit e quella precedente; le voci prendono la data del commit."""
+        if not self.renames_enabled or self.db.get_state("renames:backfill") == "done":
+            return 0
+        repos = {r["name"]: r for r in [*tracked_repos(self.cfg, self.db), *(self.cfg.get("archaeology.extra_repos", []) or [])]}
+        rows = self.db.conn.execute(
+            "SELECT f.game, f.file_path, b.ref, MIN(b.date) AS date, b.id AS build_id FROM findings f "
+            "JOIN builds b ON b.id = f.build_id WHERE f.change_type IN ('removed', 'changed') AND lower(f.text) LIKE '%hlx%' "
+            "AND b.source = 'github' AND length(b.ref) = 40 AND f.file_path NOT LIKE '%.stringsignore' "
+            "GROUP BY f.game, f.file_path, b.ref ORDER BY date").fetchall()
+        found = files = 0
+        for row in rows[:max_files]:
+            repo_cfg = repos.get(row["game"])
+            if not repo_cfg:
+                continue
+            repo, sha, path = repo_cfg["repo"], row["ref"], row["file_path"]
+            history = self.client.get_json(f"/repos/{repo}/commits", {"sha": sha, "path": path, "per_page": 2}) or []
+            if len(history) < 2 or history[0].get("sha") != sha:
+                continue
+            new_text = self.client.raw_file(repo, sha, path, self.fallback_max)
+            old_text = self.client.raw_file(repo, history[1]["sha"], path, self.fallback_max)
+            files += 1
+            if new_text is None or old_text is None:
+                continue
+            old_set, new_set = set(old_text.splitlines()), set(new_text.splitlines())
+            lines = [("-", ln) for ln in old_set - new_set if "hlx" in ln.lower()] + [("+", ln) for ln in new_set - old_set]
+            for f in self._rename_findings(row["game"], path, lines):
+                self.db.add_finding(f, row["build_id"], created_at=parse_iso(row["date"]))
+                found += 1
+        self.db.set_state("renames:backfill", "done")
+        log.info("Rinomine passate: %d trovate controllando %d file con righe HLX tolte", found, files)
+        return found
+
     def _rename_findings(self, name: str, path: str, lines: list[tuple[str, str]]) -> list[Finding]:
         """Righe HLX tolte che ricompaiono nello stesso file con un altro prefisso (hlx.hrtf_basic -> core.hrtf_basic)."""
         removed = [t for op, t in lines if op == "-"]

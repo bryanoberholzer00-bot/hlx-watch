@@ -88,6 +88,10 @@ class Pipeline:
         if "github" in sources:
             try:
                 result.findings += self.github.run(since=github_since, repos=repos, max_commits=max_commits)
+                try:
+                    self.github.backfill_renames()      # una volta sola; le voci sono retrodatate, niente notifiche
+                except Exception:
+                    log.exception("Recupero delle rinomine passate fallito, si riprova al prossimo run")
                 errs = getattr(self.github, "errors", [])
                 result.errors += [f"github: {e}" for e in errs]
                 status["github"] = errs[0] if errs else None

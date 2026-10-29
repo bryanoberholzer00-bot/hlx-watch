@@ -109,6 +109,7 @@ codenames:
   enabled: true                          # nomi di progetto mai visti dove Valve li scrive (mod != X, bug reporter, content/X,
                                          # rami di compilazione C:\buildworker\<ramo> nei dump delle DLL)
   score: 120                             # sopra la soglia alta: avviso immediato e voce in cronologia
+  place_scores: {vr_device: 60}          # dispositivo SteamVR nuovo (anche di altri marchi): avviso, non rilevanza alta
   known: [csgo, cs2, dota, dota2, dota_lv, hlx, hlvr, "half-life vr", hl3, left4dead3, left4dead2_source2,
           rpg, citadel, core, "source 2 tools", steamvr, steampal,
           # rami di compilazione presenti oggi nei dump delle DLL (CS2, Dota 2, Deadlock, Alyx, SteamVR, client Steam)
@@ -129,6 +130,11 @@ watched_files:                           # ogni riga aggiunta o tolta diventa un
     title: "definizioni condivise dei nemici (FGD del motore)"
     score: 55
     ignore: ["^metadata$", "^api_classes\\s*=", "^//"]   # righe tecniche e commenti
+  - pattern: "^drivers/(deckard|frame_hmd|frame_controller|indexhmd|indexcontroller|lighthouse|prism)/(driver\\.vrdrivermanifest|resources/[^/]+\\.(vrsettings|vrresources)|resources/firmware/[^/]+\\.vrfirmware|resources/(input/)?[^/]*profile[^/]*\\.json)$"
+    # driver dell'hardware Valve in SteamVR: manifesti, impostazioni, firmware ("Knuckles EV1.3") e profili dei controlli.
+    # È da qui che i data miner di SteamVR hanno ricavato prototipi e specifiche di Deckard
+    title: "configurazione dei driver dell'hardware Valve (SteamVR)"
+    score: 55
   - pattern: "^game/core/base\\.fgd$"
     # entità di base di tutti i giochi, CS2 compreso: ~50 righe a ogni fusione del motore, sul sito senza notifica
     title: "definizioni condivise delle entità di base (FGD del motore)"
@@ -304,6 +310,21 @@ keywords:
       case_sensitive: true
       weight: 110
       description: "HLX dentro un nome (CDummyHLXCover, hlxcoverpreview)"
+    - id: valve_hardware
+      # nomi in codice dell'hardware Valve: Deckard (Steam Frame), Fremont (Steam Machine), Ibex (controller),
+      # Galileo e Neptune (Steam Deck), Roy (controller di Deckard). Rari nel client Steam e in SteamVR; "Steam Frame"
+      # no: è un prodotto uscito e compare in oltre 10.000 righe. Solo fuori dai file dei giochi
+      pattern: "(?<![a-z0-9])(deckard|fremont|ibex|galileo|neptune|sephiroth|roy[ _]?controllers?)(?![a-z0-9])"
+      weight: 45
+      description: "nome in codice di hardware Valve (client Steam, SteamVR)"
+      path_excludes: ["^(game|DumpSource2|content)/", "/localization/"]
+    - id: valve_hardware_class
+      # gli stessi nomi dentro i nomi di classe dei binari del client (ClientJobPairIbexController), sensibile alle maiuscole
+      pattern: "(?:(?<=[a-z])|(?<=\\bC))(Deckard|Fremont|Ibex|Galileo|Neptune|Sephiroth)(?=[A-Z_])"
+      case_sensitive: true
+      weight: 45
+      description: "nome in codice di hardware Valve dentro un nome di classe"
+      path_excludes: ["^(game|DumpSource2|content)/", "/localization/"]
     - id: hlx
       pattern: "(?<![a-z0-9])hlx(?![a-z0-9])"
       weight: 100

@@ -40,14 +40,22 @@ PLACES: list[tuple[str, re.Pattern[str], str, re.Pattern[str] | None]] = [
     # (<gioco>_strings.txt): il nome dopo buildworker\ è il ramo del progetto che ha prodotto il binario
     ("buildworker", re.compile(r"buildworker[\\/]+(?P<name>[A-Za-z0-9_.-]+)", re.IGNORECASE),
      "ramo di compilazione nei percorsi della macchina di build (buildworker)", None),
+    # tipo di dispositivo nei profili dei driver di SteamVR: ogni visore o controller dichiara qui il suo nome
+    # (deckard, frame_hmd, frame_controller, knuckles_ev1...). Il gruppo di Brad Lynch ha scoperto così l'hardware Valve
+    ("vr_device", re.compile(r'"controller_type"\s*:\s*"(?P<name>[A-Za-z0-9_]+)"'),
+     "tipo di dispositivo di SteamVR (controller_type)", None),
 ]
 # parole che compaiono in quei posti ma non sono nomi di progetto
 GENERIC = {"other", "unassigned", "default", "bugreporter", "none", "core", "tools", "---", "version", "owner",
            "severity", "priority", "category", "product", "component", "main", "bin", "sdk", "build", "src"}
 # regex estesa per `git grep -i -E` della scansione completa: seleziona le righe dei tre posti
-PREFILTER = r'mod *[!=]=|"(product|component|mod)"|source2[\\/]main[\\/](content|game)[\\/]|buildworker[\\/]'
+PREFILTER = r'mod *[!=]=|"(product|component|mod)"|source2[\\/]main[\\/](content|game)[\\/]|buildworker[\\/]|"controller_type"'
 STATE_SEEN = "codenames:seen"
 STATE_LEARNED = "codenames:learned"
+STATE_LEARNED_PLACES = "codenames:learned_places"
+# posti che esistevano prima dell'apprendimento per posto: chi aveva già concluso l'apprendimento li conosce tutti.
+# Un posto aggiunto dopo impara in silenzio alla prima scansione completa, senza avvisi su ciò che c'era già
+LEGACY_PLACES = ("mod", "bugreporter", "bugreporter_block", "content_dir", "kv_mod", "buildworker")
 
 
 def normalize(name: str) -> str:
@@ -76,6 +84,8 @@ class CodenameTracker:
         ccfg: dict[str, Any] = cfg.get("codenames", {}) or {}
         self.enabled = bool(ccfg.get("enabled", True))
         self.score = int(ccfg.get("score", 120))
+        # punteggio per posto: un controller nuovo di un altro marchio non vale un progetto Valve nuovo
+        self.place_scores = {str(k): int(v) for k, v in (ccfg.get("place_scores") or {}).items()}
         self.seen: dict[str, dict[str, Any]] = json.loads(db.get_state(STATE_SEEN) or "{}")
         self.known: set[str] = {normalize(str(n)) for n in (ccfg.get("known") or [])} | set(self.seen)
 
@@ -83,10 +93,22 @@ class CodenameTracker:
     def learned(self) -> bool:
         return self.db.get_state(STATE_LEARNED) == "1"
 
+    def learned_places(self) -> set[str]:
+        raw = self.db.get_state(STATE_LEARNED_PLACES)
+        if raw is not None:
+            return set(json.loads(raw))
+        return set(LEGACY_PLACES) if self.learned else set()
+
     def finish_learning(self) -> None:
         if not self.learned:
             self.db.set_state(STATE_LEARNED, "1")
             log.info("Nomi di progetto: fase di apprendimento conclusa, %d nomi noti", len(self.known))
+        places = {p for p, _, _, _ in PLACES}
+        new_places = places - self.learned_places()
+        if new_places or self.db.get_state(STATE_LEARNED_PLACES) is None:
+            self.db.set_state(STATE_LEARNED_PLACES, json.dumps(sorted(places)))
+            if new_places:
+                log.info("Nomi di progetto: apprendimento concluso anche per %s", ", ".join(sorted(new_places)))
 
     def _refresh(self) -> None:
         """Rilegge i nomi salvati: più tracker nello stesso run condividono lo stato nel database."""
@@ -111,7 +133,7 @@ class CodenameTracker:
             if name in self.known:
                 continue
             info = {"posto": place, "gioco": game, "file": file_path, "quando": iso(utcnow())}
-            if not self.learned:
+            if place not in self.learned_places():
                 # in apprendimento impara solo la scansione del contenuto: un nome visto in un commit prima
                 # che l'apprendimento finisca non va tacitato, lo ritroverà la scansione completa (presente)
                 # oppure, se è già sparito, resterà sconosciuto e verrà segnalato alla prossima comparsa
@@ -124,7 +146,8 @@ class CodenameTracker:
             log.warning("[%s] NOME DI PROGETTO MAI VISTO: '%s' in %s (%s)", game, name, file_path, desc)
             return Finding(
                 game=game, source="github", file_path=file_path, change_type="codename",
-                text=text.strip()[:500], score=self.score, keywords=["codename_new"], token=f"codename:{name}",
+                text=text.strip()[:500], score=self.place_scores.get(place, self.score), keywords=["codename_new"],
+                token=f"codename:{name}",
                 context=f"nome di progetto '{name}' mai visto: {desc}",
             )
         return None
