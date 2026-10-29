@@ -315,14 +315,15 @@ keywords:
       # Galileo e Neptune (Steam Deck), Roy (controller di Deckard). Rari nel client Steam e in SteamVR; "Steam Frame"
       # no: è un prodotto uscito e compare in oltre 10.000 righe. Solo fuori dai file dei giochi
       pattern: "(?<![a-z0-9])(deckard|fremont|ibex|galileo|neptune|sephiroth|roy[ _]?controllers?)(?![a-z0-9])"
-      weight: 45
+      weight: 35                         # sotto bonus_min_weight (40): niente bonus, mai una notifica da sola.
+                                         # A 45 il bonus del percorso la portava a 60 (falso avviso del 2026-10-29)
       description: "nome in codice di hardware Valve (client Steam, SteamVR)"
       path_excludes: ["^(game|DumpSource2|content)/", "/localization/"]
     - id: valve_hardware_class
       # gli stessi nomi dentro i nomi di classe dei binari del client (ClientJobPairIbexController), sensibile alle maiuscole
       pattern: "(?:(?<=[a-z])|(?<=\\bC))(Deckard|Fremont|Ibex|Galileo|Neptune|Sephiroth)(?=[A-Z_])"
       case_sensitive: true
-      weight: 45
+      weight: 35
       description: "nome in codice di hardware Valve dentro un nome di classe"
       path_excludes: ["^(game|DumpSource2|content)/", "/localization/"]
     - id: hlx

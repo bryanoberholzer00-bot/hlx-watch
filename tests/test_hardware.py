@@ -53,7 +53,11 @@ def test_valve_hardware_keyword(tmp_path):
     cfg, db = make(tmp_path)
     m = KeywordMatcher(cfg.keywords)
     r = m.analyze_line("Status LED brightness control disabled: only supported on galileo", file_path="ClientExtracted/steamui/x.js")
-    assert r is not None and r.keywords == ["valve_hardware"] and 45 <= r.score < 50
+    assert r is not None and r.keywords == ["valve_hardware"] and r.score == 35
+    # nemmeno con i bonus di percorso e di file nuovo arriva alla soglia di notifica (50)
+    worst = m.analyze_line('"controller_type": "deckard"', file_path="drivers/deckard/resources/input_profile.json",
+                           change_type="file_added")
+    assert worst is not None and worst.score < 50
     assert m.analyze_line("Ibex Controller Test", file_path="ClientExtracted/x.js").keywords == ["valve_hardware"]
     camel = m.analyze_line("ClientJobPairIbexController", file_path="bin/steamui_strings.txt")
     assert camel is not None and camel.keywords == ["valve_hardware_class"]

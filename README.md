@@ -334,7 +334,7 @@ Half-Life, Half-Life 2 e i due Episodi.
 Hardware Valve, con il metodo dei data miner di SteamVR: il campo `controller_type` dei profili è un posto per i
 nomi in codice (`vr_device`, 60 punti, `codenames.place_scores`); i posti aggiunti dopo imparano in silenzio alla
 prima scansione completa (stato `codenames:learned_places`). Manifesti, impostazioni, firmware e profili dei driver
-Valve sono file sorvegliati (55 punti), e la parola chiave `valve_hardware` (45 punti, fuori dai file dei giochi)
+Valve sono file sorvegliati (55 punti), e la parola chiave `valve_hardware` (35 punti, senza bonus né notifiche, fuori dai file dei giochi)
 segue Deckard, Fremont, Ibex, Galileo, Neptune e i controller Roy. Le rinomine dei commit già nell'archivio sono
 state recuperate una volta sola (stato `renames:backfill`), con la data del loro commit.
 
