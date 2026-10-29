@@ -62,7 +62,7 @@ def test_learn_then_commit_alerts(tmp_path):
 
     # scansione completa dopo l'apprendimento: famiglia nuova segnalata, poi ricordata
     later = t.learn("cs2", {"csgo": 4700, "newfam": 21, "small": 3})
-    assert [f.token for f in later] == ["locprefix:cs2:newfam"] and later[0].change_type == "present"
+    assert [f.token for f in later] == ["locprefix:cs2:newfam"] and "scansione completa" in later[0].context
     assert t.learn("cs2", {"csgo": 4700, "newfam": 21}) == []
     assert "zeta" in t.known("cs2")                                       # sparita dalla scansione, resta nota
     db.close()

@@ -133,5 +133,6 @@ class LocalizationTracker:
             text=f"famiglia di token di localizzazione mai vista: {prefix}_* ({n} testi, {base})",
             score=int(score_override) if score_override is not None else self.score_new_prefix,
             keywords=["loc_prefix_new"], token=f"locprefix:{game}:{prefix}",
-            context=f"famiglie note per {game}: {len(self.known(game) or {})}",
+            context=f"famiglie note per {game}: {len(self.known(game) or {})}; vista "
+                    + ("nella scansione completa" if change_type == "present" else "in un commit"),
         )
