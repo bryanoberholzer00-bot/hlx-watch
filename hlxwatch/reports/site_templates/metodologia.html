@@ -33,6 +33,40 @@
 </section>
 
 <section>
+ <h2>Da dove vengono i dati</h2>
+ <p>HLX Watch non apre i file dei giochi: legge il lavoro di <a href="https://github.com/SteamTracking">SteamTracking</a>,
+ l'organizzazione di Pavel Djundik (xPaw, autore di SteamDB), che a ogni aggiornamento di un gioco Valve esegue una catena
+ di strumenti open source e pubblica il risultato come testo su GitHub.</p>
+ <ol>
+  <li><a href="https://github.com/SteamTracking/SteamFileDownloader">SteamFileDownloader</a> scarica dai depot di Steam solo i
+  file che servono, anche singole voci dentro gli archivi VPK.</li>
+  <li><a href="https://github.com/ValveResourceFormat/ValveResourceFormat">Source 2 Viewer</a> (ValveResourceFormat) decompila
+  gli archivi in testo: dati di gioco, script, eventi sonori, interfaccia, e l'elenco completo dei file di ogni archivio.</li>
+  <li><a href="https://github.com/ValveResourceFormat/DumpSource2">DumpSource2</a> carica i binari del gioco senza avviarlo ed
+  elenca classi (schemi), variabili, comandi, entità e campi di rete. Gli stessi dati sono consultabili nello
+  <a href="https://s2v.app/SchemaExplorer/">Schema Explorer</a>: le voci che vengono da una classe hanno il link "vedi la classe".</li>
+  <li><a href="https://github.com/xPaw/DumpStrings">DumpStrings</a> estrae le stringhe leggibili dalle DLL e toglie quelle
+  già note; <a href="https://github.com/SteamRE/SteamKit">ProtobufDumper</a> ricava i protocolli di rete.</li>
+  <li>Il risultato è un commit nei repository GameTracking-*; dal 3 ottobre 2026 un'azione con agenti Claude pubblica anche
+  un riassunto di ogni commit, mostrato in pagina iniziale accanto alla build.</li>
+  <li>HLX Watch legge quei commit e Steam PICS in anonimo, confronta, assegna i punteggi e avvisa.</li>
+ </ol>
+ <p class="muted">Gli strumenti di SteamTracking non si aggiornano da soli e la catena dipende da una sola persona: per questo
+ la pagina iniziale mostra lo stato delle fonti.</p>
+</section>
+
+<section>
+ <h2>Cosa HLX Watch non fa</h2>
+ <ul>
+  <li>Non scarica depot né file dei giochi, e non usa account Steam: legge solo repository pubblici e dati PICS anonimi.</li>
+  <li>Non esegue programmi dentro i giochi (niente iniezioni, debugger o dumper in memoria): nessun rischio di ban VAC.</li>
+  <li>Non fa scraping di SteamDB, che lo vieta; lo cita solo con link per chi legge.</li>
+  <li>Non usa materiale trapelato o ottenuto in modo non autorizzato, come la "Steam2 Teraleak" dell'agosto 2026 o build rubate.</li>
+  <li>Non ripubblica modelli, suoni o immagini dei giochi: riporta righe di testo con il link alla fonte.</li>
+ </ul>
+</section>
+
+<section>
  <h2>Come vengono trovate le voci</h2>
  <ol>
   <li><b>Monitoraggio dei commit.</b> Per ogni commit nuovo lo strumento legge la patch di ogni file; se GitHub
@@ -140,6 +174,29 @@
   <li><b>Data delle voci della scansione completa</b>: quando la prima comparsa è nota, la data della modifica è quella del primo commit in cui la riga
   compare, non quella della scansione che l'ha trovata.</li>
  </ul>
+</section>
+
+<section>
+ <h2>Glossario</h2>
+ <table>
+  <tr><td><b>Source 2</b></td><td>Il motore grafico di Valve, comune a CS2, Dota 2, Deadlock e Half-Life: Alyx. Ogni gioco riceve
+  periodicamente il ramo principale del motore: è così che le tracce di HLX finiscono nei giochi pubblicati.</td></tr>
+  <tr><td><b>Commit</b></td><td>Una modifica registrata in un repository GitHub. SteamTracking ne crea uno per ogni aggiornamento di un gioco.</td></tr>
+  <tr><td><b>Build</b></td><td>Una versione di un gioco pubblicata su Steam, con il suo numero.</td></tr>
+  <tr><td><b>VPK</b></td><td>L'archivio in cui Valve impacchetta i file di un gioco; il suo elenco (<code>_dir.txt</code>) mostra anche file mai decompilati.</td></tr>
+  <tr><td><b>Dump delle stringhe</b></td><td>I testi leggibili estratti da una DLL (<code>_strings.txt</code>): nomi di classi, messaggi, percorsi.</td></tr>
+  <tr><td><b>Schema / classe</b></td><td>La descrizione di un tipo di oggetto del motore con i suoi campi, per esempio un nodo Pulse o un effetto di particelle.</td></tr>
+  <tr><td><b>Convar</b></td><td>Una variabile di configurazione del motore, come <code>r_hlx_fsr3_min_reactiveness</code>; una nuova spesso rivela una funzione.</td></tr>
+  <tr><td><b>FGD</b></td><td>Il file che descrive all'editor le entità piazzabili in una mappa (nemici, porte, trappole) con le loro opzioni.</td></tr>
+  <tr><td><b>Hammer</b></td><td>L'editor di livelli di Valve, distribuito con CS2 e Dota 2. I suoi "helper" disegnano aiuti visivi per le entità.</td></tr>
+  <tr><td><b>Pulse</b></td><td>Lo scripting visuale dei giochi Source 2 recenti; ogni tipo di nodo (<code>CPulseCell_*</code>) è una capacità del motore, come far partire una scena.</td></tr>
+  <tr><td><b>VCD</b></td><td>Una scena recitata alla Half-Life 2: personaggi che parlano e si muovono secondo una sceneggiatura.</td></tr>
+  <tr><td><b>mod != hlx</b></td><td>Condizione degli strumenti di Valve: l'opzione resta nascosta in ogni progetto tranne HLX.</td></tr>
+  <tr><td><b>PICS</b></td><td>Il servizio di Steam che fornisce le informazioni delle app (build, rami, depot); HLX Watch lo legge in anonimo.</td></tr>
+  <tr><td><b>Ramo (branch)</b></td><td>Una versione alternativa di un gioco su Steam, come una beta. Da novembre 2024 Valve rende privati i rami di prova.</td></tr>
+  <tr><td><b>Depot</b></td><td>Un pacchetto di file di un gioco su Steam (per sistema operativo, lingua o contenuto).</td></tr>
+  <tr><td><b>Nome in codice</b></td><td>Il nome interno di un progetto prima dell'annuncio: <code>citadel</code> era Deadlock, <code>hlvr</code> Alyx, <code>hlx</code> il progetto seguito qui.</td></tr>
+ </table>
 </section>
 
 <section>

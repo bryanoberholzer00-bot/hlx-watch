@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Hardware Valve - HLX Watch{% endblock %}
+{% block content %}
+<h1>Hardware Valve</h1>
+
+<section>
+ <p>Valve tende a far uscire i giochi insieme ai dispositivi (Half-Life: Alyx con l'Index). Le tracce dell'hardware
+ compaiono prima nei file pubblici di SteamVR e del client Steam: è da lì che i data miner di SteamVR hanno ricavato
+ i prototipi del visore Deckard, poi Steam Frame, e i modelli 3D dei controller "Roy". Qui sono raccolte le voci
+ sull'hardware e la situazione attuale dei driver.</p>
+ <p class="muted">Avvisi: un dispositivo mai visto nel campo <code>controller_type</code> dei profili SteamVR, una riga cambiata
+ nei file dei driver Valve, un driver, un modello 3D o un gioco con i comandi per Steam Frame nuovi. I nomi in codice
+ (Deckard, Fremont, Ibex, Galileo, Neptune, Roy) compaiono qui e nella Ricerca, senza notifiche.</p>
+</section>
+
+<div class="grid2">
+<section>
+ <h2>Driver in SteamVR ({{ hw.drivers|length }})</h2>
+ {% if hw.drivers %}<p>{% for d in hw.drivers %}<code>{{ d }}</code>{% if not loop.last %} · {% endif %}{% endfor %}</p>
+ {% else %}<p class="muted">Elenco non ancora registrato.</p>{% endif %}
+ <h2>Dispositivi noti ({{ hw.devices|length }})</h2>
+ {% if hw.devices %}<p><small>{% for d in hw.devices %}<code>{{ d }}</code>{% if not loop.last %} · {% endif %}{% endfor %}</small></p>
+ {% else %}<p class="muted">Elenco non ancora registrato.</p>{% endif %}
+</section>
+<section>
+ <h2>Modelli 3D ({{ hw.rendermodels|length }})</h2>
+ {% if hw.rendermodels %}<p><small>{% for d in hw.rendermodels %}<code>{{ d }}</code>{% if not loop.last %} · {% endif %}{% endfor %}</small></p>
+ {% else %}<p class="muted">Elenco non ancora registrato.</p>{% endif %}
+ <h2>Giochi con i comandi per Steam Frame ({{ hw.frame_games|length }})</h2>
+ {% if hw.frame_games %}<p><small>{% for d in hw.frame_games %}<code>{{ d }}</code>{% if not loop.last %} · {% endif %}{% endfor %}</small></p>
+ {% else %}<p class="muted">Elenco non ancora registrato.</p>{% endif %}
+</section>
+</div>
+
+<section>
+ <h2>Certificazioni FCC</h2>
+ <p>Prima di uscire negli Stati Uniti ogni dispositivo radio passa dalla FCC. Il codice di Valve è
+ <b>{{ hw.fcc_grantee }}</b>: si cerca nella <a href="{{ hw.fcc_url }}">ricerca ufficiale degli FCC ID</a>. Steam Frame è
+ stato autorizzato il 29 luglio 2026. La data FCC però anticipa di poco o di molto l'uscita: la Steam Machine era stata
+ approvata il 31 dicembre 2025 ed è uscita a fine giugno 2026.</p>
+</section>
+
+<section>
+ <h2>Voci sull'hardware ({{ hw.findings|length }})</h2>
+ {% if not hw.findings %}<p class="muted">Ancora nessuna voce.</p>{% endif %}
+ <table>
+  <tr><th>Punti</th><th>Data</th><th>Fonte</th><th>Tipo</th><th>Riga</th><th>File</th></tr>
+  {% for f in hw.findings %}
+  <tr class="{{ 'high' if f.score >= 100 else 'medium' if f.score >= 50 else 'low' }}">
+   <td><span class="badge {{ 'high' if f.score >= 100 else 'medium' if f.score >= 50 else 'low' }}">{{ f.score }}</span></td>
+   <td>{{ f.day }}</td><td>{{ titles.get(f.game, f.game) }}</td><td>{{ f.change_type }}</td>
+   <td><code>{{ (f.token or f.text)[:80] }}</code>{% if f.token and f.text != f.token %}<br><small class="muted">{{ f.text[:120] }}</small>{% endif %}</td>
+   <td><small>{{ f.file_path[:80] }}</small>{% if f.build_url %}<br><a href="{{ f.build_url }}"><small>{{ f.build_url|linklabel }}</small></a>{% endif %}</td>
+  </tr>
+  {% endfor %}
+ </table>
+</section>
+{% endblock %}

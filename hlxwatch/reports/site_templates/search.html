@@ -9,6 +9,8 @@
   {% for g in games %}<option value="{{ g }}">{{ titles.get(g, g) }}</option>{% endfor %}</select></label>
  <label>Tipo <select id="type"><option value="">tutti</option>
   {% for c in ["added","removed","changed","present","file_added","file_removed","file_renamed","build","new_app","new_repo","codename","structure","localization","orphan","renamed","summary","pulse"] %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select></label>
+ <label>Area <select id="area"><option value="">tutte</option>
+  {% for key, label in areas %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select></label>
  <label>Punteggio min <input id="min" type="number" value="0" style="width:5rem"></label>
  <label>Da <input id="since" type="date"></label>
  <label>A <input id="until" type="date"></label>
@@ -24,6 +26,7 @@
 </section>
 <script>
 const TITLES = {{ titles|tojson }};
+const AREAS = Object.fromEntries({{ areas|tojson }});
 const MAX_ROWS = 400;
 let ALL = [];
 const $ = id => document.getElementById(id);
@@ -38,6 +41,7 @@ function readParams() {
   if (p.get("min")) $("min").value = p.get("min");
   if (p.get("new")) $("new").checked = true;
   if (p.get("order")) $("order").value = p.get("order");
+  if (p.get("area")) $("area").value = p.get("area");
   if (p.get("since")) $("since").value = p.get("since");
   if (p.get("until")) $("until").value = p.get("until");
 }
@@ -63,11 +67,11 @@ function dupLabel(r) {
 }
 
 function render() {
-  const q = $("q").value.trim().toLowerCase(), game = $("game").value, type = $("type").value;
+  const q = $("q").value.trim().toLowerCase(), game = $("game").value, type = $("type").value, area = $("area").value;
   const min = parseInt($("min").value || "0", 10), since = $("since").value, until = $("until").value;
   const onlyNew = $("new").checked, order = $("order").value;
   let rows = ALL.filter(r => r.score >= min
-    && (!game || r.game === game) && (!type || r.type === type) && (!onlyNew || r.new)
+    && (!game || r.game === game) && (!type || r.type === type) && (!area || r.area === area) && (!onlyNew || r.new)
     && (!since || r.day >= since) && (!until || r.day <= until)
     && (!q || (r.token || "").toLowerCase().includes(q) || r.text.toLowerCase().includes(q) || r.file.toLowerCase().includes(q)));
   rows.sort(order === "score" ? (a, b) => b.score - a.score || (b.day > a.day ? 1 : -1) : (a, b) => (b.day > a.day ? 1 : b.day < a.day ? -1 : b.id - a.id));
@@ -80,11 +84,12 @@ function render() {
     <td><span class="badge ${sev(r.score)}">${r.score}</span></td>
     <td>${r.al ? '<small class="muted">almeno dal</small><br>' : ""}${esc(r.day)}${r.new ? '<br><span class="new">nuova</span>' : ""}<br><small class="muted">vista ${esc(r.seen)}</small></td>
     <td>${esc(TITLES[r.game] || r.game)}<br><small class="muted">${esc(r.source)}</small></td>
-    <td>${esc(r.type)}</td>
+    <td>${esc(r.type)}<br><small class="muted">${esc(AREAS[r.area] || "")}</small></td>
     <td><code>${esc((r.token || r.text).slice(0, 80))}</code>${r.token && r.text !== r.token ? `<br><small class="muted">${esc(r.text.slice(0, 120))}</small>` : ""}</td>
     <td><small>${esc(r.file.slice(0, 90))}${r.line ? ":" + r.line : ""}</small>
         ${r.dup > 1 ? `<br><small class="muted" title="${esc(r.files.join("\n"))}">${dupLabel(r)}</small>` : ""}
-        ${r.url ? `<br><a href="${esc(r.url)}"><small>${esc(r.ul || "commit")}${r.ul === "commit" ? " " + esc(r.ref.slice(0, 8)) : ""}</small></a>` : ""}</td>
+        ${r.url ? `<br><a href="${esc(r.url)}"><small>${esc(r.ul || "commit")}${r.ul === "commit" ? " " + esc(r.ref.slice(0, 8)) : ""}</small></a>` : ""}
+        ${r.sx ? `<br><a href="${esc(r.sx)}" title="Campi e opzioni della classe nello Schema Explorer di s2v.app"><small>vedi la classe</small></a>` : ""}</td>
     <td><small>${esc((r.kw || []).join(", "))}</small></td>
    </tr>`).join("");
 }
