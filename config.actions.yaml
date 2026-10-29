@@ -130,6 +130,10 @@ timeline:
   nascondi: []                           # id degli indizi da non mostrare (es. [t7])
   include_keywords: [hl2_achievement]    # voci sotto min_score da mostrare comunque come contesto
   rilevanza: {}                          # correzioni a mano, es. {t5: alta}
+  correzioni:                            # testo o rilevanza corretti a mano (l'AI si può sbagliare)
+    t17:
+      rilevanza: bassa
+      spiegazione: "Nelle stringhe del motore Source 2 compaiono percorsi come 'save/%s.hl3' e '//mod/%s.HL3'. Non riguardano Half-Life 3: fin da Half-Life 1 e Half-Life 2 i salvataggi del motore Source usano i file .hl1, .hl2 e .hl3 per lo stato dei livelli attraversati, e Source 2 ha ereditato quei nomi. È un residuo del formato dei salvataggi, presente almeno dal 2016 in tutti i giochi."
 
 weekly:
   enabled: true                          # riepilogo della settimana su Telegram, il lunedì dopo il report

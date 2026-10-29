@@ -111,6 +111,27 @@
    "rilevanza": "rumore",
    "cerca": "hlx)",
    "creato": "2026-10-27T04:52:42Z"
+  },
+  "t17": {
+   "titolo": "Estensione '.hl3' per i salvataggi nel motore Source 2",
+   "spiegazione": "Nelle stringhe del motore Source 2 condiviso (CS2, Dota 2, Deadlock, Half-Life: Alyx, Artifact, Underlords, SteamVR) compaiono percorsi come 'save/%s.hl3' e '//mod/%s.HL3', cioè file di salvataggio con estensione .hl3. Ci sono almeno da dicembre 2016, alcune varianti compaiono e spariscono nel tempo. È un riferimento reale ma vecchio, che risale agli anni di sviluppo del motore e con ogni probabilità al progetto poi diventato Half-Life: Alyx. Non è un segnale di un nuovo gioco.",
+   "rilevanza": "media",
+   "cerca": ".hl3",
+   "creato": "2026-10-29T13:20:47Z"
+  },
+  "t18": {
+   "titolo": "Progetto 'hl3' nello strumento di importazione da Source 1",
+   "spiegazione": "Il file di configurazione che aiuta a convertire i contenuti del vecchio motore Source nel nuovo Source 2, presente nei dati di Artifact e degli ambienti di SteamVR, contiene la riga \"mod\" \"hl3\". È presente almeno da giugno 2017 e in seguito è stata rimossa. Indica che nel 2017 esisteva un progetto di lavoro chiamato hl3 che importava materiale dai giochi Source, probabilmente lo stesso progetto poi uscito come Half-Life: Alyx.",
+   "rilevanza": "media",
+   "cerca": "\"mod\"\t\"hl3\"",
+   "creato": "2026-10-29T13:20:47Z"
+  },
+  "t19": {
+   "titolo": "'HL3' casuale nelle stringhe del client di Steam",
+   "spiegazione": "Nelle stringhe estratte dal client di Steam è comparsa, da novembre 2022, la sequenza 'tM HL3', poi rimossa. Si tratta di un frammento di dati binari letto come testo per errore: le lettere HL3 capitano per caso. Non ha alcun legame con Half-Life.",
+   "rilevanza": "rumore",
+   "cerca": "tM HL3",
+   "creato": "2026-10-29T13:20:47Z"
   }
  },
  "gruppi": {
@@ -635,7 +656,13 @@
   "~hlx": "t16",
   "=hlx": "t16",
   "hlx/": "t16",
-  "?hlx": "t16"
+  "?hlx": "t16",
+  "save/%s.hl#": "t17",
+  "//mod/%s.hl#": "t17",
+  "//%s/%s%s.hl#": "t17",
+  "//%short/%short%s.hl#": "t17",
+  "\"mod\" \"hl#\"": "t18",
+  "tm hl#": "t19"
  },
  "tentativi": {}
 }

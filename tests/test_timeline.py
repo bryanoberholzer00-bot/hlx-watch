@@ -70,4 +70,7 @@ def test_classify_once_and_build_entries(tmp_path, monkeypatch):
     assert [e["titolo"] for e in data["noise"]] == ["Rumore"]
     cfg.raw["timeline"]["nascondi"] = ["t2"]
     assert [e["titolo"] for e in timeline.build_entries(cfg, db)["entries"]] == ["mod != hlx"]
+    cfg.raw["timeline"]["correzioni"] = {"t1": {"spiegazione": "Testo corretto a mano.", "rilevanza": "bassa"}}
+    e = timeline.build_entries(cfg, db)["entries"][0]
+    assert e["spiegazione"] == "Testo corretto a mano." and e["rilevanza"] == "bassa" and e["titolo"] == "mod != hlx"
     db.close()

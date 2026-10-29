@@ -242,6 +242,11 @@ def build_entries(cfg: Config, db: Database) -> dict[str, Any]:
         if tid in hidden:
             continue
         t["rilevanza"] = overrides.get(tid, t["rilevanza"])
+        # correzioni a mano al testo dell'AI (config timeline.correzioni: {id: {titolo, spiegazione, rilevanza}})
+        fix = (tcfg.get("correzioni") or {}).get(tid) or {}
+        for field in ("titolo", "spiegazione", "rilevanza"):
+            if fix.get(field):
+                t[field] = str(fix[field])
         firsts = sorted((e for e in t["events"] if e["kind"] == "comparsa" and e["date"]), key=lambda e: e["date"])
         removals = sorted((e for e in t["events"] if e["kind"] == "rimozione" and e["date"]), key=lambda e: e["date"])
         first = firsts[0] if firsts else None
