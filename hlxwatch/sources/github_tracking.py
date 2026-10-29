@@ -22,6 +22,7 @@ from hlxwatch.analyzers import KeywordMatcher, analyze_line_sets, analyze_patch
 from hlxwatch.analyzers.codenames import CodenameTracker
 from hlxwatch.analyzers.localization import LocalizationTracker
 from hlxwatch.analyzers.renames import find_renames
+from hlxwatch.analyzers.pulse import PulseTracker
 from hlxwatch.analyzers.diff_analyzer import parse_patch
 from hlxwatch.config import Config
 from hlxwatch.models import BuildInfo, Finding
@@ -228,6 +229,7 @@ class GitHubTrackingSource:
         self.ignore_patterns = [re.compile(p) for p in (cfg.get("github.ignore_path_patterns", []) or [])]
         self.codenames = CodenameTracker(cfg, db)
         self.localization = LocalizationTracker(cfg, db)
+        self.pulse = PulseTracker(cfg, db)
         rcfg = cfg.get("renames", {}) or {}
         self.renames_enabled = bool(rcfg.get("enabled", True))
         self.rename_score = int(rcfg.get("score", 100))
@@ -340,6 +342,12 @@ class GitHubTrackingSource:
             status = entry.get("status", "modified")
             if not path or self._ignored(path):
                 continue
+
+            # 0) un nodo Pulse mai visto (file nuovo in DumpSource2/schemas)
+            if status == "added":
+                pulse = self.pulse.check_added(name, path)
+                if pulse:
+                    findings.append(pulse)
 
             # 1) il percorso stesso (file nuovi/rimossi/rinominati con "hlx" nel nome)
             if status in ("added", "removed", "renamed"):

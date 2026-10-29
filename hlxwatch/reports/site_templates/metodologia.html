@@ -50,6 +50,9 @@
   (un protocollo di rete per gioco): una voce che prima non c'era diventa una voce <code>structure</code> da
   {{ structure_score }} punti, anche se nessun file scrive il nome del progetto. Lo stesso per i dump delle DLL in
   <code>game/bin/win64</code> e nella cartella del gioco: una DLL nuova è un sottosistema nuovo.</li>
+  <li><b>Nodi Pulse.</b> Pulse è lo scripting visuale dei giochi Source 2 recenti; ogni tipo di nodo è una classe
+  <code>CPulseCell_*</code>. Il nodo per le scene recitate "dinamiche" è arrivato in CS2 e Deadlock negli stessi giorni delle
+  fusioni con tracce HLX. Un nodo mai visto è una voce, con più punti per scene, sequenze, dialoghi, telecamera e IA.</li>
   <li><b>Riassunti di SteamTracking.</b> Dal 4 ottobre 2026 SteamTracking fa leggere ogni aggiornamento a una squadra di
   agenti Claude e pubblica un riassunto come commento sul commit. La pagina iniziale lo mostra accanto alla build; una
   riga che parla di HLX, o che sta nella sezione sugli altri giochi e progetti non annunciati, diventa una voce con avviso.</li>
@@ -121,6 +124,7 @@
   <tr><td><code>new_repo</code></td><td>nuovo repository nell'organizzazione SteamTracking</td></tr>
   <tr><td><code>codename</code></td><td>nome di progetto mai visto in uno dei posti dove Valve li scrive</td></tr>
   <tr><td><code>structure</code></td><td>cartella, depot, DLL o protocollo di rete comparso (o sparito) nella struttura di un repository</td></tr>
+  <tr><td><code>pulse</code></td><td>nodo dello scripting Pulse mai visto: una nuova capacità del motore (scene, sequenze, telecamera...)</td></tr>
   <tr><td><code>summary</code></td><td>riga del riassunto automatico di SteamTracking che parla di HLX o di progetti non annunciati</td></tr>
   <tr><td><code>renamed</code></td><td>riga HLX tolta che ricompare con un altro prefisso: la tecnologia passa al motore comune o a un altro gioco</td></tr>
   <tr><td><code>orphan</code></td><td>entità del motore condiviso senza classe in nessun gioco uscito, o helper di Hammer mai visto</td></tr>

@@ -168,6 +168,12 @@ summaries:                               # riassunti automatici di SteamTracking
   min_keyword_score: 90                  # parole chiave forti (hlx, hl3, half-life 3...), non le generiche
   max_lines: 10                          # righe segnalate al massimo per riassunto
 
+pulse:                                   # nodi dello scripting Pulse mai visti (classi CPulseCell_* nei dump degli schemi)
+  enabled: true
+  score: 70                              # nodo nuovo qualsiasi: avviso
+  score_narrative: 100                   # scene, sequenze, dialoghi, telecamera, IA: rilevanza alta
+  # narrative_pattern: "vcd|scene|sequence|choreo|subtitle|dialog|speech|response|camera|cinematic|cutscene|npc|squad|cover|objective|checkpoint|chapter|save"
+
 archaeology:
   # giochi Source 2 dismessi, conservati da SteamTracking: solo per l'archeologia (comando `archeologia`),
   # non vengono seguiti nei controlli normali. Coprono gli anni del passaggio da HLVR a HLX.
