@@ -72,7 +72,7 @@ hlx-watch/
    il monitoraggio dei commit non aveva già visto.
 6. Ogni riga interessante diventa un **finding** con punteggio, keyword, token, contesto e tipo di modifica
    (`added`, `removed`, `changed`, `file_added`, `file_removed`, `file_renamed`, `build`, `new_app`,
-   `new_repo`, `codename`, `structure`, `localization`, `orphan`, `renamed`).
+   `new_repo`, `codename`, `structure`, `localization`, `orphan`, `renamed`, `summary`).
 7. **Deduplica**: il token (es. `hlx_fsr3_min_reactiveness`) o la riga normalizzata viene hashato in
    `seen_strings`. Solo le stringhe mai viste prima con punteggio sopra `notify_min_score` generano una
    notifica. Tutto il resto finisce comunque nello storico.
@@ -311,6 +311,13 @@ cartelle di `SteamTracking/Protobufs` (un protocollo di rete per gioco). Il prim
 (stato `structure:<gioco>:<percorso>`); poi ogni voce nuova è una voce `structure` da 100 punti (di più se il
 nome contiene una parola chiave) e ogni voce sparita una da 60. Vale anche per i dump delle DLL in `game/bin/win64`
 e in `game/<gamedir>/bin/win64` (chiave `gamedir` del repository). Sezione `structure` del config.
+
+`hlxwatch/sources/summaries.py` legge i **riassunti automatici di SteamTracking**: dal 4 ottobre 2026 ogni commit dei
+giochi riceve un commento di `github-actions[bot]` scritto da agenti Claude (azione `commit-summary` del repository
+GameTracking), con una sezione a parte per gli identificatori di altri giochi o di progetti non annunciati. Di ogni
+riassunto si salvano titolo e link (stato `summary:<gioco>:<sha>`), mostrati in "Ultime build e commit"; le righe
+con parole chiave da almeno 90 punti o nella sezione degli altri progetti diventano voci `summary` da 110 punti.
+Il primo giro registra i commenti esistenti senza avvisi. Sezione `summaries` del config.
 
 `hlxwatch/analyzers/renames.py` riconosce le **rinomine**: nello stesso commit e nello stesso file una riga con HLX
 sparisce e ricompare con un altro prefisso o senza. Diventa una voce `renamed` da 100 punti (sezione `renames`) con

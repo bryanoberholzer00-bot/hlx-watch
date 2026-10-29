@@ -46,6 +46,14 @@ def apply_first_seen(item: dict[str, Any], days: dict[tuple[str, str, str], tupl
     return item
 
 
+def with_summaries(db: Database, builds: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Aggiunge a ogni commit il riassunto automatico di SteamTracking, se c'è (titolo e link)."""
+    for b in builds:
+        raw = db.get_state(f"summary:{b['game']}:{b['ref']}") if b.get("source") == "github" else None
+        b["summary"] = json.loads(raw) if raw else None
+    return builds
+
+
 def export_findings(db: Database, limit: int = 25000) -> list[dict[str, Any]]:
     rows = db.search_findings(limit=limit, order="created_at", exclude_change_type="baseline")
     days = first_seen_days(db)
@@ -121,7 +129,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
         stats=stats, high=high, recent=recent[:40],
         chart=timeline_svg(db.timeline(days=timeline_days), timeline_days, link="search.html?since={day}&until={day}"),
         timeline_days=timeline_days, tokens=[dict(r) for r in db.top_tokens(25)],
-        builds=[dict(r) for r in db.recent_builds(15)], apps=[dict(r) for r in db.flagged_apps(20)],
+        builds=with_summaries(db, [dict(r) for r in db.recent_builds(15)]), apps=[dict(r) for r in db.flagged_apps(20)],
         steam_builds=[dict(r) for r in db.steam_builds(12)], present=present_groups(db),
         analysis=analyses[0] if analyses else None,
     )

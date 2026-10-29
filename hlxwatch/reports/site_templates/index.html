@@ -90,7 +90,8 @@
  <table>
   {% for b in builds %}
   <tr><td>{{ b.date|local }}</td><td>{{ titles.get(b.game, b.game) }}</td>
-      <td>{% if b.url %}<a href="{{ b.url }}">{% endif %}<code>{{ b.ref[:12] }}</code>{% if b.url %}</a>{% endif %} <small class="muted">{{ (b.message or '')[:60] }}</small></td>
+      <td>{% if b.url %}<a href="{{ b.url }}">{% endif %}<code>{{ b.ref[:12] }}</code>{% if b.url %}</a>{% endif %} <small class="muted">{{ (b.message or '')[:60] }}</small>
+      {% if b.summary %}<br><small><a href="{{ b.summary.url }}">riassunto di SteamTracking</a>: {{ b.summary.title[:160] }}</small>{% endif %}</td>
       <td>{{ b.n_findings }} voci</td></tr>
   {% endfor %}
  </table>

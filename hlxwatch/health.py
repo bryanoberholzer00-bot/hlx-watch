@@ -28,6 +28,7 @@ LABELS = {
     "discovery": "scoperta dei repository SteamTracking",
     "structure": "struttura dei repository (cartelle, depot, Protobuf)",
     "github": "monitoraggio dei commit GitHub",
+    "summaries": "riassunti automatici di SteamTracking",
     "steam_pics": "Steam PICS (build e info dei giochi)",
     "steam_apps": "rilevamento delle app Steam nuove",
     "fullscan": "scansione completa giornaliera",

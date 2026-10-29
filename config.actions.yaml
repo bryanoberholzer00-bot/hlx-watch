@@ -156,6 +156,12 @@ renames:                                 # riga HLX tolta che ricompare con un a
   enabled: true                          # (hlx.hrtf_basic -> core.hrtf_basic): dice dove passa la tecnologia HLX
   score: 100
 
+summaries:                               # riassunti automatici di SteamTracking (commenti sui commit, scritti con Claude)
+  enabled: true
+  score: 110                             # riga su HLX o nella sezione degli altri progetti: avviso
+  min_keyword_score: 90                  # parole chiave forti (hlx, hl3, half-life 3...), non le generiche
+  max_lines: 10                          # righe segnalate al massimo per riassunto
+
 archaeology:
   # giochi Source 2 dismessi, conservati da SteamTracking: solo per l'archeologia (comando `archeologia`),
   # non vengono seguiti nei controlli normali. Coprono gli anni del passaggio da HLVR a HLX.
