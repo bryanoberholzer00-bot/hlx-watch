@@ -8,7 +8,7 @@
  <label>Gioco <select id="game"><option value="">tutti</option>
   {% for g in games %}<option value="{{ g }}">{{ titles.get(g, g) }}</option>{% endfor %}</select></label>
  <label>Tipo <select id="type"><option value="">tutti</option>
-  {% for c in ["added","removed","changed","present","file_added","file_removed","file_renamed","build","new_app","new_repo","codename","structure","localization","orphan"] %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select></label>
+  {% for c in ["added","removed","changed","present","file_added","file_removed","file_renamed","build","new_app","new_repo","codename","structure","localization","orphan","renamed"] %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select></label>
  <label>Punteggio min <input id="min" type="number" value="0" style="width:5rem"></label>
  <label>Da <input id="since" type="date"></label>
  <label>A <input id="until" type="date"></label>

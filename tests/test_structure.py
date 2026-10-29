@@ -41,7 +41,9 @@ def test_targets_only_game_repos_and_protobufs(tmp_path):
     assert ("cs2", "game") in pairs and ("deadlock", "manifests") in pairs and ("protobufs", "") in pairs
     assert ("cs2", "game/bin/win64") in pairs and ("cs2", "game/csgo/bin/win64") in pairs
     assert ("alyx", "game/hlvr/bin/win64") in pairs and not any("{gamedir}" in p for _, p in pairs)
-    assert not any(name in ("steamvr", "steamclient", "steamworks") for name, _ in pairs)   # senza appid: niente game/
+    assert not any(name in ("steamclient", "steamworks") for name, _ in pairs)   # senza appid: niente game/
+    assert {p for n, p in pairs if n == "steamvr"} == {"drivers", "resources/rendermodels", "resources/input",
+        "drivers/frame_controller/resources/rendermodels", "drivers/deckard/resources/rendermodels"}   # solo l'hardware
     db.close()
 
 

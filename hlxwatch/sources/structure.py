@@ -36,6 +36,13 @@ DEFAULT_PLACES: list[dict[str, Any]] = [
     # {gamedir} è la cartella del gioco (csgo, dota, citadel, hlvr: chiave `gamedir` del repository)
     {"path": "game/bin/win64", "kind": "files", "title": "binario del motore (dump di una DLL)", "repos": "games"},
     {"path": "game/{gamedir}/bin/win64", "kind": "files", "title": "binario del gioco (dump di una DLL)", "repos": "games"},
+    # hardware: i data miner di SteamVR (gruppo di Brad Lynch) hanno scoperto i controller "Roy" dal codice dei driver
+    # e ne hanno estratto i modelli 3D. Oggi ci sono già deckard, frame_hmd e frame_controller
+    {"path": "drivers", "kind": "dirs", "title": "driver di SteamVR (hardware)", "repos": ["steamvr"]},
+    {"path": "resources/rendermodels", "kind": "dirs", "title": "modello 3D di un dispositivo SteamVR", "repos": ["steamvr"]},
+    {"path": "resources/input", "kind": "files", "title": "profilo dei controlli di SteamVR", "repos": ["steamvr"]},
+    {"path": "drivers/frame_controller/resources/rendermodels", "kind": "dirs", "title": "modello 3D dei controller Steam Frame", "repos": ["steamvr"]},
+    {"path": "drivers/deckard/resources/rendermodels", "kind": "dirs", "title": "modello 3D del visore Deckard", "repos": ["steamvr"]},
 ]
 
 

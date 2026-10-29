@@ -72,7 +72,7 @@ hlx-watch/
    il monitoraggio dei commit non aveva già visto.
 6. Ogni riga interessante diventa un **finding** con punteggio, keyword, token, contesto e tipo di modifica
    (`added`, `removed`, `changed`, `file_added`, `file_removed`, `file_renamed`, `build`, `new_app`,
-   `new_repo`, `codename`, `structure`, `localization`, `orphan`).
+   `new_repo`, `codename`, `structure`, `localization`, `orphan`, `renamed`).
 7. **Deduplica**: il token (es. `hlx_fsr3_min_reactiveness`) o la riga normalizzata viene hashato in
    `seen_strings`. Solo le stringhe mai viste prima con punteggio sopra `notify_min_score` generano una
    notifica. Tutto il resto finisce comunque nello storico.
@@ -311,6 +311,17 @@ cartelle di `SteamTracking/Protobufs` (un protocollo di rete per gioco). Il prim
 (stato `structure:<gioco>:<percorso>`); poi ogni voce nuova è una voce `structure` da 100 punti (di più se il
 nome contiene una parola chiave) e ogni voce sparita una da 60. Vale anche per i dump delle DLL in `game/bin/win64`
 e in `game/<gamedir>/bin/win64` (chiave `gamedir` del repository). Sezione `structure` del config.
+
+`hlxwatch/analyzers/renames.py` riconosce le **rinomine**: nello stesso commit e nello stesso file una riga con HLX
+sparisce e ricompare con un altro prefisso o senza. Diventa una voce `renamed` da 100 punti (sezione `renames`) con
+la riga vecchia e quella nuova. Verificato il 2026-10-29: dei sette nomi HLX tolti dal 2021 cinque esistono ancora
+(`hlx.hrtf_basic` ora `core.hrtf_basic`, `hlx_physics_particle_spawner` ora `generic_physics_particle_spawner`,
+`r_hlx_fsr3_min_reactiveness` ora `r_citadel_fsr3_min_reactiveness`, `hlx_2d_basic` ora `citadel_2d_basic`, un gruppo
+di suoni di prova senza prefisso): la tecnologia HLX passa al motore comune o a Deadlock.
+
+Il controllo della struttura guarda anche l'hardware di SteamVR: cartelle dei driver (oggi ci sono `deckard`,
+`frame_hmd`, `frame_controller`), modelli 3D dei dispositivi e profili dei controlli. Su Steam sono seguiti anche
+Half-Life, Half-Life 2 e i due Episodi.
 
 `hlxwatch/analyzers/orphans.py` cerca le **entità senza padrone**: alla scansione completa legge le definizioni
 condivise delle entità (`game/core/*.fgd`), le classi C++ di ogni gioco (`DumpSource2/entities/server.fgd` e

@@ -153,6 +153,10 @@ orphans:                                 # entità del motore condiviso senza cl
   score_entity: 100                      # entità senza padrone comparsa dopo l'apprendimento
   score_helper: 90                       # helper di Hammer mai visto (di più se il nome contiene HLX)
 
+renames:                                 # riga HLX tolta che ricompare con un altro prefisso nello stesso file e commit
+  enabled: true                          # (hlx.hrtf_basic -> core.hrtf_basic): dice dove passa la tecnologia HLX
+  score: 100
+
 archaeology:
   # giochi Source 2 dismessi, conservati da SteamTracking: solo per l'archeologia (comando `archeologia`),
   # non vengono seguiti nei controlli normali. Coprono gli anni del passaggio da HLVR a HLX.
@@ -207,6 +211,12 @@ steam:
     - {appid: 570,     name: dota2,    title: "Dota 2"}
     - {appid: 1422450, name: deadlock, title: "Deadlock"}
     - {appid: 546560,  name: alyx,     title: "Half-Life: Alyx", ignore_keywords: [half_life, hl_universe]}
+    # catalogo Half-Life: nel 2024 l'attività sulle build di Half-Life 2 ha anticipato l'aggiornamento del ventennale,
+    # e Alyx è stato aggiornato a settembre 2026 dopo quattro anni. Prima lettura di ogni app: solo registrata
+    - {appid: 70,      name: hl1,      title: "Half-Life", ignore_keywords: [half_life, hl_universe, hl2_achievement]}
+    - {appid: 220,     name: hl2,      title: "Half-Life 2", ignore_keywords: [half_life, hl_universe, hl2_achievement]}
+    - {appid: 380,     name: hl2ep1,   title: "Half-Life 2: Episode One", ignore_keywords: [half_life, hl_universe, hl2_achievement]}
+    - {appid: 420,     name: hl2ep2,   title: "Half-Life 2: Episode Two", ignore_keywords: [half_life, hl_universe, hl2_achievement]}
   # NOTA: Deadlock (1422450) in anonimo espone solo info parziali (depot e build richiedono un token):
   # viene comunque seguito tramite il repo GameTracking-Deadlock.
   new_apps:

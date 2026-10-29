@@ -50,6 +50,10 @@
   (un protocollo di rete per gioco): una voce che prima non c'era diventa una voce <code>structure</code> da
   {{ structure_score }} punti, anche se nessun file scrive il nome del progetto. Lo stesso per i dump delle DLL in
   <code>game/bin/win64</code> e nella cartella del gioco: una DLL nuova è un sottosistema nuovo.</li>
+  <li><b>Rinomine.</b> Valve non toglie la tecnologia nata per HLX: la rinomina. Quando in un commit una riga con HLX sparisce e
+  ricompare nello stesso file con un altro prefisso (<code>hlx.hrtf_basic</code> diventato <code>core.hrtf_basic</code> il
+  21 gennaio 2026), la voce dice dove è finita: nel motore comune, in un gioco come Deadlock (<code>citadel</code>) o senza prefisso.
+  Dei sette nomi HLX tolti dal 2021, cinque esistono ancora con un altro nome.</li>
   <li><b>Entità senza padrone.</b> Le definizioni delle entità per l'editor (<code>game/core/*.fgd</code>) arrivano in ogni gioco;
   le classi C++ che le implementano solo nel gioco che le usa. Alla scansione completa giornaliera si confrontano tutti i
   giochi insieme: un'entità che nessun gioco implementa, o un helper di Hammer mai visto, appartiene a un altro progetto.
@@ -111,6 +115,7 @@
   <tr><td><code>new_repo</code></td><td>nuovo repository nell'organizzazione SteamTracking</td></tr>
   <tr><td><code>codename</code></td><td>nome di progetto mai visto in uno dei posti dove Valve li scrive</td></tr>
   <tr><td><code>structure</code></td><td>cartella, depot, DLL o protocollo di rete comparso (o sparito) nella struttura di un repository</td></tr>
+  <tr><td><code>renamed</code></td><td>riga HLX tolta che ricompare con un altro prefisso: la tecnologia passa al motore comune o a un altro gioco</td></tr>
   <tr><td><code>orphan</code></td><td>entità del motore condiviso senza classe in nessun gioco uscito, o helper di Hammer mai visto</td></tr>
   <tr><td><code>localization</code></td><td>file di localizzazione nuovo o famiglia di token di localizzazione mai vista</td></tr>
   <tr><td><code>new_app</code></td><td>nuova app Steam con un segnale (Valve, nome sospetto, parole chiave)</td></tr>

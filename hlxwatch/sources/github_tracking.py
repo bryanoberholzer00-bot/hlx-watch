@@ -21,6 +21,7 @@ from hlxwatch import __version__
 from hlxwatch.analyzers import KeywordMatcher, analyze_line_sets, analyze_patch
 from hlxwatch.analyzers.codenames import CodenameTracker
 from hlxwatch.analyzers.localization import LocalizationTracker
+from hlxwatch.analyzers.renames import find_renames
 from hlxwatch.analyzers.diff_analyzer import parse_patch
 from hlxwatch.config import Config
 from hlxwatch.models import BuildInfo, Finding
@@ -227,6 +228,9 @@ class GitHubTrackingSource:
         self.ignore_patterns = [re.compile(p) for p in (cfg.get("github.ignore_path_patterns", []) or [])]
         self.codenames = CodenameTracker(cfg, db)
         self.localization = LocalizationTracker(cfg, db)
+        rcfg = cfg.get("renames", {}) or {}
+        self.renames_enabled = bool(rcfg.get("enabled", True))
+        self.rename_score = int(rcfg.get("score", 100))
         self._repo_by_name = {r["name"]: r for r in tracked_repos(cfg, db)}
         self.watched = [(re.compile(str(w["pattern"]), re.IGNORECASE), str(w.get("title", w["pattern"])),
                          int(w.get("score", 50)), [re.compile(str(x)) for x in (w.get("ignore") or [])])
@@ -391,6 +395,8 @@ class GitHubTrackingSource:
         out: list[Finding] = self.localization.check_file(
             name, path, (t for op, t in lines if op == "+"), file_added=(status == "added"),
             score_override=(self._repo_by_name.get(name) or {}).get("loc_prefix_score"))
+        if self.renames_enabled and not path.endswith(".stringsignore"):
+            out += self._rename_findings(name, path, lines)
         watched = next(((title, score, ignore) for regex, title, score, ignore in self.watched if regex.search(path)), None)
         shown = 0
         if watched:
@@ -414,6 +420,21 @@ class GitHubTrackingSource:
                                    text=stripped[:500], score=watched[1], keywords=["watched_file"],
                                    context=f"file sorvegliato: {watched[0]}"))
                 shown += 1
+        return out
+
+    def _rename_findings(self, name: str, path: str, lines: list[tuple[str, str]]) -> list[Finding]:
+        """Righe HLX tolte che ricompaiono nello stesso file con un altro prefisso (hlx.hrtf_basic -> core.hrtf_basic)."""
+        removed = [t for op, t in lines if op == "-"]
+        if not any("hlx" in t.lower() for t in removed):
+            return []
+        out: list[Finding] = []
+        for old, new, prefix in find_renames(removed, (t for op, t in lines if op == "+")):
+            where = (f"il prefisso hlx è diventato '{prefix}'" if prefix else "il prefisso hlx è stato tolto")
+            log.warning("[%s] RINOMINA HLX in %s: %s -> %s", name, path, old[:80], new[:80])
+            out.append(Finding(game=name, source="github", file_path=path, change_type="renamed",
+                               text=new[:500], old_text=old[:500], score=self.rename_score,
+                               keywords=["hlx_renamed"], token=f"rename:{old[:120].lower()}",
+                               context=f"rinominata: {where}"))
         return out
 
     def _steam_inf_finding(self, repo_cfg: dict[str, Any], path: str, info: dict[str, str]) -> Finding:

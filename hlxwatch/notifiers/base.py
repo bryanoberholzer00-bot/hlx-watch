@@ -61,6 +61,8 @@ def group_findings(findings: list[Finding], cfg: Config) -> list[AlertGroup]:
 def finding_line(finding: Finding, style: str) -> str:
     """Una riga per notifica: markdown (Discord) oppure HTML (Telegram)."""
     label = (finding.token or finding.text)[:100].replace("`", "'")
+    if finding.change_type == "renamed" and finding.old_text:
+        label = f"{finding.old_text.strip()[:60]} → {finding.text.strip()[:60]}".replace("`", "'")
     where = finding.file_path
     if finding.line_no:
         where += f":{finding.line_no}"
