@@ -35,7 +35,12 @@ self.addEventListener("notificationclick", (event) => {
     for (const client of windows) {
       if (client.url.startsWith(self.registration.scope) && "focus" in client) {
         await client.focus();
-        return client.navigate ? client.navigate(url) : undefined;
+        try {
+          if (client.navigate) await client.navigate(url);
+          return;
+        } catch (err) {
+          break;      // scheda non controllata da questo service worker: navigate non è permesso, si apre una nuova finestra
+        }
       }
     }
     return self.clients.openWindow(url);

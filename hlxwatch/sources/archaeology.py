@@ -70,6 +70,60 @@ def parse_history(lines: Iterator[str]) -> Iterator[dict[str, Any]]:
         yield commit
 
 
+def gather_repo(cfg: Config, db: Database, repo_cfg: dict[str, Any], git_dir: Path,
+                stats: dict[str, Any]) -> list[tuple[dict[str, Any], dict[str, Any]]]:
+    """Clona (se serve) e legge la storia di un repository: (repo_cfg, commit) per ogni commit con righe HLX."""
+    name, repo = repo_cfg["name"], repo_cfg["repo"]
+    if not git_dir.exists():
+        log.info("[%s] archeologia: scarico tutta la storia di %s", name, repo)
+        subprocess.run(["git", "clone", "--quiet", "--bare", f"https://github.com/{repo}.git", str(git_dir)],
+                       check=True)
+    out: list[tuple[dict[str, Any], dict[str, Any]]] = []
+    for commit in parse_history(git_log_lines(git_dir, repo_cfg.get("branch", "master"))):
+        if db.build_exists(name, "github", commit["sha"]):
+            stats["commit_gia_noti"] += 1
+            continue
+        out.append((repo_cfg, commit))
+    return out
+
+
+def insert_commits(cfg: Config, db: Database, items: list[tuple[dict[str, Any], dict[str, Any]]],
+                   stats: dict[str, dict[str, Any]], ignored: Any = None) -> None:
+    """Salva i commit in ordine di data, qualunque sia il repository: così la prima comparsa di una stringa
+    (seen_strings, "mai vista") è davvero la più vecchia, non la prima incontrata nell'ordine dei repository."""
+    matchers: dict[str, KeywordMatcher] = {}
+    for repo_cfg, commit in sorted(items, key=lambda it: it[1]["date"]):
+        name, repo = repo_cfg["name"], repo_cfg["repo"]
+        matcher = matchers.get(name)
+        if matcher is None:
+            matcher = matchers[name] = KeywordMatcher(cfg.keywords, ignore_ids=repo_cfg.get("ignore_keywords", []) or [])
+        date = parse_iso(commit["date"]) or datetime.fromisoformat(commit["date"])
+        findings: list[Finding] = []
+        for ch in commit["changes"]:
+            if not ch["path"] or (ignored and ignored(ch["path"])):
+                continue
+            change_type = "added" if ch["sign"] == "+" else "removed"
+            res = matcher.analyze_line(ch["text"], file_path=ch["path"], change_type=change_type)
+            if res:
+                findings.append(Finding(
+                    game=name, source="github", file_path=ch["path"], change_type=change_type,
+                    text=ch["text"].strip()[:1000], score=res.score, keywords=res.keywords, token=res.token,
+                    context="archeologia: dalla storia completa del repository",
+                ))
+        if not findings:
+            continue
+        build = BuildInfo(game=name, source="github", ref=commit["sha"], date=date,
+                          url=f"https://github.com/{repo}/commit/{commit['sha']}",
+                          message=f"[archeologia] {commit['subject']}"[:500], files_changed=None)
+        build_id = db.upsert_build(build)
+        st = stats[name]
+        for f in findings:
+            db.add_finding(f, build_id, created_at=date)
+            st["nuove"] += int(f.is_new)
+        st["voci"] += len(findings)
+        st["commit_con_righe"] += 1
+
+
 def run_archaeology(cfg: Config, db: Database, *, names: list[str] | None = None,
                     workdir: str | None = None, keep: bool = False) -> dict[str, Any]:
     from hlxwatch.sources.github_tracking import GitHubTrackingSource
@@ -77,54 +131,28 @@ def run_archaeology(cfg: Config, db: Database, *, names: list[str] | None = None
     base = Path(workdir or tempfile.mkdtemp(prefix="hlx-archeologia-"))
     base.mkdir(parents=True, exist_ok=True)
     summary: dict[str, Any] = {}
+    items: list[tuple[dict[str, Any], dict[str, Any]]] = []
     for repo_cfg in tracked_repos(cfg, db):
-        name, repo = repo_cfg["name"], repo_cfg["repo"]
+        name = repo_cfg["name"]
         if names and name not in names:
             continue
         started = time.time()
+        stats = summary[name] = {"commit_con_righe": 0, "commit_gia_noti": 0, "voci": 0, "nuove": 0, "errore": ""}
         git_dir = base / f"{name}.git"
-        if not git_dir.exists():
-            log.info("[%s] archeologia: scarico tutta la storia di %s", name, repo)
-            subprocess.run(["git", "clone", "--quiet", "--bare", f"https://github.com/{repo}.git", str(git_dir)],
-                           check=True)
-        matcher = KeywordMatcher(cfg.keywords, ignore_ids=repo_cfg.get("ignore_keywords", []) or [])
-        stats = {"commit_con_righe": 0, "commit_gia_noti": 0, "voci": 0, "nuove": 0}
-        branch = repo_cfg.get("branch", "master")
-        for commit in parse_history(git_log_lines(git_dir, branch)):
-            if db.build_exists(name, "github", commit["sha"]):
-                stats["commit_gia_noti"] += 1
-                continue
-            date = parse_iso(commit["date"]) or datetime.fromisoformat(commit["date"])
-            findings: list[Finding] = []
-            for ch in commit["changes"]:
-                if not ch["path"] or helper._ignored(ch["path"]):
-                    continue
-                change_type = "added" if ch["sign"] == "+" else "removed"
-                res = matcher.analyze_line(ch["text"], file_path=ch["path"], change_type=change_type)
-                if res:
-                    findings.append(Finding(
-                        game=name, source="github", file_path=ch["path"], change_type=change_type,
-                        text=ch["text"].strip()[:1000], score=res.score, keywords=res.keywords, token=res.token,
-                        context="archeologia: dalla storia completa del repository",
-                    ))
-            if not findings:
-                continue
-            build = BuildInfo(game=name, source="github", ref=commit["sha"], date=date,
-                              url=f"https://github.com/{repo}/commit/{commit['sha']}",
-                              message=f"[archeologia] {commit['subject']}"[:500], files_changed=None)
-            build_id = db.upsert_build(build)
-            for f in findings:
-                db.add_finding(f, build_id, created_at=date)
-                stats["nuove"] += int(f.is_new)
-            stats["voci"] += len(findings)
-            stats["commit_con_righe"] += 1
+        try:
+            items += gather_repo(cfg, db, repo_cfg, git_dir, stats)
+        except Exception as exc:
+            # un clone fallito non deve fermare gli altri repository: si continua e si riporta l'errore
+            log.exception("[%s] archeologia fallita, continuo con gli altri repository", name)
+            stats["errore"] = f"{type(exc).__name__}: {exc}"[:300]
         if not keep:
             shutil.rmtree(git_dir, ignore_errors=True)
         stats["secondi"] = round(time.time() - started)
-        summary[name] = stats
+    insert_commits(cfg, db, items, summary, ignored=helper._ignored)
+    for name, stats in summary.items():
         log.info("[%s] archeologia: %d commit con voci nuove nell'archivio (%d voci, %d stringhe mai viste), "
-                 "%d commit già noti, %ds", name, stats["commit_con_righe"], stats["voci"], stats["nuove"],
-                 stats["commit_gia_noti"], stats["secondi"])
+                 "%d commit già noti, %ds%s", name, stats["commit_con_righe"], stats["voci"], stats["nuove"],
+                 stats["commit_gia_noti"], stats["secondi"], f" | ERRORE: {stats['errore']}" if stats["errore"] else "")
     if not keep and not workdir:
         shutil.rmtree(base, ignore_errors=True)
     return summary

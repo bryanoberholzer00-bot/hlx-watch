@@ -203,6 +203,35 @@ def cost_of(usage: Any) -> float:
                  + g("cache_read_input_tokens") * PRICE_CACHE_READ + g("output_tokens") * PRICE_OUTPUT, 4)
 
 
+def record_extra_cost(db: Database, cost: float) -> None:
+    """Spesa delle chiamate fuori dall'analisi giornaliera (cronologia, riepilogo), contata nel limite mensile."""
+    key = f"ai:extra_cost:{utcnow():%Y-%m}"
+    db.set_state(key, round(float(db.get_state(key) or 0) + cost, 4))
+
+
+def structured_call(db: Database, client: Any, *, prompt: str, schema: dict[str, Any], label: str,
+                    effort: str = "medium", max_tokens: int = 4000) -> tuple[dict[str, Any] | None, float]:
+    """Una chiamata a Claude con risposta JSON secondo `schema`: restituisce (contenuto, costo).
+    Il costo viene registrato tra le spese extra; rifiuto o JSON non valido danno (None, costo)."""
+    response = client.beta.messages.create(
+        model=MODEL, max_tokens=max_tokens, betas=["server-side-fallback-2026-07-01"], fallbacks="default",
+        system=SYSTEM_PROMPT,
+        output_config={"effort": effort, "format": {"type": "json_schema", "schema": schema}},
+        messages=[{"role": "user", "content": prompt}],
+    )
+    cost = cost_of(response.usage)
+    record_extra_cost(db, cost)
+    if response.stop_reason == "refusal":
+        log.error("%s: rifiutato dal modello, costo %.4f $", label, cost)
+        return None, cost
+    text = next((b.text for b in response.content if getattr(b, "type", "") == "text"), "")
+    try:
+        return json.loads(text), cost
+    except json.JSONDecodeError:
+        log.error("%s: risposta non in JSON (stop_reason=%s)", label, response.stop_reason)
+        return None, cost
+
+
 # ---------------------------------------------------------------- analisi
 class Analyzer:
     def __init__(self, cfg: Config, db: Database, client: Any = None):

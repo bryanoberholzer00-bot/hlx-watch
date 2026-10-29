@@ -227,17 +227,26 @@ export async function flushMorning(env, site, ackOrigin) {
   const raw = await env.SUBS.get(PENDING);
   if (!raw) return null;
   const list = JSON.parse(raw);
-  await env.SUBS.delete(PENDING);
-  if (!list.length) return null;
+  if (!list.length) {
+    await env.SUBS.delete(PENDING);
+    return null;
+  }
   const payload = JSON.stringify({ ...morningSummary(list, site), ack: `${ackOrigin}/push/ack` });
   const total = { sent: 0, removed: 0 };
   let cursor;
-  do {
-    const res = await sendPage(env, payload, cursor, 50);
-    total.sent += res.sent;
-    total.removed += res.removed;
-    cursor = res.next || undefined;
-  } while (cursor);
+  try {
+    do {
+      const res = await sendPage(env, payload, cursor, 50);
+      total.sent += res.sent;
+      total.removed += res.removed;
+      cursor = res.next || undefined;
+    } while (cursor);
+  } catch (err) {
+    // la coda resta nel KV: si ritenta all'ora successiva invece di perdere gli avvisi della notte
+    console.log("riassunto della notte non inviato, ritento tra un'ora", String(err));
+    return null;
+  }
+  await env.SUBS.delete(PENDING);      // svuotata solo dopo l'invio riuscito
   console.log("riassunto della notte inviato", list.length, "avvisi a", total.sent, "browser");
   return total;
 }

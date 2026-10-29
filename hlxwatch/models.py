@@ -3,6 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
+# Voci che non nascono da una parola chiave: la rivalutazione dell'archivio (reevaluate.py) non le tocca.
+# Ogni nuovo tipo di voce senza parole chiave va aggiunto qui, non nelle query.
+NON_KEYWORD_TYPES = ("build", "new_app", "new_repo", "codename")
+NON_KEYWORD_KEYWORDS = ("watched_file", "codename_new", "steam_build", "new_repo", "private_app")
+
 
 @dataclass
 class BuildInfo:

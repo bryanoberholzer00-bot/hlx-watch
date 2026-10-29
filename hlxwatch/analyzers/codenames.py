@@ -79,6 +79,18 @@ class CodenameTracker:
             self.db.set_state(STATE_LEARNED, "1")
             log.info("Nomi di progetto: fase di apprendimento conclusa, %d nomi noti", len(self.known))
 
+    def _refresh(self) -> None:
+        """Rilegge i nomi salvati: più tracker nello stesso run condividono lo stato nel database."""
+        stored = json.loads(self.db.get_state(STATE_SEEN) or "{}")
+        self.seen.update(stored)
+        self.known |= set(stored)
+
+    def _remember(self, name: str, info: dict[str, Any]) -> None:
+        self._refresh()               # si scrive sempre l'unione, mai la copia in memoria da sola
+        self.seen[name] = info
+        self.known.add(name)
+        self.db.set_state(STATE_SEEN, json.dumps(self.seen, ensure_ascii=False))
+
     def check(self, text: str, file_path: str, *, game: str, change_type: str = "added") -> Finding | None:
         """Registra i nomi nuovi; dopo l'apprendimento restituisce una voce per il primo nome mai visto."""
         if not self.enabled:
@@ -86,12 +98,20 @@ class CodenameTracker:
         for place, name, desc in detect(text, file_path):
             if name in self.known:
                 continue
-            self.known.add(name)
-            self.seen[name] = {"posto": place, "gioco": game, "file": file_path, "quando": iso(utcnow())}
-            self.db.set_state(STATE_SEEN, json.dumps(self.seen, ensure_ascii=False))
+            self._refresh()           # un altro tracker (commit o scansione completa) può averlo già imparato
+            if name in self.known:
+                continue
+            info = {"posto": place, "gioco": game, "file": file_path, "quando": iso(utcnow())}
             if not self.learned:
+                # in apprendimento impara solo la scansione del contenuto: un nome visto in un commit prima
+                # che l'apprendimento finisca non va tacitato, lo ritroverà la scansione completa (presente)
+                # oppure, se è già sparito, resterà sconosciuto e verrà segnalato alla prossima comparsa
+                if change_type != "present":
+                    return None
+                self._remember(name, info)
                 log.info("[%s] nome di progetto imparato: '%s' (%s)", game, name, desc)
                 continue
+            self._remember(name, info)
             log.warning("[%s] NOME DI PROGETTO MAI VISTO: '%s' in %s (%s)", game, name, file_path, desc)
             return Finding(
                 game=game, source="github", file_path=file_path, change_type="codename",

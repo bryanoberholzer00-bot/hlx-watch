@@ -17,7 +17,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from hlxwatch.analysis import MODEL, SYSTEM_PROMPT, Analyzer, cost_of
+from hlxwatch.analysis import Analyzer, structured_call
 from hlxwatch.config import Config
 from hlxwatch.sources.first_seen import line_hash
 from hlxwatch.storage import Database
@@ -175,22 +175,12 @@ def classify(cfg: Config, db: Database, groups: dict[str, dict[str, Any]], clien
     ids = {f"G{i}": key for i, key in enumerate(pending, start=1)}
     existing = [{"id": tid, "titolo": t["titolo"], "spiegazione": t["spiegazione"]} for tid, t in state["temi"].items()]
     data = {"indizi_esistenti": existing, "gruppi": [_brief(gid, groups[key]) for gid, key in ids.items()]}
-    response = analyzer.client.beta.messages.create(
-        model=MODEL, max_tokens=16000, betas=["server-side-fallback-2026-07-01"], fallbacks="default",
-        system=SYSTEM_PROMPT,
-        output_config={"effort": "medium", "format": {"type": "json_schema", "schema": SCHEMA}},
-        messages=[{"role": "user", "content": TASK + "\n\n" + json.dumps(data, ensure_ascii=False, default=str)}],
-    )
-    cost = cost_of(response.usage)
-    key = f"ai:extra_cost:{utcnow():%Y-%m}"
-    db.set_state(key, round(float(db.get_state(key) or 0) + cost, 4))
+    result, cost = structured_call(db, analyzer.client, schema=SCHEMA, label="Cronologia", effort="medium",
+                                   max_tokens=16000,
+                                   prompt=TASK + "\n\n" + json.dumps(data, ensure_ascii=False, default=str))
+    result = result or {"indizi": []}
     for k in pending:
         state["tentativi"][k] = state["tentativi"].get(k, 0) + 1
-    text = next((b.text for b in response.content if getattr(b, "type", "") == "text"), "")
-    try:
-        result = json.loads(text) if response.stop_reason != "refusal" else {"indizi": []}
-    except json.JSONDecodeError:
-        result = {"indizi": []}
     assigned = 0
     for item in result.get("indizi", []):
         tid = item.get("id", "nuovo")
@@ -240,7 +230,8 @@ def build_entries(cfg: Config, db: Database) -> dict[str, Any]:
             unclassified += 1
             continue
         t = topics.setdefault(tid, {"id": tid, **state["temi"][tid], "events": [], "games": set(), "lines": 0,
-                                    "examples": []})
+                                    "examples": [], "present": False})
+        t["present"] = t["present"] or any(r["change_type"] == "present" for r in g["rows"])
         t["events"] += g["events"]
         t["games"] |= g["games"]
         t["lines"] += len(g["rows"])
@@ -254,10 +245,12 @@ def build_entries(cfg: Config, db: Database) -> dict[str, Any]:
         firsts = sorted((e for e in t["events"] if e["kind"] == "comparsa" and e["date"]), key=lambda e: e["date"])
         removals = sorted((e for e in t["events"] if e["kind"] == "rimozione" and e["date"]), key=lambda e: e["date"])
         first = firsts[0] if firsts else None
-        still_present = any(e["kind"] == "comparsa" for e in t["events"])
         last_removal = removals[-1] if removals else None
-        if last_removal and (not firsts or last_removal["date"] > firsts[-1]["date"]):
-            still_present = False
+        # una riga 'present' viene dal contenuto attuale: l'indizio c'è ancora, qualunque rimozione parziale
+        # (in un solo gioco, o di una variante) ci sia stata dopo la prima comparsa
+        still_present = t["present"] or (
+            any(e["kind"] == "comparsa" for e in t["events"])
+            and not (last_removal and (not firsts or last_removal["date"] > firsts[-1]["date"])))
         anchor = first or last_removal
         game_titles = sorted(cfg.game_title(g) for g in t["games"])
         entry = {

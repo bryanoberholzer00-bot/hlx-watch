@@ -29,7 +29,7 @@ def test_learning_then_alert(tmp_path):
     cfg, db = make(tmp_path)
     t = CodenameTracker(cfg, db)
     assert t.check("mod != hlx", "a.h", game="cs2") is None            # noto dal config
-    assert t.check("mod != zeta", "a.h", game="cs2") is None           # apprendimento: imparato in silenzio
+    assert t.check("mod != zeta", "a.h", game="cs2", change_type="present") is None   # apprendimento: imparato in silenzio
     t.finish_learning()
     assert CodenameTracker(cfg, db).check("mod != zeta", "a.h", game="cs2") is None    # ricordato tra un run e l'altro
     f = CodenameTracker(cfg, db).check("mod != omega && mod != hlx", "a.h", game="dota2")

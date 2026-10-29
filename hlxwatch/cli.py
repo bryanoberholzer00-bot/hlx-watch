@@ -185,8 +185,9 @@ def cmd_archeologia(args: argparse.Namespace) -> int:
     summary = run_archaeology(cfg, db, names=args.repo, workdir=args.workdir, keep=args.keep)
     for name, st in summary.items():
         print(f"{name}: {st['commit_con_righe']} commit con voci, {st['voci']} voci "
-              f"({st['nuove']} stringhe mai viste), {st['commit_gia_noti']} già noti, {st['secondi']} s")
-    return 0
+              f"({st['nuove']} stringhe mai viste), {st['commit_gia_noti']} già noti, {st['secondi']} s"
+              + (f" | ERRORE: {st['errore']}" if st.get("errore") else ""))
+    return 1 if summary and all(st.get("errore") for st in summary.values()) else 0
 
 
 def cmd_daemon(args: argparse.Namespace) -> int:
@@ -230,42 +231,8 @@ def cmd_serve(args: argparse.Namespace) -> int:
 def cmd_reevaluate(args: argparse.Namespace) -> int:
     """Riapplica le regole attuali a tutto l'archivio: utile dopo aver cambiato keyword o filtri."""
     cfg, db = _open(args)
-    from hlxwatch.analyzers import KeywordMatcher
-    ignore = {r["name"]: r.get("ignore_keywords", []) or [] for r in cfg.get("github.repos", []) or []}
-    ignore.update({a["name"]: a.get("ignore_keywords", []) or [] for a in cfg.steam_watch_apps})
-    matchers = {g: KeywordMatcher(cfg.keywords, ignore_ids=ids) for g, ids in ignore.items()}
-    default = KeywordMatcher(cfg.keywords)
-    rows = db.conn.execute(
-        "SELECT id, game, text, file_path, change_type, score, keywords FROM findings "
-        "WHERE change_type NOT IN ('build', 'new_app', 'codename') "
-        "AND keywords NOT LIKE '%watched_file%'").fetchall()
-    drop: list[int] = []
-    rescored = 0
-    for r in rows:
-        change_type = "added" if r["change_type"] in ("baseline", "present") else r["change_type"]
-        res = matchers.get(r["game"], default).analyze_line(r["text"], file_path=r["file_path"], change_type=change_type)
-        if res is None:
-            drop.append(r["id"])
-        elif res.score != r["score"]:
-            db.conn.execute("UPDATE findings SET score = ?, keywords = ?, token = ? WHERE id = ?",
-                            (res.score, json.dumps(res.keywords), res.token, r["id"]))
-            rescored += 1
-    db.conn.executemany("DELETE FROM findings WHERE id = ?", [(i,) for i in drop])
-    # app private senza altri segnali, registrate come voci dalle versioni precedenti
-    private = db.conn.execute(
-        "SELECT id, build_id FROM findings WHERE change_type = 'new_app' AND keywords = '[\"private_app\"]'").fetchall()
-    db.conn.executemany("DELETE FROM findings WHERE id = ?", [(r["id"],) for r in private])
-    db.conn.executemany("DELETE FROM builds WHERE id = ? AND NOT EXISTS (SELECT 1 FROM findings WHERE build_id = ?)",
-                        [(r["build_id"], r["build_id"]) for r in private if r["build_id"]])
-    # build Steam registrate con il vecchio link alla pagina del negozio
-    db.conn.execute("UPDATE builds SET url = 'https://steamdb.info/patchnotes/' || steam_buildid || '/' "
-                    "WHERE source = 'steam' AND steam_buildid IS NOT NULL AND url LIKE 'https://store.steampowered.com/%'")
-    db.conn.execute("UPDATE builds SET url = replace(url, 'https://store.steampowered.com/app/', "
-                    "'https://steamdb.info/app/') || 'history/' "
-                    "WHERE source = 'steam' AND ref LIKE 'pics:%' AND url LIKE 'https://store.steampowered.com/app/%'")
-    db.conn.commit()
-    log.info("Rivalutazione: %d voci esaminate, %d eliminate, %d con punteggio aggiornato, %d app private rimosse",
-             len(rows), len(drop), rescored, len(private))
+    from hlxwatch.reevaluate import reevaluate
+    reevaluate(cfg, db)
     return 0
 
 

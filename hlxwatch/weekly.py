@@ -13,7 +13,7 @@ from datetime import date, datetime, timedelta
 from typing import Any
 from urllib.parse import quote
 
-from hlxwatch.analysis import DEFAULT_GENERIC, MODEL, SITE_URL, SYSTEM_PROMPT, Analyzer, _evidence, cost_of, is_generic
+from hlxwatch.analysis import DEFAULT_GENERIC, SITE_URL, Analyzer, _evidence, is_generic, structured_call
 from hlxwatch.config import Config
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, utcnow
@@ -105,25 +105,10 @@ def ai_summary(cfg: Config, db: Database, data: dict[str, Any], client: Any = No
               "Se la settimana non dice niente di nuovo su HLX, dillo con semplicità. Non citare gli identificativi "
               "delle prove (E1, E2...): il messaggio non li mostra.\n\n"
               + json.dumps(data, ensure_ascii=False, default=str))
-    response = analyzer.client.beta.messages.create(
-        model=MODEL, max_tokens=4000, betas=["server-side-fallback-2026-07-01"], fallbacks="default",
-        system=SYSTEM_PROMPT,
-        output_config={"effort": "medium", "format": {"type": "json_schema", "schema": WEEKLY_SCHEMA}},
-        messages=[{"role": "user", "content": prompt}],
-    )
-    cost = cost_of(response.usage)
-    key = f"ai:extra_cost:{utcnow():%Y-%m}"
-    db.set_state(key, round(float(db.get_state(key) or 0) + cost, 4))
-    if response.stop_reason == "refusal":
-        log.error("Riepilogo settimanale rifiutato dal modello, costo %.4f $", cost)
-        return None
-    text = next((b.text for b in response.content if getattr(b, "type", "") == "text"), "")
-    try:
-        content = json.loads(text)
-    except json.JSONDecodeError:
-        log.error("Riepilogo settimanale: risposta non in JSON (stop_reason=%s)", response.stop_reason)
-        return None
-    log.info("Riepilogo settimanale: sintesi AI pronta (costo %.4f $)", cost)
+    content, cost = structured_call(db, analyzer.client, prompt=prompt, schema=WEEKLY_SCHEMA,
+                                    label="Riepilogo settimanale", effort="medium", max_tokens=4000)
+    if content is not None:
+        log.info("Riepilogo settimanale: sintesi AI pronta (costo %.4f $)", cost)
     return content
 
 
@@ -176,7 +161,13 @@ def maybe_weekly(cfg: Config, db: Database, notifiers: list, report_time: str, *
     text = weekly_text(data, ai, monday, sunday, str(cfg.get("general.site_url", SITE_URL)))
     if send:
         from hlxwatch.notifiers import notify_text
-        notify_text(notifiers, weekly_title(monday, sunday), text)
-        db.set_state("weekly:last", week_id)
-        log.info("Riepilogo settimanale inviato (%s)", week_label(monday, sunday))
+        label = week_label(monday, sunday)
+        if not notifiers:
+            db.set_state("weekly:last", week_id)       # nessuno a cui inviarlo: inutile ritentare a ogni giro
+            log.info("Riepilogo settimanale (%s): nessun notificatore configurato", label)
+        elif notify_text(notifiers, weekly_title(monday, sunday), text):
+            db.set_state("weekly:last", week_id)       # segnato come inviato solo se l'invio è riuscito
+            log.info("Riepilogo settimanale inviato (%s)", label)
+        else:
+            log.warning("Riepilogo settimanale (%s) non inviato: si ritenta al prossimo giro", label)
     return text
