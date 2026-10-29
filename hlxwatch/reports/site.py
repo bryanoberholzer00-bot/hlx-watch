@@ -22,7 +22,8 @@ from hlxwatch.storage import Database
 from hlxwatch.storage.db import utcnow
 from hlxwatch.analyzers.codenames import CodenameTracker
 from hlxwatch.links import link_label
-from hlxwatch.reports.site_extras import AREA_LABELS, AREAS, area_of, hardware_data, schema_url, source_status
+from hlxwatch.reports.site_extras import (AREA_LABELS, AREAS, area_of, evidence_of, hardware_data, schema_url,
+                                          source_status)
 from hlxwatch.timeutil import local_day, now_local, register_filters, tz_label
 
 log = logging.getLogger(__name__)
@@ -59,6 +60,7 @@ def decorate(item: dict[str, Any]) -> dict[str, Any]:
     """Area SteamTracking del cambiamento e, per le classi del motore, il link allo Schema Explorer."""
     item["area"] = area_of(item.get("file_path") or "", item.get("change_type") or "")
     item["area_label"] = AREA_LABELS[item["area"]]
+    item["evidence"], item["evidence_label"], _ = evidence_of(item["area"])
     item["schema_url"] = schema_url(item.get("game") or "", item.get("file_path") or "")
     return item
 
@@ -75,7 +77,7 @@ def export_findings(db: Database, limit: int = 25000) -> list[dict[str, Any]]:
             "file": item["file_path"], "line": item.get("line_no"), "day": item["day"],
             "seen": local_day(item.get("created_at")), "new": bool(item["is_new"]), "al": bool(item.get("day_at_least")),
             "url": item.get("build_url"), "ul": link_label(item.get("build_url")), "ref": (item.get("build_ref") or "")[:10], "kw": item["keywords"],
-            "area": item["area"], **({"sx": item["schema_url"]} if item["schema_url"] else {}),
+            "area": item["area"], "ev": item["evidence_label"], **({"sx": item["schema_url"]} if item["schema_url"] else {}),
         })
     return out
 

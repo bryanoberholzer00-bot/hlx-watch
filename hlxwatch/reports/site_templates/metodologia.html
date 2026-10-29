@@ -63,7 +63,16 @@
   <li>Non fa scraping di SteamDB, che lo vieta; lo cita solo con link per chi legge.</li>
   <li>Non usa materiale trapelato o ottenuto in modo non autorizzato, come la "Steam2 Teraleak" dell'agosto 2026 o build rubate.</li>
   <li>Non ripubblica modelli, suoni o immagini dei giochi: riporta righe di testo con il link alla fonte.</li>
+  <li>Non salva né pubblica dati personali: indirizzi email e nomi utente nei percorsi dei file vengono sostituiti da
+  segnaposto prima di entrare nell'archivio.</li>
+  <li>Non annuncia nulla: non usa parole come "leak", "confermato" o "in arrivo" e non deduce date. Una riga nei file è
+  un riferimento, non la prova che un prodotto uscirà, e può anche essere una battuta o un'esca per chi legge i dati.</li>
  </ul>
+ <p><b>HLX Watch non è affiliato con Valve.</b> Half-Life, Source e Steam sono marchi di Valve Corporation; i dati citati
+ appartengono ai rispettivi proprietari e sono riportati in forma minima, con il link alla fonte pubblica.</p>
+ <p><b>Rimozioni.</b> Se un contenuto non dovrebbe stare qui (dati personali, materiale che non è pubblico, una richiesta
+ del titolare dei diritti), apri una segnalazione su <a href="{{ repo_url }}/issues">GitHub</a>: viene tolto dal sito e
+ dall'archivio.</p>
 </section>
 
 <section>
@@ -174,6 +183,21 @@
   <li><b>Data delle voci della scansione completa</b>: quando la prima comparsa è nota, la data della modifica è quella del primo commit in cui la riga
   compare, non quella della scansione che l'ha trovata.</li>
  </ul>
+</section>
+
+<section>
+ <h2>Tipo di prova</h2>
+ <p>Ogni voce mostra il tipo di prova, con la stessa gerarchia che SteamTracking usa per i suoi riassunti, dalla più forte
+ alla più debole:</p>
+ <ol>
+  <li><b>dati di gioco o traduzioni</b>: file che il gioco usa davvero (definizioni, testi a schermo);</li>
+  <li><b>classi, variabili o protocolli del motore</b>: schemi, convar, entità, messaggi di rete;</li>
+  <li><b>elenco di file</b>: il file esiste nell'archivio del gioco, ma il suo contenuto non si vede;</li>
+  <li><b>solo stringhe dei binari</b>: testo trovato dentro una DLL; da solo dice soltanto che le stringhe
+  <i>suggeriscono</i> qualcosa.</li>
+ </ol>
+ <p>"<b>Mai vista prima</b>" significa che la riga non era mai comparsa nell'archivio, che con l'archeologia parte dal 2016.
+ Il punteggio misura quanto una riga interessa la ricerca su HLX, non quanto è forte la prova.</p>
 </section>
 
 <section>

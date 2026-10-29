@@ -35,43 +35,8 @@ def schema_url(game: str, path: str) -> str | None:
     return f"https://s2v.app/SchemaExplorer/{slug}/{m.group('module')}/{m.group('cls')}"
 
 
-# ------------------------------------------------------------------ aree
-AREAS: list[tuple[str, str]] = [
-    ("build", "build e depot"),
-    ("convar", "variabili, comandi, rete ed entità"),
-    ("schema", "classi del motore (schemi)"),
-    ("data", "dati di gioco"),
-    ("loc", "traduzioni"),
-    ("ui", "interfaccia"),
-    ("assets", "elenchi di file"),
-    ("game_strings", "stringhe del gioco"),
-    ("engine_strings", "stringhe del motore e degli strumenti"),
-    ("other", "altro"),
-]
-AREA_LABELS = dict(AREAS)
-_AREA_RULES: list[tuple[str, re.Pattern[str]]] = [
-    ("build", re.compile(r"(^|/)steam\.inf$|^manifests/|(^|/)files\.json$|^depots/branches/|^pics/app/", re.I)),
-    ("schema", re.compile(r"^DumpSource2/schemas/", re.I)),
-    ("convar", re.compile(r"^DumpSource2/|^Protobufs/|\.proto$|\.fgd$", re.I)),
-    ("loc", re.compile(r"/localization/|_english\.txt$|(^|/)resource/[^/]*_[a-z]+\.txt$", re.I)),
-    ("ui", re.compile(r"/panorama/|/webui/|\.(vjs|vxml|vcss|js|css|html)$|^ClientExtracted/", re.I)),
-    ("assets", re.compile(r"_dir\.txt$|asset_info|(^|/)files\.txt$", re.I)),
-    ("engine_strings", re.compile(r"^game/bin/.*_strings\.txt$|^bin/.*_strings\.txt$|/tools/.*_strings\.txt$", re.I)),
-    ("game_strings", re.compile(r"_strings\.txt$", re.I)),
-    ("data", re.compile(r"\.(vdata|kv3|txt|vsndevts|vsndstck|vpulse|gameevents|vrsettings|vrdrivermanifest|vrfirmware|json|lua|cfg|gi)$", re.I)),
-]
-_TYPE_AREAS = {"build": "build", "new_app": "build", "new_repo": "build", "structure": "build", "pulse": "schema",
-               "orphan": "convar", "summary": "other"}
-
-
-def area_of(path: str, change_type: str = "") -> str:
-    """Area SteamTracking di una voce, dal suo tipo o dal percorso del file."""
-    if change_type in _TYPE_AREAS:
-        return _TYPE_AREAS[change_type]
-    for key, rule in _AREA_RULES:
-        if rule.search(path or ""):
-            return key
-    return "other"
+# ------------------------------------------------------------------ aree e tipo di prova (hlxwatch/evidence.py)
+from hlxwatch.evidence import AREA_LABELS, AREAS, area_of, evidence_of  # noqa: E402,F401
 
 
 # ------------------------------------------------------------------ stato delle fonti

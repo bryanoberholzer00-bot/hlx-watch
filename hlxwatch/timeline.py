@@ -17,7 +17,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from hlxwatch.analysis import Analyzer, structured_call
+from hlxwatch.analysis import wrap_data, Analyzer, structured_call
 from hlxwatch.config import Config
 from hlxwatch.sources.first_seen import line_hash
 from hlxwatch.storage import Database
@@ -178,7 +178,7 @@ def classify(cfg: Config, db: Database, groups: dict[str, dict[str, Any]], clien
     data = {"indizi_esistenti": existing, "gruppi": [_brief(gid, groups[key]) for gid, key in ids.items()]}
     result, cost = structured_call(db, analyzer.client, schema=SCHEMA, label="Cronologia", effort="medium",
                                    max_tokens=16000,
-                                   prompt=TASK + "\n\n" + json.dumps(data, ensure_ascii=False, default=str))
+                                   prompt=TASK + "\n\n" + wrap_data(data))
     result = result or {"indizi": []}
     for k in pending:
         state["tentativi"][k] = state["tentativi"].get(k, 0) + 1

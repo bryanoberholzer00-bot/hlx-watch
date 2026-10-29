@@ -248,6 +248,12 @@ class Database:
         """Salva il finding, determina se la stringa è nuova (deduplica) e aggiorna seen_strings.
         `created_at` serve all'archeologia: le voci storiche portano la data del loro commit, non quella di oggi,
         così non finiscono tra le "ultime" scoperte, nei report del giorno o nelle notifiche."""
+        # niente dati personali nell'archivio (e quindi sul sito e nelle notifiche): email e nomi utente nei percorsi
+        from hlxwatch.evidence import redact_personal
+        finding.text = redact_personal(finding.text) or ""
+        finding.old_text = redact_personal(finding.old_text)
+        finding.token = redact_personal(finding.token)
+        finding.context = redact_personal(finding.context) or ""
         kind, value = finding.dedup_key
         h = dedup_hash(kind, value)
         now = iso(created_at or utcnow())

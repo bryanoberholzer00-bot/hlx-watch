@@ -4,6 +4,7 @@ import html
 from dataclasses import dataclass
 from typing import Any
 
+from hlxwatch.evidence import area_of, evidence_of
 from hlxwatch.links import duplicates_label, link_label
 from hlxwatch.config import Config
 from hlxwatch.models import Finding
@@ -70,6 +71,10 @@ def finding_line(finding: Finding, style: str) -> str:
         where += " " + duplicates_label(finding.file_path, finding.siblings, short=True)
     url = finding.build.url if finding.build and finding.build.url else None
     icon = SEVERITY_ICON[finding.severity]
+    # tipo di prova, in breve: chi legge la notifica sa se è un dato di gioco o "solo stringhe"
+    short = evidence_of(area_of(finding.file_path, finding.change_type))[2]
+    if short:
+        where += f" · {short}"
     if style == "html":
         line = (f"{icon} <b>[{finding.score}]</b> <code>{html.escape(label)}</code> "
                 f"— {html.escape(where)} ({finding.change_type})")

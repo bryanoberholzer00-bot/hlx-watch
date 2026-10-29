@@ -13,7 +13,7 @@ from datetime import date, datetime, timedelta
 from typing import Any
 from urllib.parse import quote
 
-from hlxwatch.analysis import DEFAULT_GENERIC, SITE_URL, Analyzer, _evidence, is_generic, structured_call
+from hlxwatch.analysis import wrap_data, DEFAULT_GENERIC, SITE_URL, Analyzer, _evidence, is_generic, structured_call
 from hlxwatch.config import Config
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, utcnow
@@ -104,7 +104,7 @@ def ai_summary(cfg: Config, db: Database, data: dict[str, Any], client: Any = No
               "analisi giornaliere già fatte; non ripetere i numeri per gioco, che il messaggio mostra già. "
               "Se la settimana non dice niente di nuovo su HLX, dillo con semplicità. Non citare gli identificativi "
               "delle prove (E1, E2...): il messaggio non li mostra.\n\n"
-              + json.dumps(data, ensure_ascii=False, default=str))
+              + wrap_data(data))
     content, cost = structured_call(db, analyzer.client, prompt=prompt, schema=WEEKLY_SCHEMA,
                                     label="Riepilogo settimanale", effort="medium", max_tokens=4000)
     if content is not None:
