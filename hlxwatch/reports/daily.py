@@ -8,6 +8,7 @@ from typing import Any
 
 from jinja2 import Environment, select_autoescape
 
+from hlxwatch.links import duplicates_label
 from hlxwatch.config import Config
 from hlxwatch.storage import Database
 from hlxwatch.timeutil import local, local_day, local_day_bounds_utc, now_local, register_filters, tz_label
@@ -50,7 +51,7 @@ HTML_TEMPLATE = """<!doctype html>
 {% for f in game.findings %}
 <tr class="{{ f.severity }}"><td>{{ f.score }}</td><td>{{ f.change_type }}</td>
 <td><code>{{ f.token or f.text[:120] }}</code>{% if f.token and f.text != f.token %}<br><small>{{ f.text[:160] }}</small>{% endif %}</td>
-<td>{{ f.file_path }}{% if f.line_no %}:{{ f.line_no }}{% endif %}{% if f.dup_count > 1 %} <small title="{{ f.dup_files|join('&#10;') }}">(+{{ f.dup_count - 1 }} file)</small>{% endif %}{% if f.build_url %} <a href="{{ f.build_url }}">{{ f.build_url|linklabel }}</a>{% endif %}</td>
+<td>{{ f.file_path }}{% if f.line_no %}:{{ f.line_no }}{% endif %}{% if f.dup_count > 1 %} <small title="{{ f.dup_files|join('&#10;') }}">{{ f.dup_short }}</small>{% endif %}{% if f.build_url %} <a href="{{ f.build_url }}">{{ f.build_url|linklabel }}</a>{% endif %}</td>
 <td>{{ f.keywords|join(', ') }}</td><td>{{ 'sì' if f.is_new else '' }}</td></tr>
 {% endfor %}
 {% if game.n_hidden %}<tr><td colspan="6"><em>&hellip; e altre {{ game.n_hidden }} righe a punteggio pi&ugrave; basso (vedi dashboard)</em></td></tr>{% endif %}
@@ -95,7 +96,10 @@ def _group(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
             item = dict(item, dup_count=1, dup_files=[])
             grouped[key] = item
             order.append(key)
-    return [grouped[k] for k in order]
+    out = [grouped[k] for k in order]
+    for g in out:
+        g["dup_short"] = duplicates_label(g["file_path"], g["dup_files"], short=True)
+    return out
 
 
 def collect_report_data(db: Database, cfg: Config, start: datetime, end: datetime) -> dict[str, Any]:
@@ -184,7 +188,7 @@ def render_markdown(data: dict[str, Any]) -> str:
                 if f.get("build_url"):
                     where = f"[{_cell(where)}]({f['build_url']})"
                 if f["dup_count"] > 1:
-                    where += f" (+{f['dup_count'] - 1} file)"
+                    where += f" {f['dup_short']}"
                 label = _cell(f.get("token") or f["text"][:120])
                 out.append(f"| {f['score']} | {f['change_type']} | `{label}` | {where} | "
                            f"{', '.join(f['keywords'])} | {'s\u00ec' if f['is_new'] else ''} |")
@@ -217,7 +221,7 @@ def summary_text(data: dict[str, Any]) -> str:
                 continue
             seen.add(key)
             where = f["file_path"].rsplit("/", 1)[-1][:50]
-            extra = f" (+{f['dup_count'] - 1} file)" if f["dup_count"] > 1 else ""
+            extra = f" {f['dup_short']}" if f["dup_count"] > 1 else ""
             snippet = f" — {f['text'][:70]}" if f.get("token") and f["text"].strip() != f["token"] else ""
             lines.append(f"  [{f['score']}] {f['change_type']} {label}{snippet} · {where}{extra}")
             shown += 1

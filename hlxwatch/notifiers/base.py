@@ -4,7 +4,7 @@ import html
 from dataclasses import dataclass
 from typing import Any
 
-from hlxwatch.links import link_label
+from hlxwatch.links import duplicates_label, link_label
 from hlxwatch.config import Config
 from hlxwatch.models import Finding
 
@@ -65,7 +65,7 @@ def finding_line(finding: Finding, style: str) -> str:
     if finding.line_no:
         where += f":{finding.line_no}"
     if finding.siblings:
-        where += f" (+{len(finding.siblings)} file)"
+        where += " " + duplicates_label(finding.file_path, finding.siblings, short=True)
     url = finding.build.url if finding.build and finding.build.url else None
     icon = SEVERITY_ICON[finding.severity]
     if style == "html":

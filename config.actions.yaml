@@ -262,6 +262,15 @@ keywords:
       case_sensitive: true
       weight: 115
       description: "classi C++ del progetto HLX (CHLXPlayer, CHLX_Foo, C_HLX_Bar)"
+    - id: hlx_fused
+      # HLX attaccato ad altre lettere, nei due modi in cui Valve lo scrive nell'editor Hammer:
+      # in mezzo a un nome di classe a gobba di cammello (CDummyHLXCover) e come nome minuscolo di un
+      # helper dell'editor (hlxcoverpreview). Provata il 2026-10-29 sui quattro giochi: prende solo queste
+      # due righe, non "shlx" (istruzione del processore) né i frammenti casuali dei dump di Deadlock
+      pattern: "(?<![A-Za-z0-9])hlx(?=[a-z]{4,}(?![A-Za-z0-9]))|(?<=[a-z])HLX(?=[A-Z][a-z]{2,}(?:[A-Z][a-z]+)*(?![A-Za-z0-9]))"
+      case_sensitive: true
+      weight: 110
+      description: "HLX dentro un nome (CDummyHLXCover, hlxcoverpreview)"
     - id: hlx
       pattern: "(?<![a-z0-9])hlx(?![a-z0-9])"
       weight: 100

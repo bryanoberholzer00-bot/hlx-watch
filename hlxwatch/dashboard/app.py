@@ -13,6 +13,7 @@ from fastapi.templating import Jinja2Templates
 
 from hlxwatch import __version__
 from hlxwatch.config import Config
+from hlxwatch.links import duplicates_label
 from hlxwatch.reports import collect_report_data, period_for, render_html
 from hlxwatch.storage import Database
 from hlxwatch.timeutil import local_day, local_day_bounds_utc, register_filters
@@ -52,7 +53,11 @@ def group_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             row = dict(row, dup_count=1, dup_files=[])
             grouped[key] = row
             order.append(key)
-    return [grouped[k] for k in order]
+    out = [grouped[k] for k in order]
+    for g in out:
+        g["dup_label"] = duplicates_label(g["file_path"], g["dup_files"])
+        g["dup_short"] = duplicates_label(g["file_path"], g["dup_files"], short=True)
+    return out
 
 
 def timeline_svg(timeline: list[dict[str, Any]], days: int = 90,

@@ -113,7 +113,10 @@
   <li><b>Data modifica</b>: data del commit di SteamTracking, cioè di quando il dato è cambiato nei file del gioco. <b>Vista il</b>: quando lo strumento l'ha registrata (diversa per l'archivio storico).</li>
   <li><b>Prima comparsa</b>: primo commit in cui la riga compare nel file. <b>"Almeno dal"</b>: la riga c'era già quando SteamTracking ha iniziato a tracciare quel file, quindi può essere più vecchia.</li>
   <li><b>Nuova</b>: la stringa (o il suo identificatore) non era mai stata vista prima nell'archivio.</li>
-  <li><b>+ altri N file</b>: la stessa riga è cambiata in più file dello stesso commit (tipico dei dump di più eseguibili): conta come un'unica modifica.</li>
+  <li><b>+ altri N file</b>: la stessa riga è cambiata in più file dello stesso commit (tipico dei dump di più eseguibili): conta come un'unica modifica.
+  <b>+ altre N righe nello stesso file</b>: la stessa stringa compare in più punti dello stesso file (per esempio una classe ripetuta nel dump di un eseguibile).</li>
+  <li><b>Data delle voci della scansione completa</b>: quando la prima comparsa è nota, la data della modifica è quella del primo commit in cui la riga
+  compare, non quella della scansione che l'ha trovata.</li>
  </ul>
 </section>
 

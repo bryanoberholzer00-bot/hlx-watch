@@ -38,7 +38,7 @@
   <td><a href="/finding/{{ f.id }}"><code>{{ (f.token or f.text)[:80] }}</code></a>
       {% if f.token and f.text != f.token %}<br><small class="muted">{{ f.text[:120] }}</small>{% endif %}</td>
   <td><small>{{ f.file_path[:90] }}{% if f.line_no %}:{{ f.line_no }}{% endif %}</small>
-      {% if f.dup_count and f.dup_count > 1 %}<br><small class="muted" title="{{ f.dup_files|join('&#10;') }}">+ altri {{ f.dup_count - 1 }} file nello stesso commit</small>{% endif %}
+      {% if f.dup_count and f.dup_count > 1 %}<br><small class="muted" title="{{ f.dup_files|join('&#10;') }}">{{ f.dup_label }}</small>{% endif %}
       {% if f.build_url %}<br><a href="{{ f.build_url }}"><small>{{ f.build_url|linklabel }}{% if 'commit' == f.build_url|linklabel %} {{ (f.build_ref or '')[:8] }}{% endif %}</small></a>{% endif %}</td>
   <td><small>{{ f.keywords|join(', ') }}</small></td>
  </tr>

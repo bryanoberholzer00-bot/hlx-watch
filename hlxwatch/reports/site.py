@@ -28,16 +28,35 @@ log = logging.getLogger(__name__)
 TEMPLATES = Path(__file__).parent / "site_templates"
 
 
+def first_seen_days(db: Database) -> dict[tuple[str, str, str], tuple[str, bool]]:
+    """(gioco, file, hash della riga) -> (giorno della prima comparsa, 'almeno dal'), letti una volta sola."""
+    rows = db.conn.execute("SELECT game, file_path, line_hash, commit_date, at_least FROM first_seen "
+                           "WHERE commit_date IS NOT NULL").fetchall()
+    return {(r[0], r[1], r[2]): (local_day(r[3]), bool(r[4])) for r in rows}
+
+
+def apply_first_seen(item: dict[str, Any], days: dict[tuple[str, str, str], tuple[str, bool]]) -> dict[str, Any]:
+    """Le voci della scansione completa portano la data della scansione, non quella di Valve: se la prima
+    comparsa è nota la usano come data della modifica (le classi CHLX di Hammer: 23 settembre, non 29 ottobre)."""
+    if item.get("source") == "fullscan" and item.get("change_type") in ("added", "present"):
+        from hlxwatch.sources.first_seen import line_hash
+        hit = days.get((item["game"], item["file_path"], line_hash(item["text"] or "")))
+        if hit:
+            item["day"], item["day_at_least"] = hit
+    return item
+
+
 def export_findings(db: Database, limit: int = 25000) -> list[dict[str, Any]]:
     rows = db.search_findings(limit=limit, order="created_at", exclude_change_type="baseline")
+    days = first_seen_days(db)
     out: list[dict[str, Any]] = []
     for row in rows:
-        item = _row(row)
+        item = apply_first_seen(_row(row), days)
         out.append({
             "id": item["id"], "score": item["score"], "game": item["game"], "source": item["source"],
             "type": item["change_type"], "token": item.get("token"), "text": (item["text"] or "")[:200],
             "file": item["file_path"], "line": item.get("line_no"), "day": item["day"],
-            "seen": local_day(item.get("created_at")), "new": bool(item["is_new"]),
+            "seen": local_day(item.get("created_at")), "new": bool(item["is_new"]), "al": bool(item.get("day_at_least")),
             "url": item.get("build_url"), "ul": link_label(item.get("build_url")), "ref": (item.get("build_ref") or "")[:10], "kw": item["keywords"],
         })
     return out
@@ -93,9 +112,10 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
 
     stats = db.stats()
     analyses = [load_analysis(r) for r in db.analyses(60)]
-    high = group_rows([_row(r) for r in db.search_findings(min_score=100, limit=300, order="created_at",
+    days = first_seen_days(db)
+    high = group_rows([apply_first_seen(_row(r), days) for r in db.search_findings(min_score=100, limit=300, order="created_at",
                                                              exclude_change_type=("baseline", "present"))])
-    recent = group_rows([_row(r) for r in db.search_findings(min_score=50, limit=80, order="created_at",
+    recent = group_rows([apply_first_seen(_row(r), days) for r in db.search_findings(min_score=50, limit=80, order="created_at",
                                                                exclude_change_type=("baseline", "present"))])
     index_html = env.get_template("index.html").render(
         stats=stats, high=high, recent=recent[:40],
