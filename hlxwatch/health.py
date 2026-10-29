@@ -12,6 +12,7 @@ Che i run non partano affatto lo controlla da fuori il Worker di Cloudflare (tel
 from __future__ import annotations
 
 import json
+import re
 import logging
 from datetime import timedelta
 from typing import Any
@@ -19,10 +20,13 @@ from typing import Any
 from hlxwatch.config import Config
 from hlxwatch.notifiers import notify_text
 from hlxwatch.storage import Database
-from hlxwatch.storage.db import parse_iso, utcnow
+from hlxwatch.storage.db import iso, parse_iso, utcnow
 from hlxwatch.timeutil import local
 
 log = logging.getLogger(__name__)
+
+# messaggio dei commit di build di SteamTracking ("26281801 | 199 files | M ..."; Alyx 2020: "Update | 124 files")
+BUILD_MESSAGE = re.compile(r"^(\d+|Update) \| \d+ files? \|")
 
 LABELS = {
     "discovery": "scoperta dei repository SteamTracking",
@@ -106,6 +110,33 @@ class Health:
         elif not stale and alerted:
             self._alert("HLX Watch: dati a monte ripartiti", "✅ SteamTracking ha ripreso a pubblicare commit.")
             self.db.set_state("health:upstream_alerted", "0")
+
+    def check_format(self) -> None:
+        """SteamTracking ha cambiato il formato dei commit: senza "<build> | <N> files | ..." lo strumento non riconosce
+        più le build. Un avviso distinto da "fonte ferma", una volta sola, e uno quando il formato torna."""
+        if not self.enabled():
+            return
+        since = iso(utcnow() - timedelta(days=30))
+        for game in ("cs2", "dota2", "deadlock"):
+            rows = self.db.conn.execute(
+                "SELECT message FROM builds WHERE game = ? AND source = 'github' AND length(ref) = 40 AND date >= ? "
+                "AND COALESCE(message, '') NOT LIKE '[archeologia]%' ORDER BY date DESC LIMIT 10", (game, since)).fetchall()
+            if len(rows) < 3:
+                continue                 # pochi commit recenti: niente da giudicare
+            ok = any(BUILD_MESSAGE.match(r[0] or "") for r in rows)
+            key = f"formatcheck:{game}"
+            alerted = self.db.get_state(key) == "1"
+            title = self.cfg.game_title(game)
+            if not ok and not alerted:
+                self._alert("HLX Watch: formato di SteamTracking cambiato",
+                            f"⚠️ Negli ultimi {len(rows)} commit di {title} non c'è più il formato atteso "
+                            "\"<build> | <N> files | ...\". Lo strumento potrebbe non riconoscere le build: va adattato. "
+                            "Controlla https://github.com/SteamTracking.")
+                self.db.set_state(key, "1")
+            elif ok and alerted:
+                self._alert("HLX Watch: formato di SteamTracking di nuovo riconosciuto",
+                            f"✅ I commit di {title} hanno di nuovo il formato atteso.")
+                self.db.set_state(key, "0")
 
     def summary(self) -> dict[str, Any]:
         """Stato attuale di ogni fonte, per stato.json e /stato."""

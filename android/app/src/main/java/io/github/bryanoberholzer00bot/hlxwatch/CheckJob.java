@@ -104,7 +104,7 @@ public class CheckJob extends JobService {
         long now = System.currentTimeMillis();
         for (int i = 0; i < items.length(); i++) {
             JSONObject it = items.getJSONObject(i);
-            String key = it.optString("g") + "|" + it.optString("t") + "|" + it.optString("k") + "|" + it.optString("x");
+            String key = keyOf(it);
             current.add(key);
             if (!seen.contains(key) && now - parseUtc(it.optString("c")) < MAX_AGE_MS) {
                 fresh.add(it);
@@ -121,21 +121,32 @@ public class CheckJob extends JobService {
             prefs.edit().putBoolean("welcomed", true).apply();
         }
         // orario di silenzio: le novità della notte non si segnano come viste, così alla prima
-        // verifica dopo le 8 arrivano tutte insieme in una sola notifica
+        // verifica dopo le 8 arrivano tutte insieme in una sola notifica. Fa eccezione un possibile annuncio
+        // di Valve (campo "a"): arriva subito, e solo quello viene segnato come visto
         if (!firstRun && inQuietHours()) {
-            return;
-        }
+            List<JSONObject> urgent = new ArrayList<>();
+            for (JSONObject it : fresh) {
+                if (it.optInt("a") == 1) urgent.add(it);
+            }
+            if (urgent.isEmpty()) {
+                return;
+            }
+            Set<String> keepQuiet = new HashSet<>(seen);
+            for (JSONObject it : urgent) keepQuiet.add(keyOf(it));
+            prefs.edit().putStringSet("seen", keepQuiet).apply();
+            fresh = urgent;
+        } else {
+            // si ricordano le voci attuali più quelle già viste (con un limite, per non crescere all'infinito)
+            Set<String> keep = new HashSet<>(current);
+            for (String s : seen) {
+                if (keep.size() >= 200) break;
+                keep.add(s);
+            }
+            prefs.edit().putStringSet("seen", keep).apply();
 
-        // si ricordano le voci attuali più quelle già viste (con un limite, per non crescere all'infinito)
-        Set<String> keep = new HashSet<>(current);
-        for (String s : seen) {
-            if (keep.size() >= 200) break;
-            keep.add(s);
-        }
-        prefs.edit().putStringSet("seen", keep).apply();
-
-        if (firstRun) {
-            return;                 // la prima volta si registrano solo le voci presenti, senza notificarle
+            if (firstRun) {
+                return;                 // la prima volta si registrano solo le voci presenti, senza notificarle
+            }
         }
         if (fresh.isEmpty()) {
             return;
@@ -160,7 +171,14 @@ public class CheckJob extends JobService {
         }
         String title;
         String url;
-        if (fresh.size() == 1) {
+        boolean announcement = false;
+        for (JSONObject it : fresh) {
+            if (it.optInt("a") == 1) announcement = true;
+        }
+        if (announcement) {
+            title = "HLX Watch: POSSIBILE ANNUNCIO di Valve";
+            url = MainActivity.HOME + "search.html?min=200";
+        } else if (fresh.size() == 1) {
             title = "HLX Watch: novità in " + top.optString("g");
             String q = top.optString("k").isEmpty() ? top.optString("x") : top.optString("k");
             url = MainActivity.HOME + "search.html?q=" + Uri.encode(q.length() > 60 ? q.substring(0, 60) : q);
@@ -169,6 +187,10 @@ public class CheckJob extends JobService {
             url = MainActivity.HOME + "search.html?new=1&min=50";
         }
         show(context, (int) (now / 1000), title, body.toString().trim(), url);
+    }
+
+    private static String keyOf(JSONObject it) {
+        return it.optString("g") + "|" + it.optString("t") + "|" + it.optString("k") + "|" + it.optString("x");
     }
 
     static final int QUIET_START = 23;      // dalle 23...

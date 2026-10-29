@@ -19,7 +19,8 @@ from hlxwatch.dashboard.app import _row, group_rows, timeline_svg
 from hlxwatch.reports.daily import collect_report_data, render_html
 from hlxwatch.repos import tracked_repos
 from hlxwatch.storage import Database
-from hlxwatch.storage.db import utcnow
+from hlxwatch.storage.db import iso, utcnow
+from hlxwatch.outcomes import engine_merge_index, merge_partners, outcome_register
 from hlxwatch.analyzers.codenames import CodenameTracker
 from hlxwatch.links import link_label
 from hlxwatch.reports.site_extras import (AREA_LABELS, AREAS, area_of, evidence_of, hardware_data, schema_url,
@@ -56,21 +57,58 @@ def with_summaries(db: Database, builds: list[dict[str, Any]]) -> list[dict[str,
     return builds
 
 
-def decorate(item: dict[str, Any]) -> dict[str, Any]:
-    """Area SteamTracking del cambiamento e, per le classi del motore, il link allo Schema Explorer."""
+def decorate(item: dict[str, Any], ctx: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Area SteamTracking del cambiamento, tipo di prova, link allo Schema Explorer e, se la stessa riga è comparsa
+    anche negli altri giochi entro pochi giorni, i giochi della fusione del motore."""
     item["area"] = area_of(item.get("file_path") or "", item.get("change_type") or "")
     item["area_label"] = AREA_LABELS[item["area"]]
     item["evidence"], item["evidence_label"], _ = evidence_of(item["area"])
     item["schema_url"] = schema_url(item.get("game") or "", item.get("file_path") or "")
+    item["merge"] = (merge_partners(ctx["merge"], item.get("game") or "", item.get("token"), item.get("text"),
+                                    item.get("day"), ctx.get("titles")) if ctx else [])
     return item
 
 
-def export_findings(db: Database, limit: int = 25000) -> list[dict[str, Any]]:
+def write_feed(db: Database, out_dir: Path, site_url: str, ctx: dict[str, Any], limit: int = 40) -> int:
+    """Feed Atom delle voci rilevanti (da 100 punti), per seguire HLX Watch con un lettore di feed."""
+    from xml.sax.saxutils import escape
+    rows = group_rows([decorate(_row(r), ctx) for r in db.search_findings(
+        min_score=100, limit=200, order="created_at", exclude_change_type=("baseline", "present"))])[:limit]
+    entries = []
+    for f in rows:
+        title = f"[{f['score']}] {ctx['titles'].get(f['game'], f['game'])}: {(f.get('token') or f['text'])[:90]}"
+        link = f.get("build_url") or f"{site_url}search.html"
+        summary = f"{f['text'][:300]} | prova: {f['evidence_label']}" + (
+            f" | fusione del motore, anche in {', '.join(f['merge'])}" if f["merge"] else "")
+        updated = (f.get("created_at") or iso(utcnow())).replace("+00:00", "Z")
+        entries.append(f"""  <entry>
+    <id>tag:hlx-watch,2026:finding-{f['id']}</id>
+    <title>{escape(title)}</title>
+    <updated>{escape(updated)}</updated>
+    <link href="{escape(link, {'"': '&quot;'})}"/>
+    <summary>{escape(summary)}</summary>
+  </entry>""")
+    feed = f"""<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>HLX Watch</title>
+  <subtitle>Riferimenti a HLX nei dati pubblici dei giochi Valve su Source 2 (non affiliato con Valve)</subtitle>
+  <id>{escape(site_url)}</id>
+  <link href="{escape(site_url)}"/>
+  <link rel="self" href="{escape(site_url)}feed.xml"/>
+  <updated>{iso(utcnow()).replace("+00:00", "Z")}</updated>
+{chr(10).join(entries)}
+</feed>
+"""
+    (out_dir / "feed.xml").write_text(feed, encoding="utf-8")
+    return len(entries)
+
+
+def export_findings(db: Database, limit: int = 25000, ctx: dict[str, Any] | None = None) -> list[dict[str, Any]]:
     rows = db.search_findings(limit=limit, order="created_at", exclude_change_type="baseline")
     days = first_seen_days(db)
     out: list[dict[str, Any]] = []
     for row in rows:
-        item = decorate(apply_first_seen(_row(row), days))
+        item = decorate(apply_first_seen(_row(row), days), ctx)
         out.append({
             "id": item["id"], "score": item["score"], "game": item["game"], "source": item["source"],
             "type": item["change_type"], "token": item.get("token"), "text": (item["text"] or "")[:200],
@@ -78,6 +116,7 @@ def export_findings(db: Database, limit: int = 25000) -> list[dict[str, Any]]:
             "seen": local_day(item.get("created_at")), "new": bool(item["is_new"]), "al": bool(item.get("day_at_least")),
             "url": item.get("build_url"), "ul": link_label(item.get("build_url")), "ref": (item.get("build_ref") or "")[:10], "kw": item["keywords"],
             "area": item["area"], "ev": item["evidence_label"], **({"sx": item["schema_url"]} if item["schema_url"] else {}),
+            **({"fm": item["merge"]} if item["merge"] else {}),
         })
     return out
 
@@ -140,9 +179,10 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     stats = db.stats()
     analyses = [load_analysis(r) for r in db.analyses(60)]
     days = first_seen_days(db)
-    high = group_rows([decorate(apply_first_seen(_row(r), days)) for r in db.search_findings(min_score=100, limit=300, order="created_at",
+    ctx = {"merge": engine_merge_index(db), "titles": titles}
+    high = group_rows([decorate(apply_first_seen(_row(r), days), ctx) for r in db.search_findings(min_score=100, limit=300, order="created_at",
                                                              exclude_change_type=("baseline", "present"))])
-    recent = group_rows([decorate(apply_first_seen(_row(r), days)) for r in db.search_findings(min_score=50, limit=80, order="created_at",
+    recent = group_rows([decorate(apply_first_seen(_row(r), days), ctx) for r in db.search_findings(min_score=50, limit=80, order="created_at",
                                                                exclude_change_type=("baseline", "present"))])
     index_html = env.get_template("index.html").render(
         stats=stats, high=high, recent=recent[:40],
@@ -155,6 +195,10 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     (out_dir / "index.html").write_text(index_html, encoding="utf-8")
     (out_dir / "hardware.html").write_text(env.get_template("hardware.html").render(hw=hardware_data(cfg, db)),
                                            encoding="utf-8")
+    (out_dir / "esiti.html").write_text(env.get_template("esiti.html").render(reg=outcome_register(cfg, db)),
+                                        encoding="utf-8")
+    site_url = str(cfg.get("general.site_url", "https://bryanoberholzer00-bot.github.io/hlx-watch/"))
+    write_feed(db, out_dir, site_url if site_url.endswith("/") else site_url + "/", ctx)
     kw = cfg.keywords
     (out_dir / "metodologia.html").write_text(env.get_template("metodologia.html").render(
         repos=tracked_repos(cfg, db), steam_apps=[a.get("title", a.get("name")) for a in cfg.steam_watch_apps],
@@ -176,7 +220,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     (out_dir / "search.html").write_text(env.get_template("search.html").render(games=stats["games"], areas=AREAS),
                                          encoding="utf-8")
 
-    findings = export_findings(db)
+    findings = export_findings(db, ctx=ctx)
     from hlxwatch.reports.bot_data import export_bot_data
     bot_info = export_bot_data(db, cfg, out_dir, str(cfg.get("general.site_url",
                                                              "https://bryanoberholzer00-bot.github.io/hlx-watch/")))

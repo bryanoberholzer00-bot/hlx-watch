@@ -179,6 +179,7 @@ class Pipeline:
                     self.health.record(source, error is None, error or "")
                 if "github" in sources:
                     self.health.check_upstream()
+                    self.health.check_format()
             except Exception:
                 log.exception("Controllo di salute fallito")
         log.info("=== Scansione completata in %.0fs: %d voci, %d nuove sopra soglia, %d errori ===",

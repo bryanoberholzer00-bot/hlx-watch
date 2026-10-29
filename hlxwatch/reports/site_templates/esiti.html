@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Esiti delle tracce HLX - HLX Watch{% endblock %}
+{% block content %}
+<h1>Dove è finita la tecnologia HLX</h1>
+
+<section>
+ <p>Nessun data miner misura quante delle sue tracce si avverano o si trasformano. Qui lo facciamo per HLX: ogni nome o
+ riga HLX dell'archivio, dal 2016 a oggi, con il suo esito. Una traccia che sparisce spesso non è persa: Valve la rinomina
+ quando la tecnologia passa al motore comune o a un altro gioco.</p>
+ <table>
+  <tr><th>Tracce HLX</th><th>Presenti oggi</th><th>Rinominate</th><th>Sparite</th><th>Esito scritto a mano</th><th>Da verificare</th></tr>
+  <tr><td><b>{{ reg.total }}</b></td><td>{{ reg.counts.get('presente', 0) }}</td><td>{{ reg.counts.get('rinominata', 0) }}</td>
+      <td>{{ reg.counts.get('sparita', 0) }}</td><td>{{ reg.counts.get('manuale', 0) }}</td><td>{{ reg.counts.get('da_verificare', 0) }}</td></tr>
+ </table>
+ {% if reg.moved %}<p><b>Dove sono andate le rinomine:</b> {% for where, n in reg.moved.items() %}{{ where }} ({{ n }}){% if not loop.last %}, {% endif %}{% endfor %}.</p>{% endif %}
+ <p class="muted"><small>Esiti: <b>rinominata</b> = la riga è ricomparsa nello stesso file con un altro prefisso;
+ <b>presente oggi</b> = c'è ancora nei file (scansione completa); <b>sparita</b> = tolta e non più presente;
+ <b>esito scritto a mano</b> = un caso che lo strumento non può dimostrare da solo, per esempio una rinomina tra file
+ diversi; <b>da verificare</b> = vista nei commit ma non seguita dalla scansione completa. Nessuna di queste tracce
+ dice quando o se HLX uscirà.</small></p>
+</section>
+
+<section>
+ <h2>Tutte le tracce, dalla più vecchia</h2>
+ <table>
+  <tr><th>Prima comparsa</th><th>Traccia</th><th>Giochi</th><th>Esito</th><th>Prova</th></tr>
+  {% for t in reg.traces %}
+  <tr>
+   <td>{{ t.first }}</td>
+   <td><code>{{ t.label }}</code><br><small class="muted">{{ t.file[:80] }}</small>{% if t.url %} <a href="{{ t.url }}"><small>{{ t.url|linklabel }}</small></a>{% endif %}</td>
+   <td><small>{% for g, d in t.games.items() %}{{ titles.get(g, g) }} <span class="muted">{{ d }}</span>{% if not loop.last %}<br>{% endif %}{% endfor %}</small></td>
+   <td><b>{{ t.status_label }}</b>{% if t.detail %}<br><small>{{ t.detail }}</small>{% endif %}</td>
+   <td><small>{{ t.evidence }}</small></td>
+  </tr>
+  {% endfor %}
+ </table>
+</section>
+{% endblock %}

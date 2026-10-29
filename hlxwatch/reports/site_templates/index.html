@@ -33,7 +33,7 @@
   <tr class="{{ f.severity }}">
    <td><span class="badge {{ f.severity }}">{{ f.score }}</span></td>
    <td>{% if f.day_at_least %}<small class="muted">almeno dal</small><br>{% endif %}{{ f.day }}{% if f.is_new %}<br><span class="new" title="La riga non era mai comparsa nell'archivio, che parte dal 2016">mai vista prima</span>{% endif %}</td>
-   <td>{{ titles.get(f.game, f.game) }}</td><td>{{ f.change_type }}{% if f.evidence_label and f.evidence != 'altro' %}<br><small title="Tipo di prova">prova: {{ f.evidence_label }}</small>{% endif %}</td>
+   <td>{{ titles.get(f.game, f.game) }}</td><td>{{ f.change_type }}{% if f.evidence_label and f.evidence != 'altro' %}<br><small title="Tipo di prova">prova: {{ f.evidence_label }}</small>{% endif %}{% if f.merge %}<br><small class="muted" title="La stessa riga è comparsa anche in questi giochi entro 60 giorni: viaggia con il codice condiviso di Source 2">fusione del motore: anche in {{ f.merge|join(', ') }}</small>{% endif %}</td>
    <td><code>{{ (f.token or f.text)[:80] }}</code>{% if f.token and f.text != f.token %}<br><small class="muted">{{ f.text[:120] }}</small>{% endif %}</td>
    <td><small>{{ f.file_path[:90] }}{% if f.line_no %}:{{ f.line_no }}{% endif %}</small>
        {% if f.dup_count > 1 %}<br><small class="muted" title="{{ f.dup_files|join('&#10;') }}">{{ f.dup_label }}</small>{% endif %}

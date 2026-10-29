@@ -178,6 +178,16 @@ announcement:                            # piano annuncio: repository o app Stea
   enabled: true                          # un solo avviso "possibile annuncio" (anche nell'orario di silenzio),
   score: 200                             # parole HLX ignorate nel repository del gioco, app Steam seguita da sola
 
+esiti:                                   # registro degli esiti delle tracce HLX (pagina esiti.html)
+  manuali:                               # esiti che lo strumento non può dimostrare da solo
+    - match: "hlx_physics_particle_spawner"
+      esito: "probabile rinomina"
+      nota: "oggi esiste generic_physics_particle_spawner in CS2, Dota 2 e Deadlock, ma in un altro file"
+    - match: "hlx_2d_basic"
+      esito: "probabile rinomina"
+      nota: "oggi esiste citadel_2d_basic in Deadlock, non nello stesso file di CS2"
+    # - match: "nome"                    # per una conferma ufficiale: esito "confermato da Valve", nota con il link
+
 archaeology:
   # giochi Source 2 dismessi, conservati da SteamTracking: solo per l'archeologia (comando `archeologia`),
   # non vengono seguiti nei controlli normali. Coprono gli anni del passaggio da HLVR a HLX.

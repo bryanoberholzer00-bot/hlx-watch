@@ -38,6 +38,8 @@ def _item(cfg: Config, db: Database, r: dict[str, Any]) -> dict[str, Any]:
         "s": r["score"], "g": _title(cfg, r["game"]), "t": r["change_type"],
         "k": (r.get("token") or "")[:80], "x": (r.get("text") or "")[:140], "f": (r.get("file_path") or "")[:90],
         "d": day, "n": int(r.get("dup_count") or 1), "u": r.get("build_url") or "", "ul": link_label(r.get("build_url")),
+        # possibile annuncio di Valve: l'app lo mostra subito, anche nell'orario di silenzio
+        **({"a": 1} if "possible_announcement" in (r.get("keywords") or []) else {}),
     }
 
 

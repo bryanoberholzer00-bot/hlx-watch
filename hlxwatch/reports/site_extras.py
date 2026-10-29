@@ -79,6 +79,8 @@ def source_status(cfg: Config, db: Database) -> dict[str, Any]:
             info = json.loads(value)
         except ValueError:
             continue
+        if not isinstance(info, dict):
+            continue                 # health:upstream_alerted e simili sono solo "1"/"0"
         if int(info.get("fails") or 0) > 0:
             problems.append({"source": key.split(":", 1)[1], "fails": int(info["fails"]),
                              "last_ok": local_day(info.get("last_ok")) if info.get("last_ok") else None})
