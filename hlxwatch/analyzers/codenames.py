@@ -4,7 +4,9 @@ Le parole chiave trovano solo nomi già noti (hlx, hl3...). Qui invece si guarda
 i nomi in codice dei progetti, qualunque siano:
   - le espressioni `mod != nome` / `mod == nome` degli strumenti (opzioni riservate a un progetto);
   - prodotti, componenti e sezioni della configurazione del bug reporter;
-  - le cartelle di progetto nei percorsi `source2/main/content/<nome>` e `.../game/<nome>`.
+  - le cartelle di progetto nei percorsi `source2/main/content/<nome>` e `.../game/<nome>`;
+  - i rami di compilazione nei percorsi della macchina di build che restano dentro i binari
+    (`C:/buildworker/csgo_rel_win64/build/src/engine2`): un ramo nuovo non si può nascondere.
 Un nome che non è nella lista dei noti (config `codenames.known` più quelli imparati) diventa una voce
 "codename" ad alto punteggio. Alla prima scansione completa i nomi presenti vengono solo imparati, senza
 avvisi (stato `codenames:learned`); da lì in poi ogni nome nuovo è un avviso.
@@ -34,12 +36,16 @@ PLACES: list[tuple[str, re.Pattern[str], str, re.Pattern[str] | None]] = [
     # KeyValues "mod" "nome": per esempio la tabella di importazione da Source 1 (source1import_txtmap.txt), dove
     # nel 2018 il modello dell'headcrab era assegnato al mod "hl3", oggi "hlvr"
     ("kv_mod", re.compile(r'"mod"\s+"(?P<name>[A-Za-z0-9_ -]+)"', re.IGNORECASE), 'chiave "mod" di un file KeyValues', None),
+    # percorsi della macchina di compilazione Valve, conservati nei dump delle stringhe delle DLL
+    # (<gioco>_strings.txt): il nome dopo buildworker\ è il ramo del progetto che ha prodotto il binario
+    ("buildworker", re.compile(r"buildworker[\\/]+(?P<name>[A-Za-z0-9_.-]+)", re.IGNORECASE),
+     "ramo di compilazione nei percorsi della macchina di build (buildworker)", None),
 ]
 # parole che compaiono in quei posti ma non sono nomi di progetto
 GENERIC = {"other", "unassigned", "default", "bugreporter", "none", "core", "tools", "---", "version", "owner",
-           "severity", "priority", "category", "product", "component", "main", "bin", "sdk"}
+           "severity", "priority", "category", "product", "component", "main", "bin", "sdk", "build", "src"}
 # regex estesa per `git grep -i -E` della scansione completa: seleziona le righe dei tre posti
-PREFILTER = r'mod *[!=]=|"(product|component|mod)"|source2[\\/]main[\\/](content|game)[\\/]'
+PREFILTER = r'mod *[!=]=|"(product|component|mod)"|source2[\\/]main[\\/](content|game)[\\/]|buildworker[\\/]'
 STATE_SEEN = "codenames:seen"
 STATE_LEARNED = "codenames:learned"
 

@@ -45,6 +45,10 @@
   <li><b>Prima comparsa.</b> Per le voci trovate dalla scansione completa, lo strumento ripercorre la storia del
   file e cerca per bisezione il primo commit in cui la riga compare.</li>
   <li><b>Steam.</b> Nuove build per branch e app nuove con developer/publisher Valve, nome sospetto o parole chiave.</li>
+  <li><b>Struttura dei repository.</b> A ogni run si confrontano gli elenchi delle cartelle sotto <code>game/</code> e dei
+  file in <code>manifests/</code> (un file per depot Steam) di ogni gioco, e delle cartelle del repository dei Protobuf
+  (un protocollo di rete per gioco): una voce che prima non c'era diventa una voce <code>structure</code> da
+  {{ structure_score }} punti, anche se nessun file scrive il nome del progetto.</li>
  </ol>
 </section>
 
@@ -52,7 +56,8 @@
  <h2>Nomi di progetto nuovi e file sorvegliati</h2>
  <p>Le parole chiave trovano solo nomi già noti. Per accorgersi di un progetto con un nome diverso, HLX Watch guarda i
  <b>posti</b> in cui Valve scrive i nomi in codice: le espressioni <code>mod != nome</code> degli strumenti, prodotti e
- componenti del bug reporter, le cartelle <code>source2/main/content/nome</code>. Un nome che non è tra quelli noti diventa
+ componenti del bug reporter, le cartelle <code>source2/main/content/nome</code> e i rami di compilazione che restano nei
+ binari (<code>C:\buildworker\csgo_rel_win64\...</code>: il ramo che ha prodotto la DLL). Un nome che non è tra quelli noti diventa
  una voce "codename" da {{ codename_score }} punti. Nomi noti finora: {{ project_names|join(", ") }}.</p>
  <p>File sorvegliati, dove ogni riga cambiata diventa una voce anche senza parole chiave:
  {% for w in watched_files %}<code>{{ w.pattern }}</code> ({{ w.title }}, {{ w.score }} punti){% if not loop.last %}; {% endif %}{% endfor %}.</p>
@@ -93,6 +98,8 @@
   <tr><td><code>present</code></td><td>trovata dalla scansione completa: c'era già, non è una modifica recente</td></tr>
   <tr><td><code>build</code></td><td>nuova build Steam su un branch</td></tr>
   <tr><td><code>new_repo</code></td><td>nuovo repository nell'organizzazione SteamTracking</td></tr>
+  <tr><td><code>codename</code></td><td>nome di progetto mai visto in uno dei posti dove Valve li scrive</td></tr>
+  <tr><td><code>structure</code></td><td>cartella, depot o protocollo di rete comparso (o sparito) nella struttura di un repository</td></tr>
   <tr><td><code>new_app</code></td><td>nuova app Steam con un segnale (Valve, nome sospetto, parole chiave)</td></tr>
  </table>
  <ul>

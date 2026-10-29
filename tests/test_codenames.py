@@ -25,6 +25,11 @@ def test_detect_places():
     assert detect('\t\t"component"\t\t"other"', br) == []           # parola generica
     assert [n for _, n, _ in detect('\t\t"mod"\t"hl3"', "game/core/pak01_dir/source1import_txtmap.txt")] == ["hl3"]
     assert [n for _, n, _ in detect('"mod"\t"left4dead2_source2"')] == ["left4dead2_source2"]
+    # rami di compilazione nei dump delle DLL: il nome dopo buildworker\ (anche con / e maiuscole)
+    bw = detect(r"C:\buildworker\csgo_rel_win64\build\src\engine2\x.cpp", "game/bin/win64/engine2_strings.txt")
+    assert bw == [("buildworker", "csgo_rel_win64", "ramo di compilazione nei percorsi della macchina di build (buildworker)")]
+    assert [n for _, n, _ in detect("/home/BuildWorker/dota_rel_linux64/build/src")] == ["dota_rel_linux64"]
+    assert detect(r"C:\buildworker\build\src") == []                     # 'build' è una parola generica
 
 
 def test_learning_then_alert(tmp_path):

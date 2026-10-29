@@ -71,7 +71,8 @@ hlx-watch/
    già, nessun avviso, sezione dedicata sul sito); i giri successivi segnalano quelle nuove o sparite che
    il monitoraggio dei commit non aveva già visto.
 6. Ogni riga interessante diventa un **finding** con punteggio, keyword, token, contesto e tipo di modifica
-   (`added`, `removed`, `changed`, `file_added`, `file_removed`, `file_renamed`, `build`, `new_app`).
+   (`added`, `removed`, `changed`, `file_added`, `file_removed`, `file_renamed`, `build`, `new_app`,
+   `new_repo`, `codename`, `structure`).
 7. **Deduplica**: il token (es. `hlx_fsr3_min_reactiveness`) o la riga normalizzata viene hashato in
    `seen_strings`. Solo le stringhe mai viste prima con punteggio sopra `notify_min_score` generano una
    notifica. Tutto il resto finisce comunque nello storico.
@@ -297,11 +298,18 @@ client Steam, di SteamVR e della documentazione (`ignore_keywords`).
 ### Nomi di progetto nuovi e file sorvegliati
 
 `hlxwatch/analyzers/codenames.py` guarda i posti in cui Valve scrive i nomi in codice (`mod != nome`,
-prodotti/componenti/sezioni del bug reporter, cartelle `source2/main/content/<nome>`): un nome che non è in
+prodotti/componenti/sezioni del bug reporter, cartelle `source2/main/content/<nome>`, rami di compilazione
+`C:\buildworker\<ramo>` rimasti nei dump delle DLL, come `csgo_rel_win64`): un nome che non è in
 `codenames.known` né tra quelli imparati (stato `codenames:seen`) diventa una voce `codename` da 120 punti,
 quindi avviso immediato e indizio in cronologia. Alla prima scansione completa i nomi presenti vengono solo
 imparati (stato `codenames:learned`). `watched_files` elenca i file in cui ogni riga aggiunta o tolta è una
 voce anche senza parole chiave (bug reporter 60 punti, `gameinfo.gi` 50).
+
+`hlxwatch/sources/structure.py` guarda la **forma** dei repository invece delle parole: a ogni run elenca con
+l'API dei contenuti le cartelle sotto `game/` e i file di `manifests/` (uno per depot Steam) dei giochi, e le
+cartelle di `SteamTracking/Protobufs` (un protocollo di rete per gioco). Il primo giro registra gli elenchi
+(stato `structure:<gioco>:<percorso>`); poi ogni voce nuova è una voce `structure` da 100 punti (di più se il
+nome contiene una parola chiave) e ogni voce sparita una da 60. Sezione `structure` del config.
 
 ### Archeologia: tutta la storia dei repository
 
@@ -402,6 +410,11 @@ di file giganteschi, `general.notify_min_score` regola quante notifiche ricevi.
 - **Libreria `steam`**: usa gevent; per questo gira in un sottoprocesso con timeout. Se l'installazione
   fallisce, il resto funziona e la sorgente Steam viene saltata con un errore nel log; il controllo di
   salute (`health`) avvisa su Telegram dopo 3 run di fila con errori e quando torna a funzionare.
+- **Rami di compilazione**: i nomi `buildworker\<ramo>` si trovano nei dump delle stringhe delle DLL, che GitHub
+  non mostra come patch: nei commit passano dal diff manuale (file fino a 25 MB), nella scansione completa
+  dal prefiltro. Un nome nuovo lo si vede quindi al più tardi alla scansione completa del giorno dopo.
+- **Struttura dei repository**: una chiamata all'API dei contenuti per posto a ogni run (circa dieci); GitHub
+  elenca al massimo 1000 voci per cartella, più che sufficienti per `game/` e `manifests/`.
 - **Fuso orario**: i dati restano in UTC (come GitHub, Steam e i runner di Actions, senza ambiguità con l'ora
   legale); orari mostrati, giorni dei report e ora del report giornaliero seguono `general.timezone`
   (default `Europe/Rome`), quindi il report resta alla stessa ora anche al cambio dell'ora.

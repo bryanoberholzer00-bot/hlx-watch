@@ -26,6 +26,7 @@ log = logging.getLogger(__name__)
 
 LABELS = {
     "discovery": "scoperta dei repository SteamTracking",
+    "structure": "struttura dei repository (cartelle, depot, Protobuf)",
     "github": "monitoraggio dei commit GitHub",
     "steam_pics": "Steam PICS (build e info dei giochi)",
     "steam_apps": "rilevamento delle app Steam nuove",

@@ -16,7 +16,7 @@ from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, utcnow
 
 log = logging.getLogger(__name__)
-ALL_SOURCES = ("discovery", "github", "steam", "local", "fullscan")
+ALL_SOURCES = ("discovery", "structure", "github", "steam", "local", "fullscan")
 SILENT_CHANGE_TYPES = ("baseline", "present")   # registrati senza avvisi (stato iniziale)
 
 
@@ -44,6 +44,8 @@ class Pipeline:
         self.full = FullScanSource(cfg, db)
         from hlxwatch.sources.discovery import RepoDiscovery
         self.discovery = RepoDiscovery(cfg, db, self.github.client)
+        from hlxwatch.sources.structure import StructureWatch
+        self.structure = StructureWatch(cfg, db, self.github.client)
         self.notifiers = load_notifiers(cfg)
         from hlxwatch.health import Health
         self.health = Health(cfg, db, self.notifiers)
@@ -71,6 +73,15 @@ class Pipeline:
                 log.exception("Scoperta dei repository fallita")
                 result.errors.append(f"discovery: {exc}")
                 status["discovery"] = str(exc)
+
+        if "structure" in sources:
+            try:
+                result.findings += self.structure.run()
+                status["structure"] = None
+            except Exception as exc:
+                log.exception("Controllo della struttura dei repository fallito")
+                result.errors.append(f"structure: {exc}")
+                status["structure"] = str(exc)
 
         if "github" in sources:
             try:

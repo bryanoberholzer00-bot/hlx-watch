@@ -101,10 +101,14 @@ first_seen:
   max_commit_pages: 20                   # fino a 2000 commit di storia per file
 
 codenames:
-  enabled: true                          # nomi di progetto mai visti dove Valve li scrive (mod != X, bug reporter, content/X)
+  enabled: true                          # nomi di progetto mai visti dove Valve li scrive (mod != X, bug reporter, content/X,
+                                         # rami di compilazione C:\buildworker\<ramo> nei dump delle DLL)
   score: 120                             # sopra la soglia alta: avviso immediato e voce in cronologia
   known: [csgo, cs2, dota, dota2, dota_lv, hlx, hlvr, "half-life vr", hl3, left4dead3, left4dead2_source2,
-          rpg, citadel, core, "source 2 tools", steamvr, steampal]
+          rpg, citadel, core, "source 2 tools", steamvr, steampal,
+          # rami di compilazione presenti oggi nei dump delle DLL (CS2, Dota 2, Deadlock, Alyx, SteamVR, client Steam)
+          csgo_rel_win64, source2_dota_rel_2019_win64, citadel_rel_win64, sdr_public_win64, sdl3_win32,
+          phonon_main_win64, steam_rel_client_win64, steam_rel_client_hotfix_win64, cef_win64]
   # i nomi presenti alla prima scansione completa vengono imparati senza avvisi (stato codenames:learned)
 
 watched_files:                           # ogni riga aggiunta o tolta diventa una voce, anche senza parole chiave
@@ -114,6 +118,12 @@ watched_files:                           # ogni riga aggiunta o tolta diventa un
   - pattern: "(^|/)gameinfo\\.gi$"
     title: "gameinfo.gi (definizione del gioco)"
     score: 50
+
+structure:                               # forma dei repository, senza parole chiave (una chiamata API per posto, a ogni run)
+  enabled: true
+  score: 100                             # cartella nuova sotto game/, depot nuovo in manifests/, cartella nuova nei Protobuf
+  score_removed: 60                      # voce sparita: sopra la soglia di notifica, ma sotto la rilevanza alta
+  # places: [{path: game, kind: dirs, title: "...", repos: games}]   repos = games | all | [nomi]; default nel codice
 
 archaeology:
   # giochi Source 2 dismessi, conservati da SteamTracking: solo per l'archeologia (comando `archeologia`),

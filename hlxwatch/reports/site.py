@@ -115,6 +115,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
         global_excludes=kw.get("global_excludes", []) or [], notify_min_score=cfg.get("general.notify_min_score", 50),
         project_names=sorted(CodenameTracker(cfg, db).known), codename_score=int((cfg.get("codenames", {}) or {}).get("score", 120)),
         watched_files=cfg.get("watched_files", []) or [],
+        structure_score=int((cfg.get("structure", {}) or {}).get("score", 100)),
         ai_model="Claude Opus 5.5", repo_url=str(cfg.get("general.repo_url", "https://github.com/bryanoberholzer00-bot/hlx-watch")),
     ), encoding="utf-8")
     from hlxwatch.timeline import build_entries
