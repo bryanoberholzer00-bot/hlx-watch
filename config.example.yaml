@@ -123,6 +123,17 @@ watched_files:                           # ogni riga aggiunta o tolta diventa un
   - pattern: "(^|/)gameinfo\\.gi$"
     title: "gameinfo.gi (definizione del gioco)"
     score: 50
+  - pattern: "^game/core/ai_[a-z0-9_]+\\.fgd$"
+    # definizioni condivise dei nemici: CS2 e Dota 2 non hanno nemici, eppure questi file cambiano proprio
+    # nelle date delle tracce HLX (2024-02-07, 2025-07-28, 2026-07-08, 2026-09-23...)
+    title: "definizioni condivise dei nemici (FGD del motore)"
+    score: 55
+    ignore: ["^metadata$", "^api_classes\\s*=", "^//"]   # righe tecniche e commenti
+  - pattern: "^game/core/base\\.fgd$"
+    # entità di base di tutti i giochi, CS2 compreso: ~50 righe a ogni fusione del motore, sul sito senza notifica
+    title: "definizioni condivise delle entità di base (FGD del motore)"
+    score: 40
+    ignore: ["^metadata$", "^api_classes\\s*=", "^//"]
 
 structure:                               # forma dei repository, senza parole chiave (una chiamata API per posto, a ogni run)
   enabled: true
@@ -136,6 +147,11 @@ localization:                            # famiglie di token nei file *_english.
   score_new_file: 100                    # file di localizzazione nuovo: un progetto nuovo ha i suoi file
   score_new_prefix: 60                   # famiglia nuova in un file esistente (i repository possono abbassarlo: loc_prefix_score)
   # le famiglie presenti vengono imparate alla prima scansione completa (stato locprefix:<gioco>)
+
+orphans:                                 # entità del motore condiviso senza classe in nessun gioco, helper di Hammer nuovi
+  enabled: true
+  score_entity: 100                      # entità senza padrone comparsa dopo l'apprendimento
+  score_helper: 90                       # helper di Hammer mai visto (di più se il nome contiene HLX)
 
 archaeology:
   # giochi Source 2 dismessi, conservati da SteamTracking: solo per l'archeologia (comando `archeologia`),

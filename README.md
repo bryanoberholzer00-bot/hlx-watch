@@ -72,7 +72,7 @@ hlx-watch/
    il monitoraggio dei commit non aveva già visto.
 6. Ogni riga interessante diventa un **finding** con punteggio, keyword, token, contesto e tipo di modifica
    (`added`, `removed`, `changed`, `file_added`, `file_removed`, `file_renamed`, `build`, `new_app`,
-   `new_repo`, `codename`, `structure`, `localization`).
+   `new_repo`, `codename`, `structure`, `localization`, `orphan`).
 7. **Deduplica**: il token (es. `hlx_fsr3_min_reactiveness`) o la riga normalizzata viene hashato in
    `seen_strings`. Solo le stringhe mai viste prima con punteggio sopra `notify_min_score` generano una
    notifica. Tutto il resto finisce comunque nello storico.
@@ -311,6 +311,17 @@ cartelle di `SteamTracking/Protobufs` (un protocollo di rete per gioco). Il prim
 (stato `structure:<gioco>:<percorso>`); poi ogni voce nuova è una voce `structure` da 100 punti (di più se il
 nome contiene una parola chiave) e ogni voce sparita una da 60. Vale anche per i dump delle DLL in `game/bin/win64`
 e in `game/<gamedir>/bin/win64` (chiave `gamedir` del repository). Sezione `structure` del config.
+
+`hlxwatch/analyzers/orphans.py` cerca le **entità senza padrone**: alla scansione completa legge le definizioni
+condivise delle entità (`game/core/*.fgd`), le classi C++ di ogni gioco (`DumpSource2/entities/server.fgd` e
+`client.fgd`) e gli helper del dump di Hammer. Un'entità che nessun gioco implementa appartiene a un altro progetto
+(Hammer fa lo stesso controllo: "fgd class(es) have no c++ entity class"). Il primo giro impara gli elenchi (oggi
+158 entità, per lo più ereditate da Half-Life 2, e 7 helper); poi ogni entità senza padrone nuova è una voce
+`orphan` da 100 punti e ogni helper nuovo una da 90 (di più se il nome contiene HLX). Sezione `orphans` del config.
+Le FGD condivise dei nemici (`game/core/ai_*.fgd`) sono anche tra i `watched_files` (55 punti): cambiano proprio nelle
+date delle tracce HLX. `base.fgd` è sorvegliato a 40 punti, sul sito senza notifica, perché contiene le entità di tutti
+i giochi. Le righe solo riformattate (`choices` diventato `intchoices`) o spostate nello stesso commit non contano, e
+la chiave `ignore` di un file sorvegliato scarta le righe tecniche (`metadata`, `api_classes`, commenti).
 
 `hlxwatch/analyzers/localization.py` guarda le **famiglie di token** dei file di localizzazione `*_english.txt`
 (`"CSGO_Cfg_Items" "Items"`: famiglia `csgo`), il posto in cui Valve è obbligata a scrivere il nome del progetto.

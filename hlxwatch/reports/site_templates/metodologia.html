@@ -50,6 +50,11 @@
   (un protocollo di rete per gioco): una voce che prima non c'era diventa una voce <code>structure</code> da
   {{ structure_score }} punti, anche se nessun file scrive il nome del progetto. Lo stesso per i dump delle DLL in
   <code>game/bin/win64</code> e nella cartella del gioco: una DLL nuova è un sottosistema nuovo.</li>
+  <li><b>Entità senza padrone.</b> Le definizioni delle entità per l'editor (<code>game/core/*.fgd</code>) arrivano in ogni gioco;
+  le classi C++ che le implementano solo nel gioco che le usa. Alla scansione completa giornaliera si confrontano tutti i
+  giochi insieme: un'entità che nessun gioco implementa, o un helper di Hammer mai visto, appartiene a un altro progetto.
+  Hammer stesso fa questo controllo. Le FGD condivise dei nemici sono anche file sorvegliati: CS2 e Dota 2 non hanno
+  nemici, ma quei file cambiano proprio nelle date delle tracce HLX.</li>
   <li><b>Famiglie di token di localizzazione.</b> Ogni testo a schermo è un token <code>"Famiglia_Nome"</code> nei file
   <code>*_english.txt</code> (<code>CSGO_</code>, <code>DOTA_</code>, <code>Citadel_</code>, <code>HLVR_</code>): è il posto in cui
   Valve è obbligata a scrivere il nome del progetto. Le famiglie presenti vengono imparate alla prima scansione completa;
@@ -106,6 +111,7 @@
   <tr><td><code>new_repo</code></td><td>nuovo repository nell'organizzazione SteamTracking</td></tr>
   <tr><td><code>codename</code></td><td>nome di progetto mai visto in uno dei posti dove Valve li scrive</td></tr>
   <tr><td><code>structure</code></td><td>cartella, depot, DLL o protocollo di rete comparso (o sparito) nella struttura di un repository</td></tr>
+  <tr><td><code>orphan</code></td><td>entità del motore condiviso senza classe in nessun gioco uscito, o helper di Hammer mai visto</td></tr>
   <tr><td><code>localization</code></td><td>file di localizzazione nuovo o famiglia di token di localizzazione mai vista</td></tr>
   <tr><td><code>new_app</code></td><td>nuova app Steam con un segnale (Valve, nome sospetto, parole chiave)</td></tr>
  </table>

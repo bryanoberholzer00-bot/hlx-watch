@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Any
 
 from hlxwatch.analyzers.codenames import PREFILTER as CODENAME_PREFILTER, CodenameTracker
+from hlxwatch.analyzers.orphans import OrphanTracker
 from hlxwatch.analyzers.localization import GREP_PATTERN as LOC_GREP, LocalizationTracker, prefix_counts
 from hlxwatch.analyzers import KeywordMatcher
 from hlxwatch.config import Config
@@ -55,6 +56,7 @@ class FullScanSource:
         self.prefilter = "|".join([self.fcfg.get("prefilter") or DEFAULT_PREFILTER, *codenames, CODENAME_PREFILTER])
         self.codenames = CodenameTracker(cfg, db)
         self.localization = LocalizationTracker(cfg, db)
+        self.orphans = OrphanTracker(cfg, db)
         self.ignore_patterns = [re.compile(p) for p in (cfg.get("github.ignore_path_patterns", []) or [])]
         self.max_per_repo = int(self.fcfg.get("max_findings_per_repo", 2000))
 
@@ -87,6 +89,8 @@ class FullScanSource:
             self.db.set_state("fullscan:last_at", iso(utcnow()))
             if not self.errors:
                 self.codenames.finish_learning()      # da qui in poi un nome mai visto è un avviso
+                # solo con tutti i repository letti: con un gioco mancante le sue classi sembrerebbero senza padrone
+                findings += self.orphans.finish()
         return findings
 
     # ------------------------------------------------------------------ git
@@ -148,6 +152,8 @@ class FullScanSource:
     def scan_repo(self, repo_cfg: dict[str, Any]) -> list[Finding]:
         name, repo = repo_cfg["name"], repo_cfg["repo"]
         path, sha = self.update_mirror(repo_cfg)
+        # entità e helper senza padrone: si raccolgono qui, il confronto tra tutti i giochi si fa alla fine del run
+        self.orphans.collect(repo_cfg, lambda args: self._git(args, cwd=path, check=False))
         loc_findings = self.localization.learn(name, self.token_counts(path),
                                                score_override=repo_cfg.get("loc_prefix_score"))
         for f in loc_findings:

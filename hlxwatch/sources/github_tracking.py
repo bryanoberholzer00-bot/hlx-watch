@@ -31,6 +31,12 @@ from hlxwatch.storage.db import iso, parse_iso, utcnow
 log = logging.getLogger(__name__)
 
 TRIVIAL_LINE = re.compile(r"[\s{}\[\]()/,;]*")      # parentesi e punteggiatura: non sono righe di contenuto
+
+
+def format_key(text: str) -> str:
+    """Una riga senza spazi né maiuscole, e con i tipi delle FGD unificati: nel 2026 Valve ha riscritto
+    "choices" in "intchoices" in tutte le FGD, e quelle righe non sono modifiche di contenuto."""
+    return re.sub(r"\s+", "", text).lower().replace("intchoices", "choices")
 BUILDID_RE = re.compile(r"build\s*id\D{0,5}(\d{5,})", re.IGNORECASE)
 STEAM_INF_RE = re.compile(r"^([+-])(ClientVersion|SourceRevision|VersionDate)=(.*)$", re.MULTILINE)
 
@@ -223,7 +229,8 @@ class GitHubTrackingSource:
         self.localization = LocalizationTracker(cfg, db)
         self._repo_by_name = {r["name"]: r for r in tracked_repos(cfg, db)}
         self.watched = [(re.compile(str(w["pattern"]), re.IGNORECASE), str(w.get("title", w["pattern"])),
-                         int(w.get("score", 50))) for w in (cfg.get("watched_files", []) or []) if w.get("pattern")]
+                         int(w.get("score", 50)), [re.compile(str(x)) for x in (w.get("ignore") or [])])
+                        for w in (cfg.get("watched_files", []) or []) if w.get("pattern")]
         self.context_lines = int(cfg.get("general.context_lines", 2))
         self.max_findings = int(cfg.get("general.max_findings_per_file", 400))
         self.fallback_max = int(cfg.get("github.fallback_max_bytes", 25 * 1024 * 1024))
@@ -384,8 +391,11 @@ class GitHubTrackingSource:
         out: list[Finding] = self.localization.check_file(
             name, path, (t for op, t in lines if op == "+"), file_added=(status == "added"),
             score_override=(self._repo_by_name.get(name) or {}).get("loc_prefix_score"))
-        watched = next(((title, score) for regex, title, score in self.watched if regex.search(path)), None)
+        watched = next(((title, score, ignore) for regex, title, score, ignore in self.watched if regex.search(path)), None)
         shown = 0
+        if watched:
+            plus = {format_key(t) for op, t in lines if op == "+"}
+            minus = {format_key(t) for op, t in lines if op == "-"}
         for op, text in lines:
             stripped = text.strip()
             if not stripped:
@@ -395,6 +405,9 @@ class GitHubTrackingSource:
                 f = self.codenames.check(text, path, game=name, change_type=change_type)
                 if f:
                     out.append(f)
+            if watched and (format_key(text) in (minus if op == "+" else plus)
+                            or any(x.search(stripped) for x in watched[2])):
+                continue                          # riga solo spostata o riformattata
             if watched and shown < 50 and not TRIVIAL_LINE.fullmatch(stripped) \
                     and matcher.analyze_line(text, file_path=path, change_type=change_type) is None:
                 out.append(Finding(game=name, source="github", file_path=path, change_type=change_type,
