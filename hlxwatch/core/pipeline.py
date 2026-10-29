@@ -158,8 +158,10 @@ class Pipeline:
         result.alerts = self.select_alerts(result.findings)
         if result.alerts:
             if notify and self.notifiers:
+                from hlxwatch.announcement import announcement_heading
                 sent = notify_findings(self.notifiers, result.alerts, self.cfg,
-                                       heading or f"HLX Watch: {len(result.alerts)} novità da controllare")
+                                       heading or announcement_heading(result.alerts)
+                                       or f"HLX Watch: {len(result.alerts)} novità da controllare")
                 if sent:
                     self.db.mark_notified(f.id for f in result.alerts if f.id is not None)
                 status["notify"] = None if sent else "invio a Telegram/Discord non riuscito"

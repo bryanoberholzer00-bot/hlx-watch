@@ -54,8 +54,11 @@ class WebPushNotifier(Notifier):
         if not groups:
             return True
         message = self.message(groups, self.site_url)
-        if "prova" in heading.lower():
-            message["urgente"] = True       # le notifiche di prova arrivano anche nell'orario di silenzio
+        if "prova" in heading.lower() or "annuncio" in heading.lower():
+            # le notifiche di prova e quelle di un possibile annuncio arrivano anche nell'orario di silenzio
+            message["urgente"] = True
+        if "annuncio" in heading.lower():
+            message["title"] = heading      # il titolo della notifica dice subito che è un possibile annuncio
         payload = {"message": message, "cursor": None}
         headers = {"Authorization": f"Bearer {self.secret}"}
         delivered, statuses = 0, {}

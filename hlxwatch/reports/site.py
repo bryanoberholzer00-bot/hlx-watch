@@ -124,6 +124,13 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     out_dir.mkdir(parents=True, exist_ok=True)
     env = Environment(loader=FileSystemLoader(str(TEMPLATES)), autoescape=select_autoescape(["html"]))
     titles = {g: ("Steam (nuove app)" if g == "steam" else cfg.game_title(g)) for g in db.stats()["games"]}
+    from hlxwatch.announcement import extra_watch
+    for repo in tracked_repos(cfg, db):                  # repository seguiti da soli: il loro titolo, non la chiave
+        titles.setdefault(repo["name"], repo.get("title", repo["name"]))
+        if titles[repo["name"]] == repo["name"]:
+            titles[repo["name"]] = repo.get("title", repo["name"])
+    for app in extra_watch(db):
+        titles[app["name"]] = app["title"]
     env.globals.update(version=__version__, titles=titles,
                        generated=f"{now_local().strftime('%Y-%m-%d %H:%M')} ({tz_label()})")
     register_filters(env)

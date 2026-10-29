@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from hlxwatch.links import steam_app_history_url, steam_build_url
+from hlxwatch import announcement
 from hlxwatch.analyzers import KeywordMatcher, analyze_line_sets
 from hlxwatch.config import PACKAGE_ROOT, Config
 from hlxwatch.models import BuildInfo, Finding
@@ -56,6 +57,18 @@ class SteamPicsSource:
         self.context_lines = int(cfg.get("general.context_lines", 2))
         self.max_findings = int(cfg.get("general.max_findings_per_file", 400))
 
+    def watch_apps(self) -> list[dict[str, Any]]:
+        """App del config più quelle aggiunte dal piano annuncio (stato steam:watch_extra)."""
+        apps = list(self.cfg.steam_watch_apps)
+        seen = {int(a["appid"]) for a in apps}
+        for app in announcement.extra_watch(self.db):
+            if int(app["appid"]) not in seen:
+                apps.append(app)
+                seen.add(int(app["appid"]))
+                self.matchers.setdefault(str(app["name"]), KeywordMatcher(self.cfg.keywords,
+                                                                          ignore_ids=app.get("ignore_keywords") or []))
+        return apps
+
     # --------------------------------------------------------------- worker
     def call_worker(self, apps: list[int], since: int = -1) -> dict[str, Any]:
         cmd = [sys.executable, "-m", "hlxwatch.sources.steam_pics_worker",
@@ -86,7 +99,7 @@ class SteamPicsSource:
         """Ritorna (finding, appid cambiati dall'ultimo change number)."""
         if not self.cfg.get("steam.enabled", True):
             return [], []
-        watch = self.cfg.steam_watch_apps
+        watch = self.watch_apps()
         appids = [int(a["appid"]) for a in watch]
         since = int(self.db.get_state("steam:changenumber") or 0)
         log.info("Steam PICS: login anonimo, info per %d app, modifiche dal change %s", len(appids), since or "n/d")

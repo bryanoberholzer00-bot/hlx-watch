@@ -17,6 +17,7 @@ from typing import Any, Iterable
 import requests
 
 from hlxwatch import __version__
+from hlxwatch import announcement
 from hlxwatch.analyzers import KeywordMatcher
 from hlxwatch.config import Config
 from hlxwatch.models import BuildInfo, Finding
@@ -213,6 +214,13 @@ class SteamNewAppsSource:
             game="steam", source="steam_apps", file_path=f"app/{appid}", change_type="new_app", text=text,
             score=score, keywords=tags, token=f"app:{appid}", context="\n".join(reasons + [""] + lines[:80]),
         )
+        if "valve_app" in tags and announcement.enabled(self.cfg) and announcement.looks_like_hlx(name):
+            # piano annuncio: un'app di Valve con un nome Half-Life è probabilmente la pagina del gioco
+            announcement.mark(finding, self.cfg)
+            added = announcement.add_watch(self.db, self.cfg, appid, name or "")
+            if added:
+                finding.context = f"aggiunta alle app seguite su Steam come '{added['name']}'\n" + finding.context
+                log.warning("POSSIBILE ANNUNCIO: app %s (%s) di Valve, ora seguita su Steam", appid, name)
         finding.build = build
         self.db.add_finding(finding, build_id)
         if flagged:

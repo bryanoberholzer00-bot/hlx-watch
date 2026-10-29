@@ -476,6 +476,17 @@ di file giganteschi, `general.notify_min_score` regola quante notifiche ricevi.
   `steam.new_apps.max_lookup_per_run` per run), così un'app Valve che prende un nome non va persa. Le build dei
   giochi seguiti non ne risentono: vengono lette a ogni run.
 
+## Piano annuncio
+
+Se Valve annuncia un gioco Half-Life, HLX Watch lo vede da due parti: un'app Steam nuova di Valve con un nome
+Half-Life (la pagina store) e un repository nuovo di SteamTracking. `hlxwatch/announcement.py` fa sì che arrivi
+**un solo avviso grande** ("POSSIBILE ANNUNCIO", 200 punti, titolo dedicato, notifica di sistema anche
+nell'orario di silenzio) invece di un'ondata: nel repository del gioco "hlx" compare in ogni riga, quindi lì le
+parole della famiglia HLX vengono ignorate, come per Half-Life: Alyx. L'app Steam viene aggiunta da sola ai giochi
+seguiti (stato `steam:watch_extra`), così se ne registrano build e rami. Le tracce HLX negli altri giochi restano
+attive: se cambiano prefisso verso il nome definitivo le prende il rilevatore delle rinomine. Sezione
+`announcement` del config. L'app Android ha un suo orario di silenzio e non è toccata da questa regola.
+
 ## Test
 
 ```powershell

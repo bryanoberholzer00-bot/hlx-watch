@@ -14,6 +14,7 @@ import json
 import logging
 from typing import Any
 
+from hlxwatch import announcement
 from hlxwatch.analyzers import KeywordMatcher
 from hlxwatch.config import Config
 from hlxwatch.models import BuildInfo, Finding
@@ -81,6 +82,8 @@ class RepoDiscovery:
             score = max(score, res.score + 20)
             keywords += res.keywords
         followed = False
+        # piano annuncio: un repository con HLX o Half-Life nel nome è probabilmente il gioco stesso
+        is_hlx = announcement.enabled(self.cfg) and announcement.looks_like_hlx(name, description)
         if name.startswith("GameTracking-") and self.dcfg.get("auto_follow", True):
             key = game_key(name)
             existing = {r["name"] for r in tracked_repos(self.cfg, self.db)}
@@ -90,9 +93,11 @@ class RepoDiscovery:
                 "name": key, "title": name.split("GameTracking-", 1)[1] or name, "repo": full_name,
                 "branch": repo.get("default_branch") or "master", "since": repo.get("created_at"),
                 "auto": True,
+                # nel repository del gioco "hlx" è ovunque: come per Alyx, le parole HLX non contano
+                **({"ignore_keywords": announcement.hlx_family(self.cfg), "announcement": True} if is_hlx else {}),
             })
             followed = True
-            text += " (ora seguito automaticamente)"
+            text += " (ora seguito automaticamente" + (", senza le parole HLX" if is_hlx else "") + ")"
         build = BuildInfo(game="steamtracking", source="github", ref=f"repo:{full_name}",
                           date=parse_iso(repo.get("created_at")) or utcnow(), url=repo.get("html_url"),
                           message=text[:500])
@@ -101,6 +106,8 @@ class RepoDiscovery:
                           text=text, score=min(score, 250), keywords=keywords, token=f"repo:{full_name.lower()}",
                           context=json.dumps({k: repo.get(k) for k in ("created_at", "description", "default_branch",
                                                                         "html_url")}, ensure_ascii=False))
+        if is_hlx:
+            announcement.mark(finding, self.cfg)
         finding.build = build
         self.db.add_finding(finding, build_id)
         log.info("NUOVO repository %s (punteggio %d)%s", full_name, finding.score, " - seguito" if followed else "")
