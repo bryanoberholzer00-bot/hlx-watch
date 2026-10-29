@@ -279,6 +279,13 @@ token, file, tipo di modifica e link al commit. Telegram: stesso contenuto in HT
 caratteri. Le nuove build Steam valgono `steam.build_score` (55): sopra la soglia di default, quindi
 notificate; abbassalo se non ti interessano.
 
+### Bonus e parole generiche
+
+I bonus (file nuovo, entità FGD, convar, percorso) valgono solo per parole chiave con peso almeno
+`keywords.bonus_min_weight` (40): così `npc_` (15) + file nuovo + percorso non arriva più a 50 e non fa
+rumore nei report. Le parole generiche (`npc`, `vehicle`, `weather`, `physics`) hanno `path_excludes` per i
+cosmetici (`particles/econ/`), gli eroi (`npc_dota_hero_`) e gli script di Dota.
+
 ### Universo Half-Life nel motore condiviso
 
 La parola chiave `hl_universe` (45 punti) cerca creature, armi, luoghi e personaggi di Half-Life (antlion,

@@ -128,6 +128,9 @@ class KeywordMatcher:
         self.global_excludes = [_compile(x) for x in keyword_cfg.get("global_excludes", []) or []]
         self.bonuses = {**DEFAULT_BONUSES, **(keyword_cfg.get("bonuses") or {})}
         self.severity = {**DEFAULT_SEVERITY, **(keyword_cfg.get("severity") or {})}
+        # i bonus (file nuovo, entità FGD, convar, percorso) valgono solo per parole chiave almeno così forti:
+        # due bonus su "npc_" (15) non devono trasformare un file di eroi di Dota in un avviso
+        self.bonus_min_weight = int(keyword_cfg.get("bonus_min_weight", 40))
         self.ignore = {str(x) for x in ignore_ids}
 
     # ------------------------------------------------------------------ base
@@ -194,26 +197,26 @@ class KeywordMatcher:
         bonuses: list[str] = []
         best = max(matches, key=lambda m: m.keyword.weight)
         token = self.extract_token(text, best)
+        entity = fgd_entity_name(text) if file_path.lower().endswith(".fgd") else None
+        if entity:
+            token = entity
 
-        if change_type in ("file_added",):
-            score += self.bonuses["new_file"]
-            bonuses.append("new_file")
-        elif change_type == "file_removed":
-            score += self.bonuses["removed_file"]
-            bonuses.append("removed_file")
-
-        if file_path.lower().endswith(".fgd"):
-            entity = fgd_entity_name(text)
+        if best.keyword.weight >= self.bonus_min_weight:
+            if change_type in ("file_added",):
+                score += self.bonuses["new_file"]
+                bonuses.append("new_file")
+            elif change_type == "file_removed":
+                score += self.bonuses["removed_file"]
+                bonuses.append("removed_file")
             if entity:
                 score += self.bonuses["fgd_entity"]
                 bonuses.append("fgd_entity")
-                token = entity
-        if convar_bonus(file_path, text):
-            score += self.bonuses["convar"]
-            bonuses.append("convar")
-        if token and is_path_like(token):
-            score += self.bonuses["path"]
-            bonuses.append("path")
+            if convar_bonus(file_path, text):
+                score += self.bonuses["convar"]
+                bonuses.append("convar")
+            if token and is_path_like(token):
+                score += self.bonuses["path"]
+                bonuses.append("path")
 
         return LineResult(
             score=min(score, MAX_SCORE),

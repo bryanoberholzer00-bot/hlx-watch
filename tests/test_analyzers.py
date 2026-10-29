@@ -88,6 +88,20 @@ def test_binary_garbage_is_ignored(matcher):
     assert res is not None and res.token == "hlx_core"
 
 
+def test_bonuses_only_for_strong_keywords(matcher):
+    # un file di eroi di Dota: parola generica npc_ + file nuovo + percorso non devono arrivare a 50
+    res = matcher.analyze_line("game/csgo/scripts/npc/npc_axe.txt", file_path="game/csgo/scripts/npc/npc_axe.txt",
+                               change_type="file_added")
+    assert res is not None and res.score == 15 and res.bonuses == []
+    # parole forti: i bonus restano
+    res = matcher.analyze_line("maps/hlx_01.vpk", file_path="maps/hlx_01.vpk", change_type="file_added")
+    assert "new_file" in res.bonuses and res.score >= 130
+    # cosmetici ed eroi di Dota: le parole generiche non contano
+    assert matcher.analyze_line("npc_dota_hero_axe", file_path="game/dota/pak01_dir/scripts/npc/heroes/npc_dota_hero_axe.txt") is None
+    assert matcher.analyze_line("vehicle_cart", file_path="game/dota/pak01_dir/particles/econ/events/x.vpcf") is None
+    assert matcher.analyze_line("npc_citizen", file_path="x.h").keywords == ["hl_universe", "npc"]
+
+
 def test_hl2_achievements_are_low(matcher):
     res = matcher.analyze_line('"[english]HLX_KILL_ENEMIES_WITHPHYSICS_NAME" "Bone Breaker"',
                                file_path="game/csgo/resource/csgo_english.txt")

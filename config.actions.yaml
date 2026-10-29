@@ -208,6 +208,7 @@ dashboard:
 # ------------------------------------------------------------
 keywords:
   severity: {high: 100, medium: 50}
+  bonus_min_weight: 40  # i bonus qui sotto valgono solo per parole chiave con peso almeno 40
   bonuses:
     new_file: 20          # file aggiunto
     removed_file: 10
@@ -252,7 +253,7 @@ keywords:
     - id: hl_universe
       # creature, armi, luoghi e personaggi di Half-Life nei file condivisi di CS2, Dota 2 e Deadlock
       # (esclusa Alyx). 45 punti: sotto la soglia di notifica, ma un'entità FGD o un file nuovo la superano.
-      pattern: "(?<![a-z0-9])(antlions?|headcrabs?|vortigaunts?|manhacks?|hopper[ _]?mines?|houndeyes?|bullsquids?|nihilanth|zombine|combine[ _](soldier|elite|guard|metrocop|gunship|dropship|strider|barrier|overwatch|citadel)|npc_combine[a-z0-9_]*|npc_strider|npc_antlion[a-z0-9_]*|npc_headcrab[a-z0-9_]*|npc_zombie[a-z0-9_]*|gravity[ _]?gun|hev[ _]?suit|crowbar|black[ _]?mesa|city[ _]?17|nova[ _]?prospekt|ravenholm|gordon[ _]freeman|g[ _-]?man(?![a-z])|xen(?![a-z0-9]))"
+      pattern: "(?<![a-z0-9])(antlions?|headcrabs?|vortigaunts?|manhacks?|hopper[ _]?mines?|houndeyes?|bullsquids?|nihilanth|zombine|combine[ _](soldier|elite|guard|metrocop|gunship|dropship|strider|barrier|overwatch|citadel)|npc_combine[a-z0-9_]*|npc_strider|npc_citizen[a-z0-9_]*|npc_antlion[a-z0-9_]*|npc_headcrab[a-z0-9_]*|npc_zombie[a-z0-9_]*|gravity[ _]?gun|hev[ _]?suit|crowbar|black[ _]?mesa|city[ _]?17|nova[ _]?prospekt|ravenholm|gordon[ _]freeman|g[ _-]?man(?![a-z])|xen(?![a-z0-9]))"
       weight: 45
       description: "universo Half-Life nel motore condiviso"
       excludes: ["hlx_kill_"]            # gli obiettivi HLX_KILL_* di Half-Life 2 restano a 30 punti
@@ -266,15 +267,19 @@ keywords:
       pattern: "(?<![a-z0-9])(npc_[a-z0-9_]+|ai_basenpc|cai_basenpc|ai_base_npc)"
       weight: 15
       description: "classi NPC / AI"
+      path_excludes: ["/particles/econ/", "npc_dota_hero_", "/dota/pak01_dir/scripts/npc/", "/dota_addons/"]   # cosmetici ed eroi di Dota
     - id: vehicle
       pattern: "(?<![a-z0-9])(prop_vehicle[a-z0-9_]*|vehicle_[a-z0-9_]+)"
       weight: 12
       description: "veicoli"
+      path_excludes: ["/particles/econ/", "npc_dota_hero_", "/dota/pak01_dir/scripts/npc/", "/dota_addons/"]   # cosmetici ed eroi di Dota
     - id: weather
       pattern: "(?<![a-z0-9])(wind_[a-z0-9_]+|weather_[a-z0-9_]+|thermodynamic[a-z]*|thermal_[a-z0-9_]+|heat_?sim[a-z0-9_]*)"
       weight: 12
       description: "vento / meteo / termodinamica"
+      path_excludes: ["/particles/econ/", "npc_dota_hero_", "/dota/pak01_dir/scripts/npc/", "/dota_addons/"]   # cosmetici ed eroi di Dota
     - id: physics
       pattern: "(?<![a-z0-9])(phys_[a-z0-9_]+|rubikon[a-z0-9_]*)"
       weight: 6
       description: "fisica (molto generico)"
+      path_excludes: ["/particles/econ/", "npc_dota_hero_", "/dota/pak01_dir/scripts/npc/", "/dota_addons/"]   # cosmetici ed eroi di Dota
