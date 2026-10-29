@@ -25,6 +25,7 @@
   <tr><td>Organizzazione <a href="https://github.com/SteamTracking">SteamTracking</a></td><td>elenco dei repository: uno nuovo (GameTracking-*) indica di solito un gioco Valve con file su Steam</td><td><small>a ogni run; i nuovi GameTracking-* vengono seguiti da soli dalla data di creazione</small></td></tr>
   <tr><td>Steam PICS (login anonimo)</td><td>build per branch, depot, metadati di {{ steam_apps|join(', ') }}; elenco delle app cambiate</td><td><small>a ogni run</small></td></tr>
   <tr><td>Steam Web API</td><td>elenco completo delle app, per riconoscere quelle nuove</td><td><small>una volta al giorno</small></td></tr>
+  <tr><td>Annunci di Steam (ISteamNews)</td><td>post ufficiali di Valve nella sezione Annunci di {{ news_apps|join(', ') }}</td><td><small>a ogni run, senza chiave; per Steam, SteamVR e Steam Deck solo i post che non sono note di aggiornamento</small></td></tr>
  </table>
  <p class="muted">I repository SteamTracking contengono file estratti dai giochi e dump generati da strumenti
  (stringhe dei binari, schemi del motore, ConVar). HLX Watch è quindi una fonte <b>secondaria</b>: dipende da
@@ -99,6 +100,10 @@
   <li><b>Piano annuncio.</b> Un'app Steam nuova di Valve o un repository nuovo di SteamTracking con HLX o Half-Life nel
   nome diventano un solo avviso "possibile annuncio". Nel repository del gioco le parole HLX non contano (sono
   ovunque, come Half-Life in quello di Alyx) e l'app viene aggiunta da sola ai giochi seguiti su Steam.</li>
+  <li><b>Post ufficiali di Valve.</b> Le altre fonti vedono un annuncio dagli effetti; questa lo vede quando Valve lo
+  pubblica. Un post nella sezione Annunci di Steam che parla di un Half-Life nuovo (HLX, Half-Life 3, "Half-Life: un
+  titolo mai visto") è un possibile annuncio; i titoli già usciti, come Alyx o Episode Two, non contano. Ogni altro post
+  resta in archivio con pochi punti, senza avviso.</li>
   <li><b>Riassunti di SteamTracking.</b> Dal 4 ottobre 2026 SteamTracking fa leggere ogni aggiornamento a una squadra di
   agenti Claude e pubblica un riassunto come commento sul commit. La pagina iniziale lo mostra accanto alla build; una
   riga che parla di HLX, o che sta nella sezione sugli altri giochi e progetti non annunciati, diventa una voce con avviso.</li>
@@ -209,6 +214,16 @@
  Valve porta periodicamente il ramo principale di Source 2 in tutti i giochi, quindi quella riga viaggia con il codice
  condiviso e non indica lavoro nuovo sul gioco in cui compare. La pagina <a href="esiti.html">Esiti</a> segue ogni traccia
  HLX fino al suo esito: ancora presente, rinominata (e dove è finita), sparita.</p>
+</section>
+
+<section id="prova">
+ <h2>Prova generale dell'annuncio</h2>
+ <p>Un avviso che serve una volta sola va provato prima. La prova generale manda un finto "possibile annuncio", con
+ scritto chiaramente PROVA GENERALE, su Telegram, nelle notifiche del sito e nell'app Android, anche nell'orario di
+ silenzio. Non entra nell'archivio: resta per 12 ore in <a href="bot/ultime.json">bot/ultime.json</a>, il tempo perché
+ l'app la legga. La lancia a mano chi gestisce HLX Watch, dal workflow su GitHub (opzione "Prova generale dell'annuncio")
+ o con <code>python -m hlxwatch prova-annuncio</code>. La data dell'ultima prova è nello stato delle fonti, in pagina iniziale.</p>
+ <p class="muted">Se ricevi questa notifica: Valve non ha annunciato niente, è solo un controllo che la catena funziona.</p>
 </section>
 
 <section>

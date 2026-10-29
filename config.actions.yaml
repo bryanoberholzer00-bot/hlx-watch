@@ -178,6 +178,22 @@ announcement:                            # piano annuncio: repository o app Stea
   enabled: true                          # un solo avviso "possibile annuncio" (anche nell'orario di silenzio),
   score: 200                             # parole HLX ignorate nel repository del gioco, app Steam seguita da sola
 
+steam_news:                              # post ufficiali di Valve su Steam (ISteamNews, senza chiave, una chiamata per app)
+  enabled: true                          # un Half-Life nuovo nel titolo o nel testo = possibile annuncio
+  score: 40                              # ogni altro post: in archivio, senza avviso
+  score_auto_app: 120                    # post delle app Half-Life aggiunte da sole dal piano annuncio: sempre con avviso
+  min_keyword_score: 90                  # una riga che le parole chiave valutano di più alza il punteggio del post
+  max_age_days: 3                        # post più vecchi mai visti (dopo uno stop): in archivio con la loro data
+  apps:                                  # nome e titolo vengono da steam.watch_apps se l'appid è lì
+    - {appid: 70}
+    - {appid: 220}
+    - {appid: 380}
+    - {appid: 420}
+    - {appid: 546560}
+    - {appid: 250820,  name: steamvr,     title: "SteamVR",    patchnotes: false}   # solo i post che non sono note
+    - {appid: 593110,  name: steamclient, title: "Client Steam", patchnotes: false}   # di aggiornamento: escono ogni
+    - {appid: 1675200, name: steamdeck,   title: "Steam Deck", patchnotes: false}   # settimana
+
 esiti:                                   # registro degli esiti delle tracce HLX (pagina esiti.html)
   manuali:                               # esiti che lo strumento non può dimostrare da solo
     - match: "hlx_physics_particle_spawner"

@@ -33,6 +33,7 @@ LABELS = {
     "structure": "struttura dei repository (cartelle, depot, Protobuf)",
     "github": "monitoraggio dei commit GitHub",
     "summaries": "riassunti automatici di SteamTracking",
+    "steam_news": "post ufficiali di Valve su Steam",
     "steam_pics": "Steam PICS (build e info dei giochi)",
     "steam_apps": "rilevamento delle app Steam nuove",
     "fullscan": "scansione completa giornaliera",

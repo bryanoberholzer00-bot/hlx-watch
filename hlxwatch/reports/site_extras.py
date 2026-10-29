@@ -85,7 +85,9 @@ def source_status(cfg: Config, db: Database) -> dict[str, Any]:
             problems.append({"source": key.split(":", 1)[1], "fails": int(info["fails"]),
                              "last_ok": local_day(info.get("last_ok")) if info.get("last_ok") else None})
     gap = db.get_state("steam:changes_gap_at")
+    from hlxwatch.announcement import drill_state
     return {
+        "drill": drill_state(db),
         "repos": rows, "problems": problems,
         "last_scan": db.get_state("last_scan_at"), "last_fullscan": db.get_state("fullscan:last_at"),
         "changes_gap": gap, "changes_gap_recent": bool(gap and (_days_ago(gap) or 0) < 2),

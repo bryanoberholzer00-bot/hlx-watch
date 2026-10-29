@@ -79,3 +79,46 @@ def add_watch(db: Database, cfg: Config, appid: int, title: str) -> dict[str, An
     current.append(app)
     db.set_state(STATE_WATCH, json.dumps(current, ensure_ascii=False))
     return app
+
+
+# ------------------------------------------------------------------ prova generale
+# Un finto "possibile annuncio", ben segnato come prova, mandato su ogni canale (Telegram, notifiche del sito, app
+# Android) per controllare tutta la catena prima che serva davvero. Non entra nell'archivio: resta solo lo stato
+# `announcement:drill`, che il sito mostra e che mette la prova in bot/ultime.json per DRILL_HOURS ore, il tempo
+# perché l'app Android la legga anche se il telefono controlla di rado.
+DRILL_STATE = "announcement:drill"
+DRILL_HEADING = "HLX Watch: PROVA GENERALE dell'annuncio (non è un annuncio vero)"
+DRILL_TEXT = "PROVA GENERALE: Valve non ha annunciato niente. Se leggi questo, l'avviso di annuncio funziona"
+DRILL_HOURS = 12
+
+
+def drill_state(db: Database) -> dict[str, Any] | None:
+    try:
+        data = json.loads(db.get_state(DRILL_STATE) or "null")
+    except ValueError:
+        return None
+    return data if isinstance(data, dict) and data.get("at") else None
+
+
+def run_drill(cfg: Config, db: Database, notifiers: list) -> bool:
+    from hlxwatch.notifiers import notify_findings
+    from hlxwatch.storage.db import iso, utcnow
+    finding = Finding(game="hlxwatch", source="prova", file_path="prova generale del piano annuncio",
+                      change_type="prova", text=DRILL_TEXT, score=score(cfg), keywords=[KEYWORD, "prova"],
+                      context="prova lanciata a mano", is_new=True)
+    ok = notify_findings(notifiers, [finding], cfg, DRILL_HEADING) if notifiers else False
+    db.set_state(DRILL_STATE, json.dumps({"at": iso(utcnow()), "ok": ok, "canali": [n.name for n in notifiers]}))
+    return ok
+
+
+def drill_item(db: Database, site_url: str) -> dict[str, Any] | None:
+    """La voce di prova per bot/ultime.json (campo "p": l'app Android la presenta come prova), se è recente."""
+    from hlxwatch.storage.db import parse_iso, utcnow
+    from hlxwatch.timeutil import local, local_day
+    state = drill_state(db)
+    when = parse_iso(state["at"]) if state else None
+    if when is None or (utcnow() - when).total_seconds() > DRILL_HOURS * 3600:
+        return None
+    return {"s": 200, "g": "HLX Watch", "t": "prova", "k": f"PROVA GENERALE {local(state['at'])}",
+            "x": DRILL_TEXT, "f": "", "d": local_day(state["at"]), "n": 1, "u": f"{site_url}metodologia.html#prova",
+            "ul": "Metodologia", "a": 1, "p": 1, "c": state["at"]}

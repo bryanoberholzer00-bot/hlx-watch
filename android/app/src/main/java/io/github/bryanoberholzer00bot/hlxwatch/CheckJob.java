@@ -172,10 +172,17 @@ public class CheckJob extends JobService {
         String title;
         String url;
         boolean announcement = false;
+        boolean drillOnly = true;           // prova generale (campo "p"): stesso percorso, ma il titolo lo dice
         for (JSONObject it : fresh) {
-            if (it.optInt("a") == 1) announcement = true;
+            if (it.optInt("a") == 1) {
+                announcement = true;
+                if (it.optInt("p") != 1) drillOnly = false;
+            }
         }
-        if (announcement) {
+        if (announcement && drillOnly) {
+            title = "HLX Watch: PROVA GENERALE dell'annuncio";
+            url = MainActivity.HOME + "metodologia.html#prova";
+        } else if (announcement) {
             title = "HLX Watch: POSSIBILE ANNUNCIO di Valve";
             url = MainActivity.HOME + "search.html?min=200";
         } else if (fresh.size() == 1) {

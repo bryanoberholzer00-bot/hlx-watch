@@ -20,6 +20,7 @@ from hlxwatch.reports.daily import collect_report_data, render_html
 from hlxwatch.repos import tracked_repos
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, utcnow
+from hlxwatch.sources.steam_news import SteamNewsSource
 from hlxwatch.outcomes import engine_merge_index, merge_partners, outcome_register
 from hlxwatch.analyzers.codenames import CodenameTracker
 from hlxwatch.links import link_label
@@ -202,6 +203,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     kw = cfg.keywords
     (out_dir / "metodologia.html").write_text(env.get_template("metodologia.html").render(
         repos=tracked_repos(cfg, db), steam_apps=[a.get("title", a.get("name")) for a in cfg.steam_watch_apps],
+        news_apps=[a["title"] for a in SteamNewsSource(cfg, db).apps()],
         full_scan={**{"interval_hours": 24, "min_score": 50, "prefilter": ""}, **(cfg.get("full_scan", {}) or {})},
         keywords=kw.get("items", []), codenames=kw.get("codenames", []) or [], codename_weight=kw.get("codename_weight", 30),
         bonuses=kw.get("bonuses", {}) or {}, severity={"high": 100, "medium": 50, **(kw.get("severity") or {})},

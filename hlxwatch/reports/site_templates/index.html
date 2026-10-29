@@ -90,7 +90,8 @@
  <h2 style="margin-top:1.2rem">Stato delle fonti</h2>
  <p class="muted"><small>Tutto dipende da SteamTracking, mantenuto da una sola persona, e da Steam. Se una fonte tace si vede qui,
  invece di sembrare "nessuna novità". Ultimo controllo {{ status.last_scan|local if status.last_scan else 'mai' }};
- ultima scansione completa {{ status.last_fullscan|local if status.last_fullscan else 'mai' }}.</small></p>
+ ultima scansione completa {{ status.last_fullscan|local if status.last_fullscan else 'mai' }};
+ ultima <a href="metodologia.html#prova">prova generale dell'annuncio</a>: {% if status.drill %}{{ status.drill.at|local }}{% if not status.drill.ok %} (invio non riuscito){% endif %}{% else %}mai{% endif %}.</small></p>
  <table>
   <tr><th>Repository</th><th>Ultimo commit</th><th>Ultimo riassunto AI</th></tr>
   {% for r in status.repos %}

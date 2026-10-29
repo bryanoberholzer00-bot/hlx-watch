@@ -276,6 +276,20 @@ def cmd_test_notify(args: argparse.Namespace) -> int:
     return 0 if ok else 1
 
 
+def cmd_drill(args: argparse.Namespace) -> int:
+    """Prova generale del piano annuncio: un finto annuncio, segnato come prova, su ogni canale."""
+    cfg, db = _open(args)
+    from hlxwatch.announcement import DRILL_HOURS, run_drill
+    from hlxwatch.notifiers import load_notifiers
+    notifiers = load_notifiers(cfg)
+    if not notifiers:
+        print("Nessun notificatore abilitato: controlla notifiers.* in config.yaml e i valori in .env")
+    ok = run_drill(cfg, db, notifiers)
+    print(("Prova generale inviata a: " + ", ".join(n.name for n in notifiers)) if ok else "Prova generale: invio fallito")
+    print(f"L'app Android la trova nel sito per {DRILL_HOURS} ore, dopo che il sito è stato rigenerato")
+    return 0 if ok else 1
+
+
 # ------------------------------------------------------------------ parser
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="hlxwatch", description=f"HLX Watch {__version__}")
@@ -289,7 +303,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("scan", help="una scansione completa di tutte le sorgenti")
     p.add_argument("--sources", default="github,steam,local,fullscan",
-                   help="elenco separato da virgola: github,steam,local,fullscan (la scansione completa parte solo se è dovuta)")
+                   help="elenco separato da virgola: github,summaries,news,steam,local,fullscan (la scansione completa parte solo se è dovuta)")
     p.add_argument("--repo", action="append", help="limita a un repo per nome (cs2, dota2, deadlock); ripetibile")
     p.add_argument("--max-commits", type=int, help="commit massimi per repo (0 = tutti)")
     p.add_argument("--no-notify", action="store_true", help="non inviare notifiche")
@@ -367,6 +381,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--min-score", type=int, default=0)
     p.add_argument("--limit", type=int, default=50)
     p.set_defaults(func=cmd_search)
+
+    p = sub.add_parser("prova-annuncio", help="prova generale: un finto annuncio, segnato come prova, su ogni canale")
+    p.set_defaults(func=cmd_drill)
 
     p = sub.add_parser("test-notify", help="invia una notifica di prova a Discord/Telegram")
     p.set_defaults(func=cmd_test_notify)

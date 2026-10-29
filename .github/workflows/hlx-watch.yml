@@ -27,6 +27,10 @@ on:
         description: "Invia una notifica di prova (Telegram e notifiche di sistema)"
         type: boolean
         default: false
+      prova_annuncio:
+        description: "Prova generale dell'annuncio: un finto annuncio, segnato come prova, su Telegram, sito e app"
+        type: boolean
+        default: false
       analyze:
         description: "Esegui subito l'analisi AI (anche senza novità)"
         type: boolean
@@ -127,6 +131,10 @@ jobs:
       - name: Notifica di prova
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_notify == 'true'
         run: python -m hlxwatch test-notify
+
+      - name: Prova generale dell'annuncio
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.prova_annuncio == 'true'
+        run: python -m hlxwatch prova-annuncio
 
       - name: "Analisi AI su richiesta (prima del giro automatico, per non pagare due volte)"
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.analyze == 'true'

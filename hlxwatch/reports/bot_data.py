@@ -67,6 +67,10 @@ def export_bot_data(db: Database, cfg: Config, out_dir: Path, site_url: str) -> 
                                                         exclude_change_type=("baseline", "present"))]
     recent = _group([_row(r) for r in recent_rows if not is_generic(r, generic)])
     ultime = [dict(_item(cfg, db, r), c=r.get("created_at") or "") for r in recent[:15]]
+    from hlxwatch.announcement import drill_item
+    drill = drill_item(db, site_url if site_url.endswith("/") else site_url + "/")
+    if drill:
+        ultime.insert(0, drill)
     (bot / "ultime.json").write_text(json.dumps(ultime, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
     rows = _group([_row(r) for r in db.search_findings(min_score=INDEX_MIN_SCORE, limit=20000, order="score",

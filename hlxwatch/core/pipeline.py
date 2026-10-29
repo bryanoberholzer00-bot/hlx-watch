@@ -16,7 +16,7 @@ from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, utcnow
 
 log = logging.getLogger(__name__)
-ALL_SOURCES = ("discovery", "structure", "github", "summaries", "steam", "local", "fullscan")
+ALL_SOURCES = ("discovery", "structure", "github", "summaries", "news", "steam", "local", "fullscan")
 SILENT_CHANGE_TYPES = ("baseline", "present")   # registrati senza avvisi (stato iniziale)
 
 
@@ -48,6 +48,8 @@ class Pipeline:
         self.structure = StructureWatch(cfg, db, self.github.client)
         from hlxwatch.sources.summaries import CommitSummaries
         self.summaries = CommitSummaries(cfg, db, self.github.client)
+        from hlxwatch.sources.steam_news import SteamNewsSource
+        self.news = SteamNewsSource(cfg, db)
         self.notifiers = load_notifiers(cfg)
         from hlxwatch.health import Health
         self.health = Health(cfg, db, self.notifiers)
@@ -108,6 +110,16 @@ class Pipeline:
                 log.exception("Lettura dei riassunti di SteamTracking fallita")
                 result.errors.append(f"summaries: {exc}")
                 status["summaries"] = str(exc)
+
+        if "news" in sources:
+            try:
+                result.findings += self.news.run()
+                status["steam_news"] = self.news.errors[0] if self.news.errors else None
+                result.errors += [f"steam_news: {e}" for e in self.news.errors]
+            except Exception as exc:
+                log.exception("Lettura dei post ufficiali di Steam fallita")
+                result.errors.append(f"steam_news: {exc}")
+                status["steam_news"] = str(exc)
 
         if "steam" in sources and self.cfg.get("steam.enabled", True):
             changed: list[int] = []

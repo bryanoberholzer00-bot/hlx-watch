@@ -94,12 +94,17 @@ class Config:
     def game_title(self, name: str) -> str:
         if name == "steamtracking":
             return "SteamTracking (nuovi repository)"
+        if name == "hlxwatch":
+            return "HLX Watch (prova)"
         for repo in self.get("github.repos", []) or []:
             if repo.get("name") == name:
                 return repo.get("title", name)
         for app in self.steam_watch_apps:
             if app.get("name") == name:
                 return app.get("title", name)
+        for app in self.get("steam_news.apps", []) or []:                  # app seguite solo per i post ufficiali
+            if app.get("name") == name and app.get("title"):
+                return app["title"]
         for game in self.get("local.games", []) or []:
             if game.get("name") == name:
                 return game.get("title", name)
