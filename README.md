@@ -305,6 +305,11 @@ voce anche senza parole chiave (bug reporter 60 punti, `gameinfo.gi` 50).
 
 ### Archeologia: tutta la storia dei repository
 
+`archaeology.extra_repos` elenca giochi Source 2 dismessi conservati da SteamTracking (Underlords, Artifact,
+Dota 2 Test): solo per l'archeologia, non vengono seguiti nei controlli. Nel workflow la casella
+`archeologia_repo` limita l'archeologia a quei nomi. La parola chiave `hlx_class` (sensibile alle maiuscole)
+prende le classi col prefisso del progetto, come Valve le chiama (`CHLXPlayerPawn`, cfr. `CCitadelPlayerPawn`).
+
 `python -m hlxwatch archeologia` (o la casella *archeologia* del workflow) clona ogni repository con tutta
 la storia (CS2 e Dota 2 dal 2016) e con `git log -G` trova ogni riga HLX mai aggiunta o tolta, anche se oggi
 non c'è più. Le righe passano dagli stessi filtri della scansione normale; le voci prendono la data del

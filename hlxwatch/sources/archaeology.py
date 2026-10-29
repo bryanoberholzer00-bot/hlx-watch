@@ -132,7 +132,9 @@ def run_archaeology(cfg: Config, db: Database, *, names: list[str] | None = None
     base.mkdir(parents=True, exist_ok=True)
     summary: dict[str, Any] = {}
     items: list[tuple[dict[str, Any], dict[str, Any]]] = []
-    for repo_cfg in tracked_repos(cfg, db):
+    # oltre ai repository seguiti, i giochi Source 2 dismessi (archaeology.extra_repos): storia utile, niente controlli
+    extra = [dict(r) for r in (cfg.get("archaeology.extra_repos", []) or []) if r.get("name") and r.get("repo")]
+    for repo_cfg in [*tracked_repos(cfg, db), *extra]:
         name = repo_cfg["name"]
         if names and name not in names:
             continue

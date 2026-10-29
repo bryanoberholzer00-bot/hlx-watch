@@ -20,6 +20,7 @@ log = logging.getLogger(__name__)
 def reevaluate(cfg: Config, db: Database) -> dict[str, int]:
     ignore = {r["name"]: r.get("ignore_keywords", []) or [] for r in cfg.get("github.repos", []) or []}
     ignore.update({a["name"]: a.get("ignore_keywords", []) or [] for a in cfg.steam_watch_apps})
+    ignore.update({r["name"]: r.get("ignore_keywords", []) or [] for r in cfg.get("archaeology.extra_repos", []) or []})
     matchers = {g: KeywordMatcher(cfg.keywords, ignore_ids=ids) for g, ids in ignore.items()}
     default = KeywordMatcher(cfg.keywords)
     types = ", ".join("?" for _ in NON_KEYWORD_TYPES)

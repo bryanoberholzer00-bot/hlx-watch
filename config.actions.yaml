@@ -114,6 +114,15 @@ watched_files:                           # ogni riga aggiunta o tolta diventa un
     title: "gameinfo.gi (definizione del gioco)"
     score: 50
 
+archaeology:
+  # giochi Source 2 dismessi, conservati da SteamTracking: solo per l'archeologia (comando `archeologia`),
+  # non vengono seguiti nei controlli normali. Coprono gli anni del passaggio da HLVR a HLX.
+  extra_repos:
+    - {name: underlords, title: "Dota Underlords", repo: SteamTracking/GameTracking-Underlords, branch: master}
+    - {name: artifact, title: "Artifact", repo: SteamTracking/GameTracking-Artifact, branch: master}
+    - {name: artifact_beta, title: "Artifact Foundry (beta)", repo: SteamTracking/GameTracking-Artifact-Beta, branch: master}
+    - {name: dota2test, title: "Dota 2 Test", repo: SteamTracking/GameTracking-Dota2Test, branch: master}
+
 timeline:
   enabled: true                          # pagina Cronologia HLX: indizi >= min_score raggruppati dall'AI
   min_score: 100
@@ -219,6 +228,13 @@ keywords:
   codename_weight: 30
   codenames: []           # nomi in codice sconosciuti da sorvegliare, come parole intere (es. ["hlvr2"]); "tf" è Team Fortress ovunque
   items:
+    - id: hlx_class
+      # Valve chiama le classi col prefisso del progetto (CCitadelPlayerPawn, CDOTA_...): CHLXPlayerPawn
+      # non ha "hlx" separato dalle lettere, quindi serve una regola a parte, sensibile alle maiuscole
+      pattern: "(?<![A-Za-z0-9])C_?HLX(?=[A-Z_])"
+      case_sensitive: true
+      weight: 115
+      description: "classi C++ del progetto HLX (CHLXPlayer, CHLX_Foo, C_HLX_Bar)"
     - id: hlx
       pattern: "(?<![a-z0-9])hlx(?![a-z0-9])"
       weight: 100

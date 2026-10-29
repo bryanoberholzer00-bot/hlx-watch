@@ -103,6 +103,9 @@ class Config:
         for game in self.get("local.games", []) or []:
             if game.get("name") == name:
                 return game.get("title", name)
+        for repo in self.get("archaeology.extra_repos", []) or []:      # giochi dismessi, solo archeologia
+            if repo.get("name") == name:
+                return repo.get("title", name)
         return name
 
 

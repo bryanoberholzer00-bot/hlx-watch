@@ -43,6 +43,9 @@ on:
         description: "Archeologia: cerca le righe HLX in tutta la storia dei repository (una volta sola, circa un'ora)"
         type: boolean
         default: false
+      archeologia_repo:
+        description: "Archeologia solo su questi repository (nomi separati da virgola, es. underlords,artifact)"
+        default: ""
 
 concurrency:
   group: hlx-watch
@@ -109,8 +112,13 @@ jobs:
         run: python -m hlxwatch reevaluate
 
       - name: "Archeologia su richiesta: tutta la storia dei repository dal 2016"
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.archeologia == 'true'
-        run: python -m hlxwatch archeologia --workdir "$RUNNER_TEMP/archeologia"
+        if: github.event_name == 'workflow_dispatch' && (github.event.inputs.archeologia == 'true' || github.event.inputs.archeologia_repo != '')
+        env:
+          REPOS: ${{ github.event.inputs.archeologia_repo }}
+        run: |
+          ARGS=""
+          for r in ${REPOS//,/ }; do ARGS="$ARGS --repo $r"; done
+          python -m hlxwatch archeologia --workdir "$RUNNER_TEMP/archeologia" $ARGS
 
       - name: Scansione completa su richiesta
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.fullscan == 'true'
