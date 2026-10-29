@@ -108,10 +108,17 @@ class SteamNewAppsSource:
             log.info("STEAM_WEB_API_KEY assente: nuove app rilevate solo con l'euristica sugli appid via PICS")
             self._warned_no_key = True
 
-        # 2) app già viste come private che sono cambiate: forse ora hanno nome e developer
-        reopened = self.db.reset_private_apps(new_ids)
-        if reopened:
-            log.info("PICS: %d app private cambiate, le rivaluto", reopened)
+        # 2) app già viste come private che sono cambiate: forse ora hanno nome e developer.
+        # Se Steam ha saltato l'elenco delle app cambiate non si sa quali: si ricontrollano tutte, le più recenti
+        # per prime, al ritmo di max_lookup_per_run per run
+        if getattr(self.pics, "changes_gap", False):
+            reopened = self.db.reset_all_private_apps()
+            self.db.set_state("steam:changes_gap_at", iso(utcnow()))
+            log.info("PICS: elenco dei cambi saltato, %d app private da ricontrollare", reopened)
+        else:
+            reopened = self.db.reset_private_apps(new_ids)
+            if reopened:
+                log.info("PICS: %d app private cambiate, le rivaluto", reopened)
 
         # 3) euristica della frontiera (funziona anche senza chiave)
         unknown = sorted(appid for appid in new_ids if not self.db.app_known(appid))

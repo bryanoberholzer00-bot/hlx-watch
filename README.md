@@ -470,6 +470,12 @@ di file giganteschi, `general.notify_min_score` regola quante notifiche ricevi.
   legale); orari mostrati, giorni dei report e ora del report giornaliero seguono `general.timezone`
   (default `Europe/Rome`), quindi il report resta alla stessa ora anche al cambio dell'ora.
 
+- **Elenco delle app cambiate**: Steam (PICS) restituisce le app cambiate solo se tra due controlli ci sono meno
+  di circa 5.000 change number, cioè circa 3-4 ore. Quando GitHub Actions lascia passare più tempo tra due run
+  l'elenco salta; in quel caso tutte le app private note tornano da controllare (le più recenti per prime,
+  `steam.new_apps.max_lookup_per_run` per run), così un'app Valve che prende un nome non va persa. Le build dei
+  giochi seguiti non ne risentono: vengono lette a ogni run.
+
 ## Test
 
 ```powershell

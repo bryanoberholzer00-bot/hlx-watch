@@ -109,11 +109,18 @@ class SteamPicsSource:
                 log.exception("PICS: errore sull'app %s", app.get("name"))
 
         changed: list[int] = []
+        self.changes_gap = False
         changes = data.get("changes")
         if changes:
             self.db.set_state("steam:changenumber", changes["current"])
-            if changes.get("force_full") or since == 0:
-                log.info("PICS: change number di partenza %s (prima esecuzione o troppo vecchio)", changes["current"])
+            if changes.get("force_full") and since:
+                # Steam elenca le app cambiate solo per salti fino a ~5000 change number (circa 3-4 ore): oltre,
+                # risponde solo con il numero attuale. Succede quando GitHub lascia passare ore tra due run
+                self.changes_gap = True
+                log.warning("PICS: elenco delle app cambiate saltato (dal change %s al %s): ricontrollo le app private",
+                            since, changes["current"])
+            elif changes.get("force_full") or since == 0:
+                log.info("PICS: change number di partenza %s (prima esecuzione)", changes["current"])
             else:
                 changed = [int(c["appid"]) for c in changes.get("apps", [])]
                 log.info("PICS: %d app modificate tra il change %s e %s", len(changed), changes["since"], changes["current"])

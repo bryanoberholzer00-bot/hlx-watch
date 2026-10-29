@@ -424,6 +424,15 @@ class Database:
             self.conn.commit()
         return changed
 
+    def reset_all_private_apps(self) -> int:
+        """Tutte le app private (senza nome, che richiedono un token) tornano da controllare."""
+        with self._lock:
+            cur = self.conn.execute(
+                "UPDATE steam_apps SET details_checked = 0 WHERE details_checked = 1 AND name IS NULL "
+                "AND flag_reason LIKE '%richiede token%'")
+            self.conn.commit()
+        return cur.rowcount
+
     def apps_without_details(self, limit: int) -> list[int]:
         """App registrate ma mai verificate (anche quelle rimaste indietro per un errore PICS)."""
         with self._lock:
