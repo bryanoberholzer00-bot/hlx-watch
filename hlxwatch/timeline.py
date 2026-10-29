@@ -5,7 +5,7 @@ normalizzato: la stessa riga in CS2, Dota 2 e Deadlock è un solo gruppo. I grup
 "indizi": lo fa Claude una volta sola (titolo, spiegazione, rilevanza), e la classificazione resta salvata
 nello stato del database (chiave timeline:temi). L'AI viene richiamata solo per gruppi mai visti.
 
-La data di un indizio è la prima comparsa più vecchia tra le sue righe: per le voci già presenti è il primo
+La data di un indizio è la prima comparsa più vecchia tra le sue righe: per le voci della scansione completa è il primo
 commit di SteamTracking che le contiene ("almeno dal" se c'erano già all'inizio del tracciamento).
 Correzioni a mano in config: timeline.nascondi (id da nascondere), timeline.rilevanza ({id: alta|media|...}).
 """
@@ -112,8 +112,9 @@ def collect_groups(db: Database, min_score: int = 100,
 
 
 def _event(db: Database, r: dict[str, Any]) -> dict[str, Any]:
-    """Data e fonte di una riga: prima comparsa per le voci già presenti, data del commit per le altre."""
-    if r["change_type"] == "present":
+    """Data e fonte di una riga: prima comparsa per le voci della scansione completa (già presenti, o aggiunte
+    che nessun commit aveva visto: la data della scansione non è quella di Valve), data del commit per le altre."""
+    if r["change_type"] == "present" or (r.get("source") == "fullscan" and r["change_type"] == "added"):
         fs = db.get_first_seen(r["game"], r["file_path"], line_hash(r["text"]))
         if fs and fs["commit_date"]:
             base = _repo_base(r.get("build_url"))

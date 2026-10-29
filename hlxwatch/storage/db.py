@@ -501,11 +501,13 @@ class Database:
                 (game, file_path, lhash)).fetchone()
 
     def present_without_first_seen(self, limit: int = 500) -> list[sqlite3.Row]:
-        """Occorrenze 'present' ancora senza data, dalle più rilevanti."""
+        """Occorrenze della scansione completa ancora senza data, dalle più rilevanti: le 'present' e le 'added'
+        che nessun commit aveva registrato (tipico dopo una parola chiave nuova: la riga può essere vecchia di mesi)."""
         from hlxwatch.sources.first_seen import line_hash
         with self._lock:
             rows = self.conn.execute(
-                "SELECT game, file_path, text, MAX(score) AS score FROM findings WHERE change_type = 'present' "
+                "SELECT game, file_path, text, MAX(score) AS score FROM findings "
+                "WHERE change_type = 'present' OR (source = 'fullscan' AND change_type = 'added') "
                 "GROUP BY game, file_path, text ORDER BY score DESC").fetchall()
             done = {(r[0], r[1], r[2]) for r in self.conn.execute(
                 "SELECT game, file_path, line_hash FROM first_seen").fetchall()}

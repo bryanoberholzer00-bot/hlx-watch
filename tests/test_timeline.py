@@ -74,3 +74,24 @@ def test_classify_once_and_build_entries(tmp_path, monkeypatch):
     e = timeline.build_entries(cfg, db)["entries"][0]
     assert e["spiegazione"] == "Testo corretto a mano." and e["rilevanza"] == "bassa" and e["titolo"] == "mod != hlx"
     db.close()
+
+
+def test_fullscan_added_rows_are_dated_by_first_seen(tmp_path, monkeypatch):
+    """Una riga 'added' trovata dalla scansione completa (parola chiave nuova) non prende la data della scansione."""
+    cfg, db = make(tmp_path, monkeypatch)
+    b = BuildInfo(game="cs2", source="fullscan", ref="tree:abc", date=datetime(2026, 10, 29, tzinfo=timezone.utc),
+                  url="https://github.com/SteamTracking/GameTracking-CS2/tree/abc")
+    bid = db.upsert_build(b)
+    f = Finding(game="cs2", source="fullscan", file_path="game/bin/win64/tools/hammer_strings.txt", change_type="added",
+                text="CHLXCoverPreviewHelper", score=115, keywords=["hlx_class"], token="CHLXCoverPreviewHelper")
+    db.add_finding(f, bid)
+    assert [(r["game"], r["text"]) for r in db.present_without_first_seen()] == [("cs2", "CHLXCoverPreviewHelper")]
+    row = {"game": "cs2", "file_path": f.file_path, "text": f.text, "change_type": "added", "source": "fullscan",
+           "build_url": b.url, "build_date": "2026-10-29T00:00:00+00:00", "created_at": "2026-10-29T00:00:00+00:00"}
+    assert timeline._event(db, row)["date"] is None                       # ancora da datare: niente data falsa
+    from hlxwatch.sources.first_seen import line_hash
+    db.set_first_seen("cs2", f.file_path, line_hash(f.text), f.text, "10f3693c38", "2026-09-23T00:05:28+00:00", False)
+    ev = timeline._event(db, row)
+    assert ev["date"] == "2026-09-23T00:05:28+00:00" and ev["url"].endswith("/commit/10f3693c38")
+    assert db.present_without_first_seen() == []
+    db.close()
