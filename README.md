@@ -318,7 +318,7 @@ nella Cronologia. I commit già nell'archivio si saltano: si può rilanciare sen
 
 ### Cronologia HLX
 
-La pagina `cronologia.html` del sito mette in fila gli indizi importanti (voci con punteggio >= 100), ognuno con
+La pagina `cronologia.html` del sito mette in fila gli indizi importanti (voci con punteggio >= `timeline.min_score`, 90), ognuno con
 data di prima comparsa, rilevanza, spiegazione, giochi, fonte e link alla ricerca (`hlxwatch/timeline.py`).
 Le righe uguali in più giochi formano un gruppo; Claude ordina i gruppi in indizi una volta sola e la
 classificazione resta nello stato del database (iniziale: `hlxwatch/timeline_seed.json`, rivista a mano).

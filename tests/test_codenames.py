@@ -23,6 +23,8 @@ def test_detect_places():
     assert [n for _, n, _ in detect('\t"RPG"', br)] == ["rpg"]
     assert detect('\t"RPG"', "game/other.txt") == []                 # le sezioni contano solo nel bug reporter
     assert detect('\t\t"component"\t\t"other"', br) == []           # parola generica
+    assert [n for _, n, _ in detect('\t\t"mod"\t"hl3"', "game/core/pak01_dir/source1import_txtmap.txt")] == ["hl3"]
+    assert [n for _, n, _ in detect('"mod"\t"left4dead2_source2"')] == ["left4dead2_source2"]
 
 
 def test_learning_then_alert(tmp_path):

@@ -31,12 +31,15 @@ PLACES: list[tuple[str, re.Pattern[str], str, re.Pattern[str] | None]] = [
     ("bugreporter_block", re.compile(r'^\s*"(?P<name>[A-Za-z0-9_ ]+)"\s*$'), "sezione del bug reporter", BUGREPORTER_FILE),
     ("content_dir", re.compile(r"source2[\\/]main[\\/](?:content|game)[\\/](?P<name>[A-Za-z0-9_]+)", re.IGNORECASE),
      "cartella di progetto nei percorsi degli strumenti", None),
+    # KeyValues "mod" "nome": per esempio la tabella di importazione da Source 1 (source1import_txtmap.txt), dove
+    # nel 2018 il modello dell'headcrab era assegnato al mod "hl3", oggi "hlvr"
+    ("kv_mod", re.compile(r'"mod"\s+"(?P<name>[A-Za-z0-9_ -]+)"', re.IGNORECASE), 'chiave "mod" di un file KeyValues', None),
 ]
 # parole che compaiono in quei posti ma non sono nomi di progetto
 GENERIC = {"other", "unassigned", "default", "bugreporter", "none", "core", "tools", "---", "version", "owner",
            "severity", "priority", "category", "product", "component", "main", "bin", "sdk"}
 # regex estesa per `git grep -i -E` della scansione completa: seleziona le righe dei tre posti
-PREFILTER = r'mod *[!=]=|"(product|component)"|source2[\\/]main[\\/](content|game)[\\/]'
+PREFILTER = r'mod *[!=]=|"(product|component|mod)"|source2[\\/]main[\\/](content|game)[\\/]'
 STATE_SEEN = "codenames:seen"
 STATE_LEARNED = "codenames:learned"
 

@@ -103,8 +103,8 @@ first_seen:
 codenames:
   enabled: true                          # nomi di progetto mai visti dove Valve li scrive (mod != X, bug reporter, content/X)
   score: 120                             # sopra la soglia alta: avviso immediato e voce in cronologia
-  known: [csgo, cs2, dota, dota2, hlx, hlvr, "half-life vr", hl3, left4dead3, rpg, citadel, core,
-          "source 2 tools", steamvr, steampal]
+  known: [csgo, cs2, dota, dota2, dota_lv, hlx, hlvr, "half-life vr", hl3, left4dead3, left4dead2_source2,
+          rpg, citadel, core, "source 2 tools", steamvr, steampal]
   # i nomi presenti alla prima scansione completa vengono imparati senza avvisi (stato codenames:learned)
 
 watched_files:                           # ogni riga aggiunta o tolta diventa una voce, anche senza parole chiave
@@ -126,7 +126,8 @@ archaeology:
 
 timeline:
   enabled: true                          # pagina Cronologia HLX: indizi >= min_score raggruppati dall'AI
-  min_score: 100
+  min_score: 90                          # 90 e non 100: così entrano anche le righe hl3 (peso 90),
+                                         # come "mod" "hl3" del 2018; l'AI scarta da sé le estensioni .hl3 dei salvataggi
   nascondi: []                           # id degli indizi da non mostrare (es. [t7])
   include_keywords: [hl2_achievement]    # voci sotto min_score da mostrare comunque come contesto
   rilevanza: {}                          # correzioni a mano, es. {t5: alta}
