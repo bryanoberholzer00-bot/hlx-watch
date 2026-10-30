@@ -3,10 +3,13 @@
 Perché un controller o un visore funzioni su PC, il suo identificativo USB va aggiunto alla libreria SDL e al kernel
 Linux, spesso con il nome in codice: a fine ottobre 2026 ci sono già Ibex, Proteus e Nereid
 (USB_PRODUCT_VALVE_STEAM_PROTEUS_DONGLE, USB_DEVICE_ID_STEAM_CONTROLLER_NEREID). Ogni `interval_hours` si rilegge il
-file (raw.githubusercontent.com, nessuna chiamata API) e ogni nome mai visto diventa una voce. Il primo giro registra.
+file con l'API di GitHub (con il token del workflow: il download diretto da raw.githubusercontent.com, per un
+repository grande come Linux, su Actions risponde spesso 429) e ogni nome mai visto diventa una voce. Il primo giro
+registra.
 """
 from __future__ import annotations
 
+import base64
 import json
 import logging
 import re
@@ -69,8 +72,14 @@ class HardwareIdsSource:
             self.db.set_state(LAST_KEY, iso(utcnow()))
         return findings
 
+    def read(self, spec: dict[str, Any]) -> str:
+        data = self.client.get_json(f"/repos/{spec['repo']}/contents/{spec['path']}", {"ref": spec.get("branch", "main")})
+        if not isinstance(data, dict) or data.get("encoding") != "base64":
+            return ""
+        return base64.b64decode(data.get("content") or "").decode("utf-8", "replace")
+
     def check(self, spec: dict[str, Any]) -> list[Finding]:
-        text = self.client.raw_file(spec["repo"], spec.get("branch", "main"), spec["path"], 2_000_000)
+        text = self.read(spec)
         if not text:
             raise RuntimeError(f"file {spec['path']} non letto")
         ids = {m.group(1): m.group(2).lower() for m in re.finditer(spec["pattern"], text)}

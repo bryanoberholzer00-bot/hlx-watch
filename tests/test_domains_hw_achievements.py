@@ -124,8 +124,11 @@ class FakeGitHub:
     def __init__(self, files):
         self.files = files
 
-    def raw_file(self, repo, sha, path, max_bytes):
-        return self.files.get(path, "")
+    def get_json(self, path, params=None):
+        name = path.split("/contents/", 1)[1]
+        if name not in self.files:
+            return None
+        return {"encoding": "base64", "content": base64.b64encode(self.files[name].encode()).decode()}
 
 
 SDL = """#define USB_VENDOR_VALVE        0x28de
