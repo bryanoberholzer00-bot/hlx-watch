@@ -69,7 +69,7 @@ def test_new_domain_in_valve_certificate(tmp_path):
     assert src.run(force=True) == []                            # nessun certificato nuovo
     reevaluate(cfg, db)
     assert db.conn.execute("SELECT COUNT(*) FROM findings WHERE game = 'valveweb'").fetchone()[0] == 3
-    assert cfg.game_title("valveweb") == "Siti di Valve (certificati)"
+    assert cfg.game_title("valveweb") == "Siti e domini di Valve"
     db.close()
 
 

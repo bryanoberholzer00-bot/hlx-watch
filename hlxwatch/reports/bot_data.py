@@ -91,7 +91,7 @@ def export_bot_data(db: Database, cfg: Config, out_dir: Path, site_url: str) -> 
         "voci": stats["findings"], "alta": stats["findings_high"], "nuove": stats["findings_new"],
         "gia_presenti": stats.get("findings_present", 0), "commit": stats["builds"],
         "build_steam": stats["steam_builds"], "app_sospette": stats["steam_apps_flagged"],
-        "giochi": [_title(cfg, g) for g in stats["games"] if g not in ("steam", "steamtracking", "valvesoftware", "valveweb")],
+        "giochi": [_title(cfg, g) for g in stats["games"] if g not in ("steam", "steamtracking", "valvesoftware", "valveweb", "valvehw")],
         "repo_scoperti": [r["repo"] for r in followed_repos(db)],
         "report_giornaliero": db.get_state("daemon:last_report_day") or "mai",
         "analisi": ({"data": local(analysis["created_at"]), "titolo": content.get("titolo", ""),

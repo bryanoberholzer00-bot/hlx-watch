@@ -318,7 +318,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("scan", help="una scansione completa di tutte le sorgenti")
     p.add_argument("--sources", default="github,steam,local,fullscan",
-                   help="elenco separato da virgola: discovery,valve,certs,github,summaries,news,steam,local,fullscan (la scansione completa parte solo se è dovuta)")
+                   help="elenco separato da virgola: discovery,valve,certs,domains,hardware,achievements,github,summaries,news,steam,local,fullscan (la scansione completa parte solo se è dovuta)")
     p.add_argument("--repo", action="append", help="limita a un repo per nome (cs2, dota2, deadlock); ripetibile")
     p.add_argument("--max-commits", type=int, help="commit massimi per repo (0 = tutti)")
     p.add_argument("--no-notify", action="store_true", help="non inviare notifiche")

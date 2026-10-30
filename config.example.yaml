@@ -259,6 +259,28 @@ valve_certs:                             # domini nei certificati HTTPS dei siti
   score_new_domain: 120                  # dominio mai visto (es. il sito di un gioco nuovo)
   score_new_subdomain: 30                # sottodominio nuovo di un dominio noto: solo archivio
 
+domains:                                 # registri dei domini (RDAP) e domini appena registrati (WhoisDS), una volta al giorno
+  enabled: true
+  interval_hours: 24
+  watch: [half-life3.com, halflife3.com, half-life-3.com, halflife-3.com, hl3.com, hlx.com, halflifex.com,
+          half-lifex.com, halflife.com]      # nomi che Valve userebbe: avviso se passano ai DNS di Valve o cambiano registrar
+  valve_nameservers: [a1-194.akam.net, a2-64.akam.net]   # i DNS di half-life.com e playdeadlock.com
+  valve_registrars: [markmonitor, safenames]
+  newly_registered: true                 # lista gratuita giornaliera di WhoisDS
+  new_pattern: 'half-?life|\bhlx|hlx\b|^hl-?3|aperture-?science|valve-?(?:software|games)|^play[a-z]+\.com$'
+  max_new_checks: 40                     # controlli RDAP al giorno sui domini nuovi
+
+hardware_ids:                            # nomi in codice dell'hardware Valve (identificativi USB) in SDL e nel kernel Linux
+  enabled: true
+  interval_hours: 6
+  score_new: 60
+
+achievements:                            # obiettivi delle app di steam.watch_apps (API pubblica, senza chiave)
+  enabled: true
+  interval_hours: 3
+  score_new: 55                          # obiettivi nuovi in un gioco seguito
+  score_visible: 90                      # obiettivi di un'app prima nascosta che diventano visibili
+
 repo_discovery:
   enabled: true                          # a ogni run elenca i repository dell'organizzazione e avvisa dei nuovi
   org: SteamTracking

@@ -26,6 +26,9 @@
   <tr><td>Organizzazione <a href="https://github.com/ValveSoftware">ValveSoftware</a></td><td>codice pubblicato da Valve (Proton, SteamOS, gamescope, OpenVR, SDK): repository nuovi e messaggi dei commit</td><td><small>a ogni run, solo i repository con un push nuovo; i repository nuovi anche nel controllo veloce</small></td></tr>
   <tr><td>Codice di <a href="https://github.com/ValveSoftware/Proton">Proton</a></td><td>elenco delle app Steam con una correzione dedicata (file <code>proton</code>)</td><td><small>a ogni push; ogni app nuova si controlla sul negozio Steam (api/appdetails)</small></td></tr>
   <tr><td>Certificati HTTPS di Valve (<a href="https://sslmate.com/certspotter/">Cert Spotter</a>)</td><td>domini dei siti di Valve: un solo certificato elenca i siti di prova di tutti i giochi</td><td><small>ogni 3 ore, solo i certificati nuovi; non crt.sh, che lo vieta</small></td></tr>
+  <tr><td>Registri dei domini (RDAP) e domini appena registrati (<a href="https://www.whoisds.com/newly-registered-domains">WhoisDS</a>)</td><td>registrar e server DNS di nomi come half-life3.com; domini nuovi con i DNS o il registrar di Valve</td><td><small>una volta al giorno</small></td></tr>
+  <tr><td>Codice di <a href="https://github.com/libsdl-org/SDL">SDL</a> e del kernel Linux</td><td>identificativi USB dell'hardware Valve, con i nomi in codice</td><td><small>ogni 6 ore</small></td></tr>
+  <tr><td>Obiettivi di Steam (API pubblica, senza chiave)</td><td>nomi interni degli obiettivi dei giochi seguiti</td><td><small>ogni 3 ore</small></td></tr>
   <tr><td>Steam PICS (login anonimo)</td><td>build per branch, depot, metadati di {{ steam_apps|join(', ') }}; elenco delle app cambiate</td><td><small>a ogni run</small></td></tr>
   <tr><td>Steam Web API</td><td>elenco completo delle app, per riconoscere quelle nuove</td><td><small>una volta al giorno</small></td></tr>
   <tr><td>Annunci di Steam (ISteamNews)</td><td>post ufficiali di Valve nella sezione Annunci di {{ news_apps|join(', ') }}</td><td><small>a ogni run, senza chiave; per Steam, SteamVR e Steam Deck solo i post che non sono note di aggiornamento</small></td></tr>
@@ -119,6 +122,19 @@
   progetto nuovo, preparato prima dell'annuncio: è una voce con avviso, e con HLX o Half-Life 3 nel nome un possibile
   annuncio. Un sottodominio nuovo di un sito noto resta in archivio. Non si sa se in passato abbia anticipato un annuncio:
   i registri storici non si possono interrogare in automatico.</li>
+  <li><b>Registri dei domini.</b> playdeadlock.com è stato registrato il 5 aprile 2024, più di quattro mesi prima
+  dell'annuncio di Deadlock, con gli stessi server DNS di half-life.com. Ogni giorno si legge con RDAP (il servizio pubblico
+  dei registri) chi gestisce nomi come half-life3.com (registrato dal 1999 presso lo stesso registrar di playdeadlock.com,
+  ma parcheggiato), halflife3.com, hlx.com: se uno passa ai server DNS di Valve è un segnale forte, un cambio di registrar
+  una voce con avviso. Dalla lista gratuita dei domini registrati il giorno prima si controllano quelli con Half-Life, HLX o
+  la forma play<i>nome</i>.com (come playdeadlock.com, playartifact.com): solo quelli con i DNS o il registrar di Valve
+  diventano voci. La lista gratuita è parziale.</li>
+  <li><b>Hardware Valve in SDL e Linux.</b> Perché un controller funzioni su PC, il suo identificativo USB va aggiunto
+  alla libreria SDL e al kernel Linux, spesso con il nome in codice (oggi Ibex, Proteus, Nereid). Un nome mai visto è una voce.</li>
+  <li><b>Obiettivi di Steam.</b> L'API pubblica di Steam elenca i nomi interni degli obiettivi di un gioco: un aggiornamento
+  che ne aggiunge li mostra, a volte prima delle note. Per le app riservate, come Deadlock o le app private di Valve, Steam
+  risponde vuoto e non si forza niente; se un'app passa da nascosta a visibile (come per l'errore di Valve di settembre
+  2026) è una voce a parte.</li>
   <li><b>App Steam nel codice di Proton.</b> Proton elenca le app che ricevono una correzione dedicata (circa 45 nuove
   all'anno). A ogni aggiornamento del file, ogni numero nuovo si controlla sul negozio Steam: un'app non ancora pubblica o
   di Valve è una voce con avviso; un gioco già in vendita di un altro editore resta in archivio.</li>

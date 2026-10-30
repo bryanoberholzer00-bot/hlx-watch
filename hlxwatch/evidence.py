@@ -44,7 +44,7 @@ _AREA_RULES: list[tuple[str, re.Pattern[str]]] = [
 _TYPE_AREAS = {"build": "build", "new_app": "build", "new_repo": "build", "structure": "build", "pulse": "schema",
                "orphan": "convar", "summary": "other",
                "news": "news", "commit": "code", "appid": "code",
-               "domain": "web"}
+               "domain": "web", "hardware_id": "code", "achievement": "data"}
 
 
 def area_of(path: str, change_type: str = "") -> str:

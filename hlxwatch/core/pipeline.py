@@ -16,7 +16,7 @@ from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, utcnow
 
 log = logging.getLogger(__name__)
-ALL_SOURCES = ("discovery", "valve", "certs", "structure", "github", "summaries", "news", "steam", "local", "fullscan")
+ALL_SOURCES = ("discovery", "valve", "certs", "domains", "hardware", "achievements", "structure", "github", "summaries", "news", "steam", "local", "fullscan")
 SILENT_CHANGE_TYPES = ("baseline", "present")   # registrati senza avvisi (stato iniziale)
 
 
@@ -48,6 +48,12 @@ class Pipeline:
         self.valve = ValveGitHubSource(cfg, db, self.github.client)
         from hlxwatch.sources.valve_certs import ValveCertsSource
         self.certs = ValveCertsSource(cfg, db)
+        from hlxwatch.sources.domains import DomainsSource
+        self.domains = DomainsSource(cfg, db)
+        from hlxwatch.sources.hardware_ids import HardwareIdsSource
+        self.hardware = HardwareIdsSource(cfg, db, self.github.client)
+        from hlxwatch.sources.achievements import AchievementsSource
+        self.achievements = AchievementsSource(cfg, db)
         from hlxwatch.sources.structure import StructureWatch
         self.structure = StructureWatch(cfg, db, self.github.client)
         from hlxwatch.sources.summaries import CommitSummaries
@@ -101,6 +107,20 @@ class Pipeline:
                 log.exception("Lettura dei certificati di Valve fallita")
                 result.errors.append(f"valve_certs: {exc}")
                 status["valve_certs"] = str(exc)
+
+        # fonti piccole con lo stesso schema: run() con il loro intervallo, errori parziali in .errors
+        for key, label, src in (("domains", "domains", self.domains), ("hardware", "hardware_ids", self.hardware),
+                                ("achievements", "achievements", self.achievements)):
+            if key not in sources or not src.enabled:
+                continue
+            try:
+                result.findings += src.run()
+                status[label] = src.errors[0] if src.errors else None
+                result.errors += [f"{label}: {e}" for e in src.errors]
+            except Exception as exc:
+                log.exception("Fonte %s fallita", label)
+                result.errors.append(f"{label}: {exc}")
+                status[label] = str(exc)
 
         if "structure" in sources:
             try:
