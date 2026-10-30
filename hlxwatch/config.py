@@ -94,6 +94,8 @@ class Config:
     def game_title(self, name: str) -> str:
         if name == "steamtracking":
             return "SteamTracking (nuovi repository)"
+        if name == "valvesoftware":
+            return "Valve su GitHub"
         if name == "hlxwatch":
             return "HLX Watch (prova)"
         for repo in self.get("github.repos", []) or []:

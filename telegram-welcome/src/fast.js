@@ -5,18 +5,25 @@
 // solo le due fonti che possono annunciare un gioco:
 //   - i post nella sezione Annunci di Steam dei giochi Half-Life, di SteamVR, del client Steam e dello Steam Deck
 //     (ISteamNews/GetNewsForApp, pubblica, senza chiave);
-//   - i repository nuovi dell'organizzazione SteamTracking su GitHub (API pubblica, senza token).
+//   - i repository nuovi delle organizzazioni SteamTracking e ValveSoftware su GitHub (API pubblica; con il token
+//     dell'avvio dei run, se c'è, il limite di richieste è più alto).
 // Se trova un Half-Life nuovo manda subito l'avviso: Telegram al proprietario, notifiche del sito a tutti (anche di
 // notte) e una voce in /fast/annuncio.json, che l'app Android legge insieme a bot/ultime.json. Le regole sono le
 // stesse di hlxwatch/sources/steam_news.py e del piano annuncio; il giro completo su GitHub poi archivia il post.
 // Il KV si scrive solo quando qualcosa cambia (il piano gratuito concede 1000 scritture al giorno).
 
+import { dispatchStatus } from "./dispatch.js";
 import { broadcast } from "./push.js";
 
 export const FAST_CRON = "*/10 * * * *";
 const FEED = "steam_community_announcements";
 const NEWS_API = "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/";
-const REPOS_API = "https://api.github.com/orgs/SteamTracking/repos?sort=created&direction=desc&per_page=15";
+// organizzazioni GitHub: chiave nello stato, nome, etichetta della voce (come config.game_title nel giro completo)
+export const ORGS = [
+  { key: "repos", org: "SteamTracking", label: "SteamTracking (nuovi repository)" },
+  { key: "valve", org: "ValveSoftware", label: "Valve su GitHub" },
+];
+const reposApi = (org) => `https://api.github.com/orgs/${org}/repos?sort=created&direction=desc&per_page=15`;
 const STATE = "fast:seen";
 const ALERTS = "fast:alerts";
 // battito: l'ora dell'ultimo giro riuscito, scritta al massimo una volta l'ora (24 scritture al giorno)
@@ -80,10 +87,10 @@ export function newsItem(app, post) {
   };
 }
 
-function repoItem(repo) {
+function repoItem(repo, label = ORGS[0].label) {
   const when = Date.parse(repo.created_at) || Date.now();
   return {
-    s: 200, g: "SteamTracking (nuovi repository)", t: "new_repo", k: "", x: (PREFIX + `nuovo repository ${repo.full_name}`).slice(0, 140),
+    s: 200, g: label, t: "new_repo", k: "", x: (PREFIX + `nuovo repository ${repo.full_name}`).slice(0, 140),
     f: repo.full_name, d: romeDay(when), n: 1, u: repo.html_url, ul: "repository", a: 1,
     c: new Date(when).toISOString().slice(0, 19) + "Z",
   };
@@ -98,15 +105,20 @@ async function fetchNews(appid) {
   return (data.appnews && data.appnews.newsitems) || [];
 }
 
-async function fetchRepos() {
-  const res = await fetch(REPOS_API, { headers: { "User-Agent": "hlx-watch-bot", Accept: "application/vnd.github+json" } });
-  if (!res.ok) throw new Error(`repository: HTTP ${res.status}`);    // senza token può capitare un 403: si riprova dopo
+async function fetchRepos(org, token) {
+  const base = { "User-Agent": "hlx-watch-bot", Accept: "application/vnd.github+json" };
+  let res = await fetch(reposApi(org), { headers: token ? { ...base, Authorization: `Bearer ${token}` } : base });
+  if (token && res.status === 401) res = await fetch(reposApi(org), { headers: base });   // token scaduto: senza
+  if (!res.ok) throw new Error(`repository ${org}: HTTP ${res.status}`);  // senza token può capitare un 403: si riprova
   return res.json();
 }
 
 // Confronta con quanto già visto. Ritorna le voci nuove da segnalare e lo stato aggiornato (changed = da scrivere).
+// `repos`: { repos: [...SteamTracking], valve: [...ValveSoftware] } (null = non letti); un array vale SteamTracking.
 export function compare(state, news, repos, now = Date.now()) {
-  const seen = { apps: { ...(state.apps || {}) }, repos: state.repos ? [...state.repos] : null };
+  const byOrg = Array.isArray(repos) ? { repos } : (repos || {});
+  const seen = { ...state, apps: { ...(state.apps || {}) } };
+  for (const o of ORGS) seen[o.key] = state[o.key] ? [...state[o.key]] : null;
   const alerts = [];
   let changed = false;
   for (const { app, items } of news) {
@@ -124,18 +136,20 @@ export function compare(state, news, repos, now = Date.now()) {
     if (first) changed = true;
     seen.apps[key] = list.slice(-KEEP);
   }
-  if (repos) {
-    const first = seen.repos === null;
-    const names = first ? [] : seen.repos;
-    for (const repo of repos) {
+  for (const o of ORGS) {
+    const list = byOrg[o.key];
+    if (!list) continue;
+    const first = seen[o.key] === null;
+    const names = first ? [] : seen[o.key];
+    for (const repo of list) {
       const name = String(repo.full_name || "");
       if (!name || names.includes(name)) continue;
       names.push(name);
       changed = true;
-      if (!first && HLX_REPO.test(`${repo.name} ${repo.description || ""}`)) alerts.push(repoItem(repo));
+      if (!first && HLX_REPO.test(`${repo.name} ${repo.description || ""}`)) alerts.push(repoItem(repo, o.label));
     }
     if (first) changed = true;
-    seen.repos = names.slice(-KEEP);
+    seen[o.key] = names.slice(-KEEP);
   }
   return { alerts, state: seen, changed };
 }
@@ -161,11 +175,13 @@ export async function fastCheck(env, site, origin, sendTelegram) {
       console.log("controllo veloce:", String(err));       // un'app che non risponde non ferma le altre
     }
   }
-  let repos = null;
-  try { repos = await fetchRepos(); } catch (err) { console.log("controllo veloce:", String(err)); }
+  const repos = {};
+  for (const o of ORGS) {
+    try { repos[o.key] = await fetchRepos(o.org, env.GH_DISPATCH_TOKEN); } catch (err) { console.log("controllo veloce:", String(err)); }
+  }
   const result = compare(state, news, repos);
   if (result.changed) await env.SUBS.put(STATE, JSON.stringify(result.state));
-  if (news.length || repos) await beat(env, sendTelegram);
+  if (news.length || Object.keys(repos).length) await beat(env, sendTelegram);
   if (!result.alerts.length) return result;
 
   console.log("controllo veloce: POSSIBILE ANNUNCIO", result.alerts.map((a) => a.x).join(" | "));
@@ -209,7 +225,7 @@ export async function fastWatchdog(env, sendTelegram, now = Date.now()) {
   if (env.OWNER_CHAT_ID) {
     await sendTelegram(env, env.OWNER_CHAT_ID, `⚠️ <b>HLX Watch: il controllo veloce dell'annuncio è fermo da ${hours} ore</b>
 ` +
-      "Non riesce a leggere i post di Steam né i repository di SteamTracking. Il giro completo su GitHub continua; " +
+      "Non riesce a leggere i post di Steam né i repository di SteamTracking e Valve. Il giro completo su GitHub continua; " +
       "i log sono nella dashboard di Cloudflare, alla voce del Worker hlx-watch-bot.");
   }
   return hours;
@@ -220,7 +236,7 @@ export async function fastStatus(env, now = Date.now()) {
   const raw = (env.SUBS && (await env.SUBS.get(HEARTBEAT))) || null;
   const last = Date.parse(raw || "");
   const body = { ultimo_ok: raw, minuti: Number.isNaN(last) ? null : Math.floor((now - last) / 60000),
-    fermo: Number.isNaN(last) ? true : now - last > STALE_MS };
+    fermo: Number.isNaN(last) ? true : now - last > STALE_MS, avvio: await dispatchStatus(env) };
   return new Response(JSON.stringify(body), {
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store",
       "access-control-allow-origin": "*" },

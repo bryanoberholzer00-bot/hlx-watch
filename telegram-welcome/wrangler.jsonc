@@ -1,12 +1,15 @@
 {
   // Cloudflare Worker che risponde a /start e /help del bot Telegram di HLX Watch.
   // Segreti: wrangler secret put BOT_TOKEN | WEBHOOK_SECRET | OWNER_CHAT_ID
+  // facoltativo: GH_DISPATCH_TOKEN (token GitHub fine-grained, solo questo repository, Actions: read and write)
+  // per avviare il giro completo ogni 30 minuti (src/dispatch.js)
   "name": "hlx-watch-bot",
   "main": "src/index.js",
   "compatibility_date": "2026-09-01",
   "workers_dev": true,
   // ogni 6 ore il controllo esterno (il sito viene ancora aggiornato?); ogni ora il riassunto del mattino delle notifiche
-  // trattenute di notte; ogni 10 minuti il controllo veloce dell'annuncio (src/fast.js)
+  // trattenute di notte; ogni 10 minuti il controllo veloce dell'annuncio (src/fast.js) e l'avvio del giro completo
+  // su GitHub quando è passata mezz'ora dall'ultimo (src/dispatch.js)
   "triggers": { "crons": ["23 */6 * * *", "7 * * * *", "*/10 * * * *"] },
   // orario di silenzio delle notifiche di sistema (ora italiana): dalle 23 alle 8
   "vars": { "QUIET_START": "23", "QUIET_END": "8", "QUIET_TZ": "Europe/Rome" },

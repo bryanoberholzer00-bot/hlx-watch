@@ -196,6 +196,12 @@ del run: scaricalo in `data/hlxwatch.sqlite` per sfogliarlo con la dashboard loc
    browser su `findings.json`, report a 1/7/30 giorni) e la pubblica su
    `https://<utente>.github.io/hlx-watch/`. GitHub Pages è gratis solo sui repository pubblici, e il
    sito è comunque visibile a chiunque abbia il link.
+5. Facoltativo, ma consigliato: i run pianificati di GitHub partono in modo irregolare (anche ogni 4-5 ore).
+   Il bot su Cloudflare (`telegram-welcome/src/dispatch.js`) può avviarne uno ogni 30 minuti. Crea un token
+   GitHub *fine-grained* (Settings → Developer settings → Fine-grained tokens) con accesso **solo a questo
+   repository** e il solo permesso **Actions: Read and write**, poi salvalo nel Worker:
+   `cd telegram-welcome` e `npx wrangler secret put GH_DISPATCH_TOKEN` (incolla il token quando lo chiede).
+   Se il token scade, il bot avvisa su Telegram e restano i run pianificati.
 
 Archivio permanente: a ogni run il workflow esporta il database (copia coerente, compressa) e un CSV
 di tutte le voci nel ramo `data` del repository, con un solo commit riscritto ogni volta. Se la cache di

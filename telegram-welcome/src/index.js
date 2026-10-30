@@ -6,11 +6,13 @@
 //
 // Segreti (wrangler secret put): BOT_TOKEN, WEBHOOK_SECRET, OWNER_CHAT_ID
 // Controllo veloce dell'annuncio ogni 10 minuti e /fast/annuncio.json: vedi src/fast.js
+// Avvio del giro completo su GitHub ogni 30 minuti (segreto facoltativo GH_DISPATCH_TOKEN): vedi src/dispatch.js
 // Notifiche di sistema del sito (percorsi /push/...): vedi src/push.js
 // Variabili facoltative: SITE_URL (default il sito pubblico), DRY_RUN=1 (risponde nella risposta HTTP: per i test)
 
 import { flushMorning, handlePush } from "./push.js";
 import { FAST_CRON, fastAlerts, fastCheck, fastStatus, fastWatchdog } from "./fast.js";
+import { dispatchRun } from "./dispatch.js";
 
 const DEFAULT_SITE = "https://bryanoberholzer00-bot.github.io/hlx-watch/";
 const REPO = "https://github.com/bryanoberholzer00-bot/hlx-watch";
@@ -190,8 +192,11 @@ const MORNING_CRON = "7 * * * *";
 export default {
   async scheduled(event, env, ctx) {
     if (event.cron === FAST_CRON) {
-      // ogni 10 minuti: post ufficiali di Steam e repository nuovi di SteamTracking (src/fast.js)
+      // ogni 10 minuti: post ufficiali di Steam e repository nuovi di SteamTracking e Valve (src/fast.js)
       ctx.waitUntil(fastCheck(env, env.SITE_URL || DEFAULT_SITE, BOT_ORIGIN, reply));
+      // e, se è passata mezz'ora dall'ultimo, avvia il giro completo su GitHub (src/dispatch.js, serve il token)
+      ctx.waitUntil(dispatchRun(env, reply).then((r) => console.log("avvio del giro completo:", r.done ? "avviato" : r.why))
+        .catch((err) => console.log("avvio del giro completo non riuscito:", String(err))));
     } else if (event.cron === MORNING_CRON) {
       // ogni ora: finito l'orario di silenzio manda il riassunto delle notifiche trattenute di notte
       ctx.waitUntil(flushMorning(env, env.SITE_URL || DEFAULT_SITE, BOT_ORIGIN));

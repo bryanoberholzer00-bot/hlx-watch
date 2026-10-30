@@ -30,6 +30,7 @@ BUILD_MESSAGE = re.compile(r"^(\d+|Update) \| \d+ files? \|")
 
 LABELS = {
     "discovery": "scoperta dei repository SteamTracking",
+    "valve_github": "repository pubblici di Valve su GitHub",
     "structure": "struttura dei repository (cartelle, depot, Protobuf)",
     "github": "monitoraggio dei commit GitHub",
     "summaries": "riassunti automatici di SteamTracking",

@@ -23,6 +23,7 @@
       <td><small>diff di ogni commit + scansione completa giornaliera</small></td></tr>
   {% endfor %}
   <tr><td>Organizzazione <a href="https://github.com/SteamTracking">SteamTracking</a></td><td>elenco dei repository: uno nuovo (GameTracking-*) indica di solito un gioco Valve con file su Steam</td><td><small>a ogni run; i nuovi GameTracking-* vengono seguiti da soli dalla data di creazione</small></td></tr>
+  <tr><td>Organizzazione <a href="https://github.com/ValveSoftware">ValveSoftware</a></td><td>codice pubblicato da Valve (Proton, SteamOS, gamescope, OpenVR, SDK): repository nuovi e messaggi dei commit</td><td><small>a ogni run, solo i repository con un push nuovo; i repository nuovi anche nel controllo veloce</small></td></tr>
   <tr><td>Steam PICS (login anonimo)</td><td>build per branch, depot, metadati di {{ steam_apps|join(', ') }}; elenco delle app cambiate</td><td><small>a ogni run</small></td></tr>
   <tr><td>Steam Web API</td><td>elenco completo delle app, per riconoscere quelle nuove</td><td><small>una volta al giorno</small></td></tr>
   <tr><td>Annunci di Steam (ISteamNews)</td><td>post ufficiali di Valve nella sezione Annunci di {{ news_apps|join(', ') }}</td><td><small>a ogni run, senza chiave; per Steam, SteamVR e Steam Deck solo i post che non sono note di aggiornamento</small></td></tr>
@@ -106,9 +107,13 @@
   pubblica. Un post nella sezione Annunci di Steam che parla di un Half-Life nuovo (HLX, Half-Life 3, "Half-Life: un
   titolo mai visto") è un possibile annuncio; i titoli già usciti, come Alyx o Episode Two, non contano. Ogni altro post
   resta in archivio con pochi punti, senza avviso.</li>
+  <li><b>Codice pubblico di Valve.</b> Su GitHub Valve pubblica una parte del suo codice (Proton, SteamOS, gamescope, OpenVR,
+  GameNetworkingSockets, gli SDK). Non sono i file dei giochi, ma sono scritti da Valve: un repository nuovo è una voce, e
+  ogni riga dei messaggi dei commit nuovi passa per le stesse parole chiave e per la regola dei post di Steam su un Half-Life
+  nuovo. Provato su un anno di commit (813, in 19 repository): nessuna voce, quindi una che compare è da guardare.</li>
   <li><b>Controllo veloce dell'annuncio.</b> GitHub avvia i run in modo irregolare, anche ogni 4-5 ore. Per questo il bot
   su Cloudflare, che gira puntuale, guarda ogni 10 minuti le due fonti che possono annunciare un gioco: i post ufficiali
-  di Steam e i repository nuovi di SteamTracking, con le stesse regole. Se trova un Half-Life nuovo avvisa subito su
+  di Steam e i repository nuovi di SteamTracking e di ValveSoftware, con le stesse regole. Se trova un Half-Life nuovo avvisa subito su
   Telegram, nelle notifiche del sito e nell'app Android; il run completo su GitHub poi lo archivia con i dettagli.
   Se il controllo veloce non riesce da più di 2 ore, il proprietario riceve un avviso; l'ora dell'ultimo giro riuscito è
   nello stato delle fonti, in pagina iniziale.</li>
@@ -276,9 +281,11 @@
 <section>
  <h2>Limiti noti</h2>
  <ul>
-  <li><b>Ritardo</b>: i run sono pianificati ogni 30 minuti, ma GitHub li avvia in modo irregolare (a fine ottobre 2026
-   in media ogni 4-5 ore); una scoperta può arrivare con ore di ritardo rispetto al commit. Un possibile annuncio no:
-   lo cerca anche il controllo veloce, ogni 10 minuti.</li>
+  <li><b>Ritardo</b>: i run pianificati su GitHub partono in modo irregolare (a fine ottobre 2026 in media ogni 4-5 ore).
+   Per questo il bot su Cloudflare avvia lui un run quando sono passati 30 minuti dall'ultimo, con un token GitHub che può
+   solo avviare i run di questo repository; se il token manca o scade restano i run pianificati, e la pagina iniziale lo
+   dice. Una scoperta arriva quindi entro mezz'ora circa dal commit di SteamTracking. Un possibile annuncio anche prima:
+   lo cerca il controllo veloce, ogni 10 minuti.</li>
   <li><b>Parole chiave</b>: si trova solo ciò che corrisponde all'elenco qui sopra. Un progetto con un nome in codice nuovo passa inosservato finché non viene aggiunto.</li>
   <li><b>Formato dei dump</b>: SteamTracking cambia talvolta come estrae i dati (per esempio dal 13 ottobre 2026 molte stringhe già note sono filtrate dai dump dei binari). Spostamenti tra file non sono modifiche di Valve.</li>
   <li><b>Codice condiviso</b>: Source 2 è un motore comune; la stessa modifica compare in più giochi man mano che vengono aggiornati e va contata una volta sola.</li>

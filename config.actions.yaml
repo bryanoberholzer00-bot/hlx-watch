@@ -239,6 +239,13 @@ health:
   failure_threshold: 3                   # run di fila con errori prima dell'avviso (credito AI esaurito: subito)
   stale_days: 5                          # avviso se SteamTracking non pubblica commit da tanti giorni
 
+valve_github:                            # repository pubblici di Valve su GitHub (Proton, SteamOS, OpenVR, SDK...)
+  enabled: true
+  org: ValveSoftware
+  base_score: 55                         # repository nuovo (sopra la soglia: avviso; con HLX nel nome, possibile annuncio)
+  min_score: 50                          # riga di un messaggio di commit valutata almeno così dalle parole chiave
+  max_commit_pages: 3                    # al massimo 300 commit per repository a ogni run
+
 repo_discovery:
   enabled: true                          # a ogni run elenca i repository dell'organizzazione e avvisa dei nuovi
   org: SteamTracking
