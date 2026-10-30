@@ -16,7 +16,7 @@ from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, utcnow
 
 log = logging.getLogger(__name__)
-ALL_SOURCES = ("discovery", "valve", "structure", "github", "summaries", "news", "steam", "local", "fullscan")
+ALL_SOURCES = ("discovery", "valve", "certs", "structure", "github", "summaries", "news", "steam", "local", "fullscan")
 SILENT_CHANGE_TYPES = ("baseline", "present")   # registrati senza avvisi (stato iniziale)
 
 
@@ -46,6 +46,8 @@ class Pipeline:
         self.discovery = RepoDiscovery(cfg, db, self.github.client)
         from hlxwatch.sources.valve_github import ValveGitHubSource
         self.valve = ValveGitHubSource(cfg, db, self.github.client)
+        from hlxwatch.sources.valve_certs import ValveCertsSource
+        self.certs = ValveCertsSource(cfg, db)
         from hlxwatch.sources.structure import StructureWatch
         self.structure = StructureWatch(cfg, db, self.github.client)
         from hlxwatch.sources.summaries import CommitSummaries
@@ -89,6 +91,16 @@ class Pipeline:
                 log.exception("Lettura dei repository di Valve fallita")
                 result.errors.append(f"valve_github: {exc}")
                 status["valve_github"] = str(exc)
+
+        if "certs" in sources and self.certs.enabled:
+            try:
+                result.findings += self.certs.run()
+                status["valve_certs"] = self.certs.errors[0] if self.certs.errors else None
+                result.errors += [f"valve_certs: {e}" for e in self.certs.errors]
+            except Exception as exc:
+                log.exception("Lettura dei certificati di Valve fallita")
+                result.errors.append(f"valve_certs: {exc}")
+                status["valve_certs"] = str(exc)
 
         if "structure" in sources:
             try:

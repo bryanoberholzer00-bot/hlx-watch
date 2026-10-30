@@ -26,6 +26,7 @@ AREAS: list[tuple[str, str]] = [
     ("engine_strings", "stringhe del motore e degli strumenti"),
     ("news", "post ufficiali di Valve"),
     ("code", "codice pubblico di Valve"),
+    ("web", "siti di Valve"),
     ("other", "altro"),
 ]
 AREA_LABELS = dict(AREAS)
@@ -42,7 +43,8 @@ _AREA_RULES: list[tuple[str, re.Pattern[str]]] = [
 ]
 _TYPE_AREAS = {"build": "build", "new_app": "build", "new_repo": "build", "structure": "build", "pulse": "schema",
                "orphan": "convar", "summary": "other",
-               "news": "news", "commit": "code"}
+               "news": "news", "commit": "code", "appid": "code",
+               "domain": "web"}
 
 
 def area_of(path: str, change_type: str = "") -> str:
@@ -68,7 +70,8 @@ _EVIDENCE = {
     "engine_strings": ("stringhe", "solo stringhe dei binari: le stringhe suggeriscono", "solo stringhe"),
     "build": ("build", "build, depot o struttura dei repository", "build"),
     "news": ("ufficiale", "post ufficiale di Valve su Steam", "post ufficiale"),
-    "code": ("codice", "commit nei repository pubblici di Valve su GitHub", "commit di Valve"),
+    "code": ("codice", "codice pubblico di Valve su GitHub", "codice di Valve"),
+    "web": ("siti", "domini nei certificati HTTPS dei siti di Valve", "siti di Valve"),
     "other": ("altro", "altro", ""),
 }
 

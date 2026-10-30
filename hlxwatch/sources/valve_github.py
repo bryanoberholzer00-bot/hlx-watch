@@ -9,15 +9,24 @@ Non sono i file dei giochi, ma è codice scritto da Valve, e un nome di progetto
     e si valuta ogni riga del messaggio: una riga sopra `min_score` con le parole chiave, o che parla di un Half-Life
     nuovo (la stessa regola dei post di Steam), diventa una voce "commit".
 Il primo giro registra lo stato e basta. Provato su 813 commit di un anno (19 repository): nessuna voce.
+
+App Steam nel codice (`appid_files`): il file `proton` di Proton elenca le app con una correzione dedicata (187 a fine
+ottobre 2026, circa 45 nuove in un anno). Quando il repository riceve un push si rilegge il file; ogni numero nuovo si
+controlla sul negozio Steam (api/appdetails, pubblica): un'app non pubblica o di Valve è una voce sopra la soglia, un
+gioco già in vendita di un altro editore resta in archivio con pochi punti.
 """
 from __future__ import annotations
 
 import json
 import logging
+import re
+import time
 from datetime import timedelta
 from typing import Any
 
-from hlxwatch import announcement
+import requests
+
+from hlxwatch import __version__, announcement
 from hlxwatch.analyzers import KeywordMatcher
 from hlxwatch.config import Config
 from hlxwatch.models import BuildInfo, Finding
@@ -33,6 +42,23 @@ PUSHED_KEY = "valvegh:pushed"
 SEEN_KEY = "valvegh:seen"          # sha dei commit già letti (un push può riportare commit con date vecchie)
 KEEP_SEEN = 1000
 MARGIN = timedelta(days=2)         # i commit si chiedono da un po' prima dell'ultimo push: le date dei commit mentono
+APPID_RE = re.compile(r"""["'](\d{3,8})["']""")
+STORE_API = "https://store.steampowered.com/api/appdetails"
+MAX_LOOKUPS = 15                   # app controllate sul negozio a ogni run (le altre al run successivo)
+
+
+def extract_appids(text: str) -> set[str]:
+    """Numeri tra virgolette usati come app: chiavi e voci di elenchi o confronti (== "754530"), non i valori assegnati
+    (MESA_EXTENSION_MAX_YEAR = "2003") né quelli dopo i due punti di un dizionario ("19900": "16")."""
+    out: set[str] = set()
+    for line in text.splitlines():
+        code = line.split("#", 1)[0]
+        for m in APPID_RE.finditer(code):
+            before = code[:m.start()].rstrip()
+            if before.endswith(":") or (before.endswith("=") and not before.endswith(("==", "!="))):
+                continue
+            out.add(m.group(1))
+    return out
 
 
 class ValveGitHubSource:
@@ -47,7 +73,14 @@ class ValveGitHubSource:
         self.base_score = int(self.vcfg.get("base_score", 55))
         self.min_score = int(self.vcfg.get("min_score", 50))
         self.max_pages = int(self.vcfg.get("max_commit_pages", 3))
+        self.appid_files: dict[str, list[str]] = {
+            str(k): [str(p) for p in v] for k, v in (self.vcfg.get("appid_files") or {}).items()}
+        self.score_private = int(self.vcfg.get("score_private_app", 70))
+        self.score_valve = int(self.vcfg.get("score_valve_app", 80))
+        self.score_public = int(self.vcfg.get("score_public_app", 20))
         self.matcher = KeywordMatcher(cfg.keywords)
+        self.store = requests.Session()
+        self.store.headers["User-Agent"] = f"hlx-watch/{__version__}"
         self.errors: list[str] = []
 
     @property
@@ -85,6 +118,13 @@ class ValveGitHubSource:
         for repo in repos:
             name, now_pushed = repo["full_name"], str(repo.get("pushed_at") or "")
             before = pushed.get(name)
+            # i file con le app hanno il loro stato: un errore lì non ferma la lettura dei commit, e viceversa
+            for path in self.appid_files.get(name, []):
+                try:
+                    findings += self._appids(repo, path)
+                except Exception as exc:
+                    log.warning("[%s] %s non letto: %s", name, path, exc)
+                    self.errors.append(f"{name}/{path}: {exc}")
             if not first and before and now_pushed > before:
                 try:
                     findings += self._commits(repo, before, seen)
@@ -172,4 +212,76 @@ class ValveGitHubSource:
             announcement.mark(finding, self.cfg)
         self.db.add_finding(finding, self.db.upsert_build(build))
         log.warning("[%s] commit di Valve segnalato: %s", repo["full_name"], best[:160])
+        return finding
+
+    # ------------------------------------------------------------------ app Steam nel codice
+    def _appids(self, repo: dict[str, Any], path: str) -> list[Finding]:
+        """Numeri di app nuovi nel file. La prima volta registra soltanto; poi lo rilegge a ogni push nuovo."""
+        key = f"valvegh:appids:{repo['full_name']}:{path}"
+        raw = self.db.get_state(key)
+        pushed = str(repo.get("pushed_at") or "")
+        if raw is not None and self.db.get_state(f"{key}:pushed") == pushed:
+            return []
+        branch = repo.get("default_branch") or "main"
+        text = self.client.raw_file(repo["full_name"], branch, path, 2_000_000)
+        if not text:
+            raise RuntimeError(f"file {path} non letto")
+        ids = sorted(extract_appids(text), key=int)
+        if raw is None:
+            self.db.set_state(key, json.dumps(ids))
+            self.db.set_state(f"{key}:pushed", pushed)
+            log.info("[%s] %s: %d app Steam registrate", repo["full_name"], path, len(ids))
+            return []
+        old = set(json.loads(raw))
+        new = [i for i in ids if i not in old]
+        findings: list[Finding] = []
+        done: set[str] = set()
+        for appid in new[:MAX_LOOKUPS]:          # le altre (e quelle con il negozio muto) al prossimo giro
+            info = self.lookup(appid)
+            if info is None:
+                continue
+            findings.append(self._app_finding(repo, path, appid, info))
+            done.add(appid)
+        self.db.set_state(key, json.dumps(sorted(old | done, key=int)))
+        if len(done) == len(new):
+            self.db.set_state(f"{key}:pushed", pushed)
+        return findings
+
+    def lookup(self, appid: str) -> dict[str, Any] | None:
+        """Dati pubblici dell'app sul negozio; {} se l'app non è pubblica, None se il negozio non risponde."""
+        try:
+            r = self.store.get(STORE_API, params={"appids": appid, "l": "english"}, timeout=30)
+            if r.status_code >= 400:
+                return None
+            entry = (r.json() or {}).get(str(appid)) or {}
+        except (requests.RequestException, ValueError):
+            return None
+        finally:
+            time.sleep(1.5)              # il negozio tollera circa 200 richieste ogni 5 minuti
+        return (entry.get("data") or {}) if entry.get("success") else {}
+
+    def _app_finding(self, repo: dict[str, Any], path: str, appid: str, info: dict[str, Any]) -> Finding:
+        store = f"https://store.steampowered.com/app/{appid}/"
+        if not info:
+            score, what = self.score_private, f"app {appid} NON pubblica sul negozio"
+        else:
+            makers = [*(info.get("developers") or []), *(info.get("publishers") or [])]
+            valve = any("valve" in str(m).lower() for m in makers)
+            score = self.score_valve if valve else self.score_public
+            what = f"{info.get('name') or appid} ({appid}{', Valve' if valve else ''})"
+        project = repo["name"]
+        text = f"{project}: correzione dedicata a {what}"
+        build = BuildInfo(game=GAME, source="github", ref=f"appid:{repo['full_name']}:{appid}", date=utcnow(),
+                          url=f"https://github.com/{repo['full_name']}/blob/{repo.get('default_branch') or 'main'}/{path}",
+                          message=text[:500])
+        finding = Finding(game=GAME, source="valve_github", file_path=f"{repo['full_name']}/{path}",
+                          change_type="appid", text=text, score=score, keywords=["valve_github", "appid_new"],
+                          token=f"appid:{project.lower()}:{appid}",
+                          context=json.dumps({"appid": appid, "negozio": store,
+                                              "pubblica": bool(info)}, ensure_ascii=False))
+        finding.build = build
+        if info and announcement.enabled(self.cfg) and announcement.looks_like_hlx(info.get("name")):
+            announcement.mark(finding, self.cfg)
+        self.db.add_finding(finding, self.db.upsert_build(build))
+        (log.warning if score >= 50 else log.info)("[%s] %s", repo["full_name"], text)
         return finding

@@ -33,6 +33,9 @@ class FakeClient:
     def get_json(self, path, params=None):
         return self.repos if params.get("page") == 1 else []
 
+    def raw_file(self, repo, sha, path, max_bytes):
+        return '"1313860",'
+
     def list_commits(self, repo, branch, *, since=None, max_pages=60, **_):
         self.asked.append((repo, branch, since))
         return self.commits.get(repo, [])
@@ -107,4 +110,59 @@ def test_site_says_whether_the_bot_starts_the_runs(tmp_path, monkeypatch):
         assert text in html
     met = (tmp_path / "s0" / "metodologia.html").read_text(encoding="utf-8")
     assert "ValveSoftware" in met
+    db.close()
+
+
+PROTON_V1 = '''
+    if appid in [
+        "1313860", # FIFA 21
+    ]:
+        self.env["MESA_EXTENSION_MAX_YEAR"] = "2003"
+game_fixes = {
+    "19900"     :  "16",  # Far Cry 2
+}
+'''
+PROTON_V2 = PROTON_V1.replace('"1313860", # FIFA 21', '"1313860", # FIFA 21\n        "3999990",\n        "4000000",\n        "4000010",') \
+    .replace('= "2003"', '= "2010"')
+
+
+def test_new_appids_in_proton(tmp_path, monkeypatch):
+    from hlxwatch.sources.valve_github import extract_appids
+    assert extract_appids(PROTON_V1) == {"1313860", "19900"}
+    cfg, db = make(tmp_path)
+    client = FakeClient()
+    files = {"proton": PROTON_V1}
+    client.raw_file = lambda repo, sha, path, max_bytes: files[path]
+    client.repos = [repo("Proton", "2026-10-29T00:00:00Z")]
+    src = ValveGitHubSource(cfg, db, client)
+    store = {"3999990": {}, "4000000": {"name": "Some Game", "developers": ["Studio"], "publishers": ["Pub"]},
+             "4000010": {"name": "New Thing", "developers": ["Valve"], "publishers": ["Valve"]}}
+    monkeypatch.setattr(src, "lookup", lambda appid: store[appid])
+    assert src.run() == []                                      # primo giro: app registrate
+    files["proton"] = PROTON_V2
+    assert src.run() == []                                      # nessun push: il file non si rilegge
+    client.repos = [repo("Proton", "2026-10-30T12:00:00Z")]
+    found = {f.text: f.score for f in src.run()}
+    assert found == {"Proton: correzione dedicata a app 3999990 NON pubblica sul negozio": 70,
+                     "Proton: correzione dedicata a Some Game (4000000)": 20,
+                     "Proton: correzione dedicata a New Thing (4000010, Valve)": 80}
+    client.repos = [repo("Proton", "2026-10-30T13:00:00Z")]
+    assert src.run() == []                                      # già viste: nessuna voce doppia
+    # tante app nuove insieme (cambio di ramo): 15 a giro, il resto al giro dopo anche senza un push nuovo
+    import hlxwatch.sources.valve_github as vg
+    files["proton"] = PROTON_V2 + "".join(f'"{5000000 + i}",\n' for i in range(vg.MAX_LOOKUPS + 3))
+    monkeypatch.setattr(src, "lookup", lambda appid: store.get(appid, {"name": f"G{appid}"}))
+    client.repos = [repo("Proton", "2026-10-30T14:00:00Z")]
+    assert len(src.run()) == vg.MAX_LOOKUPS
+    assert len(src.run()) == 3
+    assert src.run() == []
+    # negozio che non risponde: l'app non si archivia, si riprova
+    files["proton"] += '"6000000",\n'
+    client.repos = [repo("Proton", "2026-10-30T15:00:00Z")]
+    monkeypatch.setattr(src, "lookup", lambda appid: None)
+    assert src.run() == []
+    monkeypatch.setattr(src, "lookup", lambda appid: {})
+    assert [f.score for f in src.run()] == [70]
+    reevaluate(cfg, db)
+    assert db.conn.execute("SELECT COUNT(*) FROM findings WHERE change_type = 'appid'").fetchone()[0] == 3 + 18 + 1
     db.close()

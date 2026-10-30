@@ -24,6 +24,8 @@
   {% endfor %}
   <tr><td>Organizzazione <a href="https://github.com/SteamTracking">SteamTracking</a></td><td>elenco dei repository: uno nuovo (GameTracking-*) indica di solito un gioco Valve con file su Steam</td><td><small>a ogni run; i nuovi GameTracking-* vengono seguiti da soli dalla data di creazione</small></td></tr>
   <tr><td>Organizzazione <a href="https://github.com/ValveSoftware">ValveSoftware</a></td><td>codice pubblicato da Valve (Proton, SteamOS, gamescope, OpenVR, SDK): repository nuovi e messaggi dei commit</td><td><small>a ogni run, solo i repository con un push nuovo; i repository nuovi anche nel controllo veloce</small></td></tr>
+  <tr><td>Codice di <a href="https://github.com/ValveSoftware/Proton">Proton</a></td><td>elenco delle app Steam con una correzione dedicata (file <code>proton</code>)</td><td><small>a ogni push; ogni app nuova si controlla sul negozio Steam (api/appdetails)</small></td></tr>
+  <tr><td>Certificati HTTPS di Valve (<a href="https://sslmate.com/certspotter/">Cert Spotter</a>)</td><td>domini dei siti di Valve: un solo certificato elenca i siti di prova di tutti i giochi</td><td><small>ogni 3 ore, solo i certificati nuovi; non crt.sh, che lo vieta</small></td></tr>
   <tr><td>Steam PICS (login anonimo)</td><td>build per branch, depot, metadati di {{ steam_apps|join(', ') }}; elenco delle app cambiate</td><td><small>a ogni run</small></td></tr>
   <tr><td>Steam Web API</td><td>elenco completo delle app, per riconoscere quelle nuove</td><td><small>una volta al giorno</small></td></tr>
   <tr><td>Annunci di Steam (ISteamNews)</td><td>post ufficiali di Valve nella sezione Annunci di {{ news_apps|join(', ') }}</td><td><small>a ogni run, senza chiave; per Steam, SteamVR e Steam Deck solo i post che non sono note di aggiornamento</small></td></tr>
@@ -111,6 +113,15 @@
   GameNetworkingSockets, gli SDK). Non sono i file dei giochi, ma sono scritti da Valve: un repository nuovo è una voce, e
   ogni riga dei messaggi dei commit nuovi passa per le stesse parole chiave e per la regola dei post di Steam su un Half-Life
   nuovo. Provato su un anno di commit (813, in 19 repository): nessuna voce, quindi una che compare è da guardare.</li>
+  <li><b>Siti di Valve.</b> Valve protegge i siti di prova di tutti i suoi giochi con un solo certificato HTTPS, rinnovato
+  ogni poche settimane, che elenca ogni dominio (half-life.com, playdeadlock.com, steamdeck.com... 58 a fine ottobre 2026).
+  I certificati sono pubblici nei registri di Certificate Transparency. Un dominio mai visto è probabilmente il sito di un
+  progetto nuovo, preparato prima dell'annuncio: è una voce con avviso, e con HLX o Half-Life 3 nel nome un possibile
+  annuncio. Un sottodominio nuovo di un sito noto resta in archivio. Non si sa se in passato abbia anticipato un annuncio:
+  i registri storici non si possono interrogare in automatico.</li>
+  <li><b>App Steam nel codice di Proton.</b> Proton elenca le app che ricevono una correzione dedicata (circa 45 nuove
+  all'anno). A ogni aggiornamento del file, ogni numero nuovo si controlla sul negozio Steam: un'app non ancora pubblica o
+  di Valve è una voce con avviso; un gioco già in vendita di un altro editore resta in archivio.</li>
   <li><b>Controllo veloce dell'annuncio.</b> GitHub avvia i run in modo irregolare, anche ogni 4-5 ore. Per questo il bot
   su Cloudflare, che gira puntuale, guarda ogni 10 minuti le due fonti che possono annunciare un gioco: i post ufficiali
   di Steam e i repository nuovi di SteamTracking e di ValveSoftware, con le stesse regole. Se trova un Half-Life nuovo avvisa subito su

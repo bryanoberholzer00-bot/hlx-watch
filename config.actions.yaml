@@ -245,6 +245,18 @@ valve_github:                            # repository pubblici di Valve su GitHu
   base_score: 55                         # repository nuovo (sopra la soglia: avviso; con HLX nel nome, possibile annuncio)
   min_score: 50                          # riga di un messaggio di commit valutata almeno così dalle parole chiave
   max_commit_pages: 3                    # al massimo 300 commit per repository a ogni run
+  appid_files:                           # file con le app Steam che ricevono una correzione dedicata
+    ValveSoftware/Proton: [proton]
+  score_private_app: 70                  # app nuova nel file e NON pubblica sul negozio
+  score_valve_app: 80                    # app nuova di Valve
+  score_public_app: 20                   # gioco già in vendita di un altro editore: solo archivio
+
+valve_certs:                             # domini nei certificati HTTPS dei siti di Valve (Cert Spotter)
+  enabled: true
+  domains: [half-life.com, valvesoftware.com]   # il certificato di half-life.com elenca tutti i siti dei giochi
+  interval_hours: 3                      # poche richieste anonime all'ora: una lettura ogni 3 ore basta
+  score_new_domain: 120                  # dominio mai visto (es. il sito di un gioco nuovo)
+  score_new_subdomain: 30                # sottodominio nuovo di un dominio noto: solo archivio
 
 repo_discovery:
   enabled: true                          # a ogni run elenca i repository dell'organizzazione e avvisa dei nuovi

@@ -11,6 +11,7 @@
 #   GH_PAT            opzionale: token personale GitHub (5000 req/ora); senza, usa quello
 #                     automatico di Actions (1000 req/ora), sufficiente per le scansioni
 #   STEAM_WEB_API_KEY opzionale: lista completa delle app Steam
+#   CERTSPOTTER_API_KEY opzionale: chiave gratuita di Cert Spotter (senza, poche richieste anonime all'ora: bastano)
 #   ANTHROPIC_API_KEY opzionale: analisi AI giornaliera con Claude Opus 5.5
 
 name: HLX Watch
@@ -73,6 +74,7 @@ env:
   PUSH_SECRET: ${{ secrets.PUSH_SECRET }}
   DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
   STEAM_WEB_API_KEY: ${{ secrets.STEAM_WEB_API_KEY }}
+  CERTSPOTTER_API_KEY: ${{ secrets.CERTSPOTTER_API_KEY }}
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
 jobs:

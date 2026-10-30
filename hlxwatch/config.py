@@ -96,6 +96,8 @@ class Config:
             return "SteamTracking (nuovi repository)"
         if name == "valvesoftware":
             return "Valve su GitHub"
+        if name == "valveweb":
+            return "Siti di Valve (certificati)"
         if name == "hlxwatch":
             return "HLX Watch (prova)"
         for repo in self.get("github.repos", []) or []:

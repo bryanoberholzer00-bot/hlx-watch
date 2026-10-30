@@ -21,7 +21,7 @@ from hlxwatch.timeutil import local_day, local_day_bounds_utc, register_filters
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 PER_PAGE = 50
 CHANGE_TYPES = ["added", "removed", "changed", "present", "file_added", "file_removed", "file_renamed", "build", "new_app", "new_repo", "baseline"]
-SOURCES = ["github", "discovery", "valve_github", "fullscan", "steam_pics", "steam_apps", "local"]
+SOURCES = ["github", "discovery", "valve_github", "certs", "fullscan", "steam_pics", "steam_apps", "local"]
 
 
 def _row(row: Any) -> dict[str, Any]:
