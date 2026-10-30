@@ -198,6 +198,9 @@ steam_news:                              # post ufficiali di Valve su Steam (ISt
 archive_guard:                           # prima di salvare: l'archivio non deve essersi svuotato
   max_drop_percent: 5                    # calo massimo di voci, build o stringhe viste rispetto all'ultimo salvataggio
 
+# fast_check:                            # controllo veloce dell'annuncio nel bot su Cloudflare
+#   status_url: "https://<il-tuo-worker>.workers.dev/fast/stato.json"
+
 esiti:                                   # registro degli esiti delle tracce HLX (pagina esiti.html)
   manuali:                               # esiti che lo strumento non può dimostrare da solo
     - match: "hlx_physics_particle_spawner"

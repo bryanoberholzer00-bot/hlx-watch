@@ -19,6 +19,11 @@ const NEWS_API = "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/";
 const REPOS_API = "https://api.github.com/orgs/SteamTracking/repos?sort=created&direction=desc&per_page=15";
 const STATE = "fast:seen";
 const ALERTS = "fast:alerts";
+// battito: l'ora dell'ultimo giro riuscito, scritta al massimo una volta l'ora (24 scritture al giorno)
+const HEARTBEAT = "fast:ok";
+const STOPPED = "fast:fermo";
+const BEAT_EVERY_MS = 55 * 60 * 1000;
+export const STALE_MS = 2 * 3600 * 1000;
 const KEEP = 40;
 const MAX_AGE_MS = 3 * 24 * 3600 * 1000;
 export const PREFIX = "POSSIBILE ANNUNCIO: ";
@@ -160,6 +165,7 @@ export async function fastCheck(env, site, origin, sendTelegram) {
   try { repos = await fetchRepos(); } catch (err) { console.log("controllo veloce:", String(err)); }
   const result = compare(state, news, repos);
   if (result.changed) await env.SUBS.put(STATE, JSON.stringify(result.state));
+  if (news.length || repos) await beat(env, sendTelegram);
   if (!result.alerts.length) return result;
 
   console.log("controllo veloce: POSSIBILE ANNUNCIO", result.alerts.map((a) => a.x).join(" | "));
@@ -176,6 +182,49 @@ export async function fastCheck(env, site, origin, sendTelegram) {
     console.log("controllo veloce: notifiche del sito non inviate", String(err));
   }
   return result;
+}
+
+// ------------------------------------------------------------------ battito e controllo
+async function beat(env, sendTelegram, now = Date.now()) {
+  const last = Date.parse((await env.SUBS.get(HEARTBEAT)) || "") || 0;
+  if (now - last >= BEAT_EVERY_MS) await env.SUBS.put(HEARTBEAT, new Date(now).toISOString());
+  if (await env.SUBS.get(STOPPED)) {            // era fermo: ora riparte
+    await env.SUBS.delete(STOPPED);
+    if (env.OWNER_CHAT_ID) {
+      await sendTelegram(env, env.OWNER_CHAT_ID, "✅ <b>HLX Watch: il controllo veloce dell'annuncio è ripartito</b>");
+    }
+  }
+}
+
+// Chiamata ogni ora: se il controllo veloce non riesce da più di 2 ore (Steam e GitHub non rispondono, o il
+// cron si è fermato), un solo avviso al proprietario; un altro quando riparte.
+export async function fastWatchdog(env, sendTelegram, now = Date.now()) {
+  if (!env.SUBS) return null;
+  const raw = await env.SUBS.get(HEARTBEAT);
+  const last = Date.parse(raw || "");
+  if (!raw || Number.isNaN(last) || now - last <= STALE_MS) return null;
+  if (await env.SUBS.get(STOPPED)) return null;          // già avvisato
+  await env.SUBS.put(STOPPED, new Date(now).toISOString());
+  const hours = Math.floor((now - last) / 3600e3);
+  if (env.OWNER_CHAT_ID) {
+    await sendTelegram(env, env.OWNER_CHAT_ID, `⚠️ <b>HLX Watch: il controllo veloce dell'annuncio è fermo da ${hours} ore</b>
+` +
+      "Non riesce a leggere i post di Steam né i repository di SteamTracking. Il giro completo su GitHub continua; " +
+      "i log sono nella dashboard di Cloudflare, alla voce del Worker hlx-watch-bot.");
+  }
+  return hours;
+}
+
+// GET /fast/stato.json: l'ora dell'ultimo giro riuscito, per lo stato delle fonti sul sito
+export async function fastStatus(env, now = Date.now()) {
+  const raw = (env.SUBS && (await env.SUBS.get(HEARTBEAT))) || null;
+  const last = Date.parse(raw || "");
+  const body = { ultimo_ok: raw, minuti: Number.isNaN(last) ? null : Math.floor((now - last) / 60000),
+    fermo: Number.isNaN(last) ? true : now - last > STALE_MS };
+  return new Response(JSON.stringify(body), {
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store",
+      "access-control-allow-origin": "*" },
+  });
 }
 
 // GET /fast/annuncio.json: le voci di annuncio degli ultimi 3 giorni, per l'app Android

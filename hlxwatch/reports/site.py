@@ -25,7 +25,7 @@ from hlxwatch.outcomes import engine_merge_index, merge_partners, outcome_regist
 from hlxwatch.analyzers.codenames import CodenameTracker
 from hlxwatch.links import link_label
 from hlxwatch.reports.site_extras import (AREA_LABELS, AREAS, area_of, evidence_of, hardware_data, schema_url,
-                                          source_status)
+                                          fast_status, source_status)
 from hlxwatch.timeutil import local_day, now_local, register_filters, tz_label
 
 log = logging.getLogger(__name__)
@@ -191,7 +191,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
         timeline_days=timeline_days, tokens=[dict(r) for r in db.top_tokens(25)],
         builds=with_summaries(db, [dict(r) for r in db.recent_builds(15)]), apps=[dict(r) for r in db.flagged_apps(20)],
         steam_builds=[dict(r) for r in db.steam_builds(12)], present=present_groups(db),
-        analysis=analyses[0] if analyses else None, status=source_status(cfg, db),
+        analysis=analyses[0] if analyses else None, status=source_status(cfg, db, fast_status(cfg)),
     )
     (out_dir / "index.html").write_text(index_html, encoding="utf-8")
     (out_dir / "hardware.html").write_text(env.get_template("hardware.html").render(hw=hardware_data(cfg, db)),

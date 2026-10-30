@@ -101,7 +101,9 @@
    <td>{{ r.summary or '—' }}</td></tr>
   {% endfor %}
  </table>
- {% if status.changes_gap_recent %}<p><small>Steam ha saltato l'elenco delle app cambiate il {{ status.changes_gap|local }}: le app private vengono ricontrollate.</small></p>{% endif %}
+ {% if status.fast %}<p><small>Controllo veloce dell'annuncio (ogni 10 minuti, sul bot):
+ {% if status.fast.irraggiungibile %}<b>il bot non risponde</b>{% elif status.fast.fermo %}<b>fermo</b>{% if status.fast.ultimo_ok %}, ultimo giro riuscito {{ status.fast.ultimo_ok|local }}{% endif %}{% else %}ultimo giro riuscito {{ status.fast.ultimo_ok|local }}{% endif %}.</small></p>{% endif %}
+ {% if status.changes_gap_recent %}<p><small>Steam ha saltato l'elenco delle app cambiate il {{ status.changes_gap|local }}, anche se dal giro precedente erano passate solo {{ status.changes_gap_hours }} ore: le app private vengono ricontrollate.</small></p>{% endif %}
  {% if status.problems %}<p><small><b>Fonti con errori:</b> {% for p in status.problems %}{{ p.source }} ({{ p.fails }} run di fila{% if p.last_ok %}, ultimo ok {{ p.last_ok }}{% endif %}){% if not loop.last %}; {% endif %}{% endfor %}</small></p>{% endif %}
 
  <h2 style="margin-top:1.2rem">Ultime build e commit</h2>

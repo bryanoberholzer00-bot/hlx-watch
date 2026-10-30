@@ -17,6 +17,20 @@ from hlxwatch.storage import Database
 log = logging.getLogger(__name__)
 
 
+def false_removals(db: Database) -> list[int]:
+    """Voci "removed" della scansione completa con una "added" della stessa riga nella stessa build."""
+    added: set[tuple[int, str, str]] = set()
+    removed: list[tuple[int, tuple[int, str, str]]] = []
+    for r in db.conn.execute("SELECT id, build_id, file_path, text, change_type FROM findings "
+                             "WHERE source = 'fullscan' AND change_type IN ('added', 'removed')"):
+        key = (r["build_id"], r["file_path"], " ".join((r["text"] or "").split()))
+        if r["change_type"] == "added":
+            added.add(key)
+        else:
+            removed.append((r["id"], key))
+    return [i for i, key in removed if key in added]
+
+
 def reevaluate(cfg: Config, db: Database) -> dict[str, int]:
     ignore = {r["name"]: r.get("ignore_keywords", []) or [] for r in cfg.get("github.repos", []) or []}
     ignore.update({a["name"]: a.get("ignore_keywords", []) or [] for a in cfg.steam_watch_apps})
@@ -47,6 +61,10 @@ def reevaluate(cfg: Config, db: Database) -> dict[str, int]:
     db.conn.executemany("DELETE FROM findings WHERE id = ?", [(r["id"],) for r in private])
     db.conn.executemany("DELETE FROM builds WHERE id = ? AND NOT EXISTS (SELECT 1 FROM findings WHERE build_id = ?)",
                         [(r["build_id"], r["build_id"]) for r in private if r["build_id"]])
+    # scansione completa: nella stessa versione dei file (stessa build) una riga non può essere sia aggiunta sia
+    # tolta. Succedeva quando una modifica al config portava una riga sotto soglia: la "tolta" è falsa
+    contradictions = false_removals(db)
+    db.conn.executemany("DELETE FROM findings WHERE id = ?", [(i,) for i in contradictions])
     # build Steam registrate con il vecchio link alla pagina del negozio
     db.conn.execute("UPDATE builds SET url = 'https://steamdb.info/patchnotes/' || steam_buildid || '/' "
                     "WHERE source = 'steam' AND steam_buildid IS NOT NULL AND url LIKE 'https://store.steampowered.com/%'")
@@ -54,7 +72,9 @@ def reevaluate(cfg: Config, db: Database) -> dict[str, int]:
                     "'https://steamdb.info/app/') || 'history/' "
                     "WHERE source = 'steam' AND ref LIKE 'pics:%' AND url LIKE 'https://store.steampowered.com/app/%'")
     db.conn.commit()
-    stats = {"esaminate": len(rows), "eliminate": len(drop), "aggiornate": rescored, "private": len(private)}
-    log.info("Rivalutazione: %d voci esaminate, %d eliminate, %d con punteggio aggiornato, %d app private rimosse",
-             stats["esaminate"], stats["eliminate"], stats["aggiornate"], stats["private"])
+    stats = {"esaminate": len(rows), "eliminate": len(drop), "aggiornate": rescored, "private": len(private),
+             "tolte_false": len(contradictions)}
+    log.info("Rivalutazione: %d voci esaminate, %d eliminate, %d con punteggio aggiornato, %d app private rimosse, "
+             "%d righe tolte per sbaglio", stats["esaminate"], stats["eliminate"], stats["aggiornate"], stats["private"],
+             stats["tolte_false"])
     return stats

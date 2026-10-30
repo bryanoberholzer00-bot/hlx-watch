@@ -10,7 +10,7 @@
 // Variabili facoltative: SITE_URL (default il sito pubblico), DRY_RUN=1 (risponde nella risposta HTTP: per i test)
 
 import { flushMorning, handlePush } from "./push.js";
-import { FAST_CRON, fastAlerts, fastCheck } from "./fast.js";
+import { FAST_CRON, fastAlerts, fastCheck, fastStatus, fastWatchdog } from "./fast.js";
 
 const DEFAULT_SITE = "https://bryanoberholzer00-bot.github.io/hlx-watch/";
 const REPO = "https://github.com/bryanoberholzer00-bot/hlx-watch";
@@ -195,6 +195,7 @@ export default {
     } else if (event.cron === MORNING_CRON) {
       // ogni ora: finito l'orario di silenzio manda il riassunto delle notifiche trattenute di notte
       ctx.waitUntil(flushMorning(env, env.SITE_URL || DEFAULT_SITE, BOT_ORIGIN));
+      ctx.waitUntil(fastWatchdog(env, reply));      // e controlla che il controllo veloce stia girando
     } else {
       ctx.waitUntil(scheduledCheck(env));
     }
@@ -208,6 +209,9 @@ export default {
     }
     if (path === "/fast/annuncio.json" && request.method === "GET") {
       return fastAlerts(env);                       // l'app Android lo legge insieme a bot/ultime.json
+    }
+    if (path === "/fast/stato.json" && request.method === "GET") {
+      return fastStatus(env);                       // il sito lo mostra nello stato delle fonti
     }
     if (request.method !== "POST") {
       return new Response("HLX Watch bot: ok", { status: 200 });

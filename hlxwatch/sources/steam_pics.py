@@ -130,8 +130,8 @@ class SteamPicsSource:
                 # Steam elenca le app cambiate solo per salti fino a ~5000 change number (circa 3-4 ore): oltre,
                 # risponde solo con il numero attuale. Succede quando GitHub lascia passare ore tra due run
                 self.changes_gap = True
-                log.warning("PICS: elenco delle app cambiate saltato (dal change %s al %s): ricontrollo le app private",
-                            since, changes["current"])
+                log.info("PICS: elenco delle app cambiate saltato (dal change %s al %s, normale se tra due run "
+                         "passano ore): ricontrollo le app private", since, changes["current"])
             elif changes.get("force_full") or since == 0:
                 log.info("PICS: change number di partenza %s (prima esecuzione)", changes["current"])
             else:

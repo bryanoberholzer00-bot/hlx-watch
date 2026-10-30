@@ -85,7 +85,9 @@
   file per commit.</li>
   <li><b>Scansione completa</b> (ogni {{ full_scan.interval_hours }} ore). L'ultima versione di ogni repository viene
   scaricata senza storia e cercata per intero, compresi i file che la ricerca di GitHub non indicizza e quelli
-  tagliati dal limite dei 3000 file. Prefiltro: <code>{{ full_scan.prefilter }}</code>; soglia {{ full_scan.min_score }} punti.</li>
+  tagliati dal limite dei 3000 file. Prefiltro: <code>{{ full_scan.prefilter }}</code>; soglia {{ full_scan.min_score }} punti.
+  Una riga che cambia solo punteggio, per una modifica alle parole chiave, non conta né come aggiunta né come tolta:
+  conta solo ciò che cambia nei file.</li>
   <li><b>Prima comparsa.</b> Per le voci trovate dalla scansione completa, lo strumento ripercorre la storia del
   file e cerca per bisezione il primo commit in cui la riga compare.</li>
   <li><b>Steam.</b> Nuove build per branch e app nuove con developer/publisher Valve, nome sospetto o parole chiave.</li>
@@ -107,7 +109,9 @@
   <li><b>Controllo veloce dell'annuncio.</b> GitHub avvia i run in modo irregolare, anche ogni 4-5 ore. Per questo il bot
   su Cloudflare, che gira puntuale, guarda ogni 10 minuti le due fonti che possono annunciare un gioco: i post ufficiali
   di Steam e i repository nuovi di SteamTracking, con le stesse regole. Se trova un Half-Life nuovo avvisa subito su
-  Telegram, nelle notifiche del sito e nell'app Android; il run completo su GitHub poi lo archivia con i dettagli.</li>
+  Telegram, nelle notifiche del sito e nell'app Android; il run completo su GitHub poi lo archivia con i dettagli.
+  Se il controllo veloce non riesce da più di 2 ore, il proprietario riceve un avviso; l'ora dell'ultimo giro riuscito è
+  nello stato delle fonti, in pagina iniziale.</li>
   <li><b>Riassunti di SteamTracking.</b> Dal 4 ottobre 2026 SteamTracking fa leggere ogni aggiornamento a una squadra di
   agenti Claude e pubblica un riassunto come commento sul commit. La pagina iniziale lo mostra accanto alla build; una
   riga che parla di HLX, o che sta nella sezione sugli altri giochi e progetti non annunciati, diventa una voce con avviso.</li>

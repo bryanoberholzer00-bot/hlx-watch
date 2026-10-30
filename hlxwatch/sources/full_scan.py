@@ -41,6 +41,12 @@ MAX_LINE = 2000
 SEP = "\t"
 
 
+def line_key(file_path: str, text: str) -> str:
+    """Impronta corta di una riga (file + testo senza spazi doppi), per l'elenco di tutte le righe trovate."""
+    norm = f"{file_path}{SEP}{' '.join(text.split())}"
+    return hashlib.sha1(norm.encode("utf-8", "replace")).hexdigest()[:16]
+
+
 class FullScanSource:
     name = "fullscan"
 
@@ -165,10 +171,14 @@ class FullScanSource:
         matcher = KeywordMatcher(self.cfg.keywords, ignore_ids=repo_cfg.get("ignore_keywords", []) or [])
 
         current: dict[str, tuple[str, int, str, Any]] = {}
+        # tutte le righe trovate dal filtro, anche sotto soglia: una riga che cambia solo punteggio (per una modifica
+        # al config) non è né "aggiunta" né "tolta" nei file
+        present_all: set[str] = set()
         codename_findings: list[Finding] = []
         for file_path, line_no, text in self.grep(path):
             if any(p.search(file_path) for p in self.ignore_patterns):
                 continue
+            present_all.add(line_key(file_path, text))
             f = self.codenames.check(text, file_path, game=name, change_type="present")
             if f:
                 f.source, f.line_no = "fullscan", line_no
@@ -179,12 +189,16 @@ class FullScanSource:
             key = f"{file_path}{SEP}{' '.join(text.split())}"
             current.setdefault(key, (file_path, line_no, text.strip(), res))
 
-        snap_key = f"fullscan:{name}"
+        snap_key, all_key = f"fullscan:{name}", f"fullscan_all:{name}"
         previous = self.db.get_snapshot(snap_key)
         old_keys = set((previous[1] or "").splitlines()) if previous else set()
+        previous_all = self.db.get_snapshot(all_key)
+        old_all = set((previous_all[1] or "").splitlines()) if previous_all else None   # None: run precedenti
         new_keys = set(current)
         content = "\n".join(sorted(new_keys))
         self.db.set_snapshot(snap_key, hashlib.sha1(content.encode("utf-8", "replace")).hexdigest(), content)
+        content_all = "\n".join(sorted(present_all))
+        self.db.set_snapshot(all_key, hashlib.sha1(content_all.encode()).hexdigest(), content_all)
 
         build = BuildInfo(game=name, source="fullscan", ref=f"tree:{sha[:12]}", date=utcnow(),
                           url=f"https://github.com/{repo}/tree/{sha}",
@@ -204,11 +218,15 @@ class FullScanSource:
         else:
             for key in sorted(new_keys - old_keys):
                 file_path, line_no, text, res = current[key]
+                if old_all is not None and line_key(file_path, text) in old_all:
+                    continue                # c'era già, sotto soglia: è salito solo il punteggio
                 if self._already_recorded(name, file_path, text, "added"):
                     continue
                 findings.append(make(file_path, line_no, text, res, "added"))
             for key in sorted(old_keys - new_keys):
                 file_path, _, text = key.partition(SEP)
+                if line_key(file_path, text) in present_all:
+                    continue                # c'è ancora nei file, sotto soglia: è sceso solo il punteggio
                 res = matcher.analyze_line(text, file_path=file_path, change_type="removed")
                 if res is None or self._already_recorded(name, file_path, text, "removed"):
                     continue

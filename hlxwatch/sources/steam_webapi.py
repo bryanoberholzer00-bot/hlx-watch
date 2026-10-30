@@ -114,6 +114,9 @@ class SteamNewAppsSource:
         # per prime, al ritmo di max_lookup_per_run per run
         if getattr(self.pics, "changes_gap", False):
             reopened = self.db.reset_all_private_apps()
+            prev = parse_iso(self.db.get_state("last_scan_at"))          # il run precedente (aggiornato a fine run)
+            if prev:
+                self.db.set_state("steam:changes_gap_hours", f"{(utcnow() - prev).total_seconds() / 3600:.2f}")
             self.db.set_state("steam:changes_gap_at", iso(utcnow()))
             log.info("PICS: elenco dei cambi saltato, %d app private da ricontrollare", reopened)
         else:

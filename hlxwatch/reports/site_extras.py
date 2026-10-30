@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from typing import Any
 
@@ -20,6 +21,8 @@ from hlxwatch.repos import tracked_repos
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import parse_iso, utcnow
 from hlxwatch.timeutil import local_day
+
+log = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------ Schema Explorer
 SCHEMA_GAMES = {"cs2": "cs2", "dota2": "dota2", "deadlock": "deadlock"}
@@ -41,6 +44,7 @@ from hlxwatch.evidence import AREA_LABELS, AREAS, area_of, evidence_of  # noqa: 
 
 # ------------------------------------------------------------------ stato delle fonti
 MAIN_GAMES = ("cs2", "dota2", "deadlock")
+GAP_UNUSUAL_HOURS = 3          # Steam elenca le app cambiate per circa 3-4 ore: un salto dopo meno ore è insolito
 STALE_DAYS = 14                # i giochi principali ricevono commit ogni settimana: due settimane di silenzio sono strane
 
 
@@ -49,7 +53,21 @@ def _days_ago(value: str | None) -> int | None:
     return None if when is None else max(0, (utcnow() - when).days)
 
 
-def source_status(cfg: Config, db: Database) -> dict[str, Any]:
+def fast_status(cfg: Config) -> dict[str, Any] | None:
+    """Stato del controllo veloce dell'annuncio, letto dal bot su Cloudflare (fast_check.status_url)."""
+    url = (cfg.get("fast_check", {}) or {}).get("status_url")
+    if not url:
+        return None
+    import requests
+    try:
+        data = requests.get(url, timeout=10).json()
+    except Exception as exc:                      # il bot non risponde: il sito lo dice, senza fermarsi
+        log.warning("Controllo veloce: stato non leggibile (%s)", exc)
+        return {"ultimo_ok": None, "minuti": None, "fermo": True, "irraggiungibile": True}
+    return data if isinstance(data, dict) else None
+
+
+def source_status(cfg: Config, db: Database, fast: dict[str, Any] | None = None) -> dict[str, Any]:
     """Una riga per repository seguito più lo stato generale, per la tabella "Stato delle fonti"."""
     summaries: dict[str, str] = {}
     for key, value in db.conn.execute("SELECT key, value FROM state WHERE key LIKE 'summary:%'"):
@@ -85,12 +103,19 @@ def source_status(cfg: Config, db: Database) -> dict[str, Any]:
             problems.append({"source": key.split(":", 1)[1], "fails": int(info["fails"]),
                              "last_ok": local_day(info.get("last_ok")) if info.get("last_ok") else None})
     gap = db.get_state("steam:changes_gap_at")
+    try:
+        gap_hours = float(db.get_state("steam:changes_gap_hours") or "nan")
+    except ValueError:
+        gap_hours = float("nan")
     from hlxwatch.announcement import drill_state
     return {
         "drill": drill_state(db),
         "repos": rows, "problems": problems,
         "last_scan": db.get_state("last_scan_at"), "last_fullscan": db.get_state("fullscan:last_at"),
-        "changes_gap": gap, "changes_gap_recent": bool(gap and (_days_ago(gap) or 0) < 2),
+        # con i run ogni 4-5 ore Steam salta quasi sempre l'elenco: si mostra solo se è successo dopo poche ore
+        "changes_gap": gap, "changes_gap_hours": None if gap_hours != gap_hours else round(gap_hours, 1),
+        "changes_gap_recent": bool(gap and (_days_ago(gap) or 0) < 2 and gap_hours < GAP_UNUSUAL_HOURS),
+        "fast": fast,
     }
 
 

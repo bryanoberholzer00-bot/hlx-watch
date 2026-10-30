@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { APPS, PREFIX, clean, compare, fastAlerts, fastCheck, newHalfLife, newsItem } from "../src/fast.js";
+import { APPS, PREFIX, clean, compare, fastAlerts, fastCheck, fastStatus, fastWatchdog, newHalfLife, newsItem } from "../src/fast.js";
 
 const now = Date.parse("2026-10-30T12:00:00Z");
 const post = (gid, title, hoursAgo = 1, contents = "") =>
@@ -58,6 +58,7 @@ class FakeKV {
   constructor() { this.data = new Map(); this.writes = 0; }
   async get(k) { return this.data.has(k) ? this.data.get(k) : null; }
   async put(k, v) { this.data.set(k, v); this.writes += 1; }
+  async delete(k) { this.data.delete(k); }
   async list() { return { keys: [], list_complete: true }; }
 }
 
@@ -75,7 +76,8 @@ test("fastCheck manda Telegram e scrive /fast/annuncio.json", async () => {
     const env = { SUBS: new FakeKV(), OWNER_CHAT_ID: "1" };
     const sent = [];
     const tg = async (_env, chat, text) => sent.push(text);
-    await fastCheck(env, "https://example/", "https://bot", tg);          // primo giro
+    await fastCheck(env, "https://example/", "https://bot", tg);          // primo giro (stato + battito)
+    assert.ok(env.SUBS.data.get("fast:ok"));
     const writes = env.SUBS.writes;
     await fastCheck(env, "https://example/", "https://bot", tg);
     assert.equal(env.SUBS.writes, writes);                              // nessuna novità, nessuna scrittura
@@ -87,6 +89,39 @@ test("fastCheck manda Telegram e scrive /fast/annuncio.json", async () => {
     const list = await res.json();
     assert.equal(list.length, 1);
     assert.equal(list[0].g, "Client Steam");
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test("battito: un avviso se il controllo veloce si ferma, uno quando riparte", async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => String(url).includes("api.github.com")
+    ? new Response("[]", { status: 200 })
+    : new Response(JSON.stringify({ appnews: { newsitems: [] } }), { status: 200 });
+  try {
+    const env = { SUBS: new FakeKV(), OWNER_CHAT_ID: "1" };
+    const sent = [];
+    const tg = async (_env, chat, text) => sent.push(text);
+    const t = Date.now();
+    assert.equal(await fastWatchdog(env, tg, t), null);                 // mai partito: niente avviso
+    env.SUBS.data.set("fast:ok", new Date(t - 3 * 3600e3).toISOString());
+    let st = await (await fastStatus(env, t)).json();
+    assert.equal(st.minuti, 180);
+    assert.equal(st.fermo, true);
+    assert.equal(await fastWatchdog(env, tg, t), 3);
+    assert.equal(await fastWatchdog(env, tg, t + 3600e3), null);        // già avvisato
+    assert.equal(sent.length, 1);
+    assert.match(sent[0], /fermo da 3 ore/);
+    await fastCheck(env, "https://example/", "https://bot", tg);        // riparte
+    assert.equal(sent.length, 2);
+    assert.match(sent[1], /ripartito/);
+    assert.equal(env.SUBS.data.has("fast:fermo"), false);
+    st = await (await fastStatus(env)).json();
+    assert.equal(st.fermo, false);
+    const writes = env.SUBS.writes;
+    await fastCheck(env, "https://example/", "https://bot", tg);
+    assert.equal(env.SUBS.writes, writes);                              // battito al massimo una volta l'ora
   } finally {
     globalThis.fetch = realFetch;
   }
