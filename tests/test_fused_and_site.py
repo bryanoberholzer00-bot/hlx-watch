@@ -9,6 +9,8 @@ from hlxwatch.sources.first_seen import line_hash
 from hlxwatch.storage import Database
 from datetime import datetime, timezone
 
+from hlxwatch.timeutil import now_local
+
 HAMMER = "game/bin/win64/tools/hammer_strings.txt"
 
 
@@ -58,7 +60,7 @@ def test_site_uses_first_seen_for_fullscan_rows(tmp_path):
     rows = {r["token"]: r for r in export_findings(db)}
     assert rows["CHLXCoverPreviewHelper"]["day"] == "2026-09-23" and not rows["CHLXCoverPreviewHelper"]["al"]
     assert rows["CHLXBaseProjectileEmitterHelper"]["day"] == "2023-06-07" and rows["CHLXBaseProjectileEmitterHelper"]["al"]
-    assert rows["CHLXCoverPreviewHelper"]["seen"] == "2026-10-29"           # "vista il" resta il giorno della scansione
+    assert rows["CHLXCoverPreviewHelper"]["seen"] == now_local().strftime("%Y-%m-%d")   # "vista il": giorno della scansione
     # le voci dei commit tengono la data del commit
     item = apply_first_seen({"source": "github", "change_type": "added", "game": "cs2", "file_path": HAMMER,
                              "text": "CHLXCoverPreviewHelper", "day": "2026-10-01"}, first_seen_days(db))

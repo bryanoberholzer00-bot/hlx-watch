@@ -290,6 +290,21 @@ def cmd_drill(args: argparse.Namespace) -> int:
     return 0 if ok else 1
 
 
+def cmd_guard(args: argparse.Namespace) -> int:
+    """Protezione dell'archivio: dice al workflow se l'archivio si può salvare (ok=true/false in GITHUB_OUTPUT)."""
+    import os
+    cfg, db = _open(args)
+    from hlxwatch.archive_guard import run_guard
+    from hlxwatch.notifiers import load_notifiers
+    ok = run_guard(cfg, db, args.old, args.accetta, load_notifiers(cfg) if not args.no_notify else [])
+    out = os.environ.get("GITHUB_OUTPUT")
+    if out:
+        with open(out, "a", encoding="utf-8") as fh:
+            fh.write("ok=true\n" if ok else "ok=false\n")
+    print("archivio da salvare" if ok else "archivio NON salvato")
+    return 0                         # il run continua: decide il workflow con l'output ok
+
+
 # ------------------------------------------------------------------ parser
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="hlxwatch", description=f"HLX Watch {__version__}")
@@ -381,6 +396,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--min-score", type=int, default=0)
     p.add_argument("--limit", type=int, default=50)
     p.set_defaults(func=cmd_search)
+
+    p = sub.add_parser("controlla-archivio", help="prima di salvare: l'archivio non deve essersi svuotato")
+    p.add_argument("--old", help="stats.json dell'ultimo salvataggio (ramo data)")
+    p.add_argument("--accetta", action="store_true", help="accetta un calo voluto (dopo una modifica al config)")
+    p.add_argument("--no-notify", action="store_true", help="non inviare l'avviso")
+    p.set_defaults(func=cmd_guard)
 
     p = sub.add_parser("prova-annuncio", help="prova generale: un finto annuncio, segnato come prova, su ogni canale")
     p.set_defaults(func=cmd_drill)

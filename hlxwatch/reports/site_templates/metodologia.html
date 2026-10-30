@@ -104,6 +104,10 @@
   pubblica. Un post nella sezione Annunci di Steam che parla di un Half-Life nuovo (HLX, Half-Life 3, "Half-Life: un
   titolo mai visto") è un possibile annuncio; i titoli già usciti, come Alyx o Episode Two, non contano. Ogni altro post
   resta in archivio con pochi punti, senza avviso.</li>
+  <li><b>Controllo veloce dell'annuncio.</b> GitHub avvia i run in modo irregolare, anche ogni 4-5 ore. Per questo il bot
+  su Cloudflare, che gira puntuale, guarda ogni 10 minuti le due fonti che possono annunciare un gioco: i post ufficiali
+  di Steam e i repository nuovi di SteamTracking, con le stesse regole. Se trova un Half-Life nuovo avvisa subito su
+  Telegram, nelle notifiche del sito e nell'app Android; il run completo su GitHub poi lo archivia con i dettagli.</li>
   <li><b>Riassunti di SteamTracking.</b> Dal 4 ottobre 2026 SteamTracking fa leggere ogni aggiornamento a una squadra di
   agenti Claude e pubblica un riassunto come commento sul commit. La pagina iniziale lo mostra accanto alla build; una
   riga che parla di HLX, o che sta nella sezione sugli altri giochi e progetti non annunciati, diventa una voce con avviso.</li>
@@ -233,9 +237,13 @@
   <li><a href="feed.xml">feed.xml</a>: feed Atom delle voci da 100 punti, per un lettore di feed;</li>
   <li><a href="findings.json">findings.json</a>: le voci mostrate dalla Ricerca;</li>
   <li><a href="bot/ultime.json">bot/ultime.json</a> e <a href="bot/indice.json">bot/indice.json</a>: le ultime novità e l'indice usati dal bot e dall'app;</li>
+  <li><a href="https://hlx-watch-bot.bryan-oberholzer00.workers.dev/fast/annuncio.json">fast/annuncio.json</a>: i possibili annunci trovati dal controllo veloce negli ultimi 3 giorni (di solito vuoto);</li>
   <li>nel ramo <a href="{{ repo_url }}/tree/data">data</a> del repository: <code>findings.csv</code> (tutte le voci),
-  <code>hlxwatch.sqlite.gz</code> (l'archivio completo, SQLite) e <code>stats.json</code>, aggiornati a ogni run.</li>
+  <code>hlxwatch.sqlite.gz</code> (l'archivio completo, SQLite) e <code>stats.json</code>, aggiornati a ogni run;</li>
+  <li>nella release <a href="{{ repo_url }}/releases/tag/archivio">archivio</a>: una copia dell'archivio per settimana, le ultime 8.</li>
  </ul>
+ <p class="muted">Prima di salvare, ogni run controlla che l'archivio non si sia svuotato: se voci, build o stringhe viste
+ calano più del 5% rispetto all'ultimo salvataggio, il run non salva niente, avvisa, e il run dopo riparte dall'ultima copia buona.</p>
 </section>
 
 <section>
@@ -264,7 +272,9 @@
 <section>
  <h2>Limiti noti</h2>
  <ul>
-  <li><b>Ritardo</b>: i run sono pianificati ogni 30 minuti, ma GitHub li avvia in modo irregolare; una scoperta può arrivare con ore di ritardo rispetto al commit.</li>
+  <li><b>Ritardo</b>: i run sono pianificati ogni 30 minuti, ma GitHub li avvia in modo irregolare (a fine ottobre 2026
+   in media ogni 4-5 ore); una scoperta può arrivare con ore di ritardo rispetto al commit. Un possibile annuncio no:
+   lo cerca anche il controllo veloce, ogni 10 minuti.</li>
   <li><b>Parole chiave</b>: si trova solo ciò che corrisponde all'elenco qui sopra. Un progetto con un nome in codice nuovo passa inosservato finché non viene aggiunto.</li>
   <li><b>Formato dei dump</b>: SteamTracking cambia talvolta come estrae i dati (per esempio dal 13 ottobre 2026 molte stringhe già note sono filtrate dai dump dei binari). Spostamenti tra file non sono modifiche di Valve.</li>
   <li><b>Codice condiviso</b>: Source 2 è un motore comune; la stessa modifica compare in più giochi man mano che vengono aggiornati e va contata una volta sola.</li>

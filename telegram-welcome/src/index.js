@@ -2,13 +2,15 @@
 //
 // Il bot di HLX Watch manda avvisi e report dai run di GitHub Actions. Questo Cloudflare Worker riceve
 // i messaggi in arrivo (webhook Telegram) e risponde subito ai comandi, leggendo i piccoli file che il
-// sito pubblica a ogni run in bot/ (ultime.json, indice.json, stato.json). Non salva nulla.
+// sito pubblica a ogni run in bot/ (ultime.json, indice.json, stato.json). I comandi non salvano nulla.
 //
 // Segreti (wrangler secret put): BOT_TOKEN, WEBHOOK_SECRET, OWNER_CHAT_ID
+// Controllo veloce dell'annuncio ogni 10 minuti e /fast/annuncio.json: vedi src/fast.js
 // Notifiche di sistema del sito (percorsi /push/...): vedi src/push.js
 // Variabili facoltative: SITE_URL (default il sito pubblico), DRY_RUN=1 (risponde nella risposta HTTP: per i test)
 
 import { flushMorning, handlePush } from "./push.js";
+import { FAST_CRON, fastAlerts, fastCheck } from "./fast.js";
 
 const DEFAULT_SITE = "https://bryanoberholzer00-bot.github.io/hlx-watch/";
 const REPO = "https://github.com/bryanoberholzer00-bot/hlx-watch";
@@ -187,7 +189,10 @@ const MORNING_CRON = "7 * * * *";
 
 export default {
   async scheduled(event, env, ctx) {
-    if (event.cron === MORNING_CRON) {
+    if (event.cron === FAST_CRON) {
+      // ogni 10 minuti: post ufficiali di Steam e repository nuovi di SteamTracking (src/fast.js)
+      ctx.waitUntil(fastCheck(env, env.SITE_URL || DEFAULT_SITE, BOT_ORIGIN, reply));
+    } else if (event.cron === MORNING_CRON) {
       // ogni ora: finito l'orario di silenzio manda il riassunto delle notifiche trattenute di notte
       ctx.waitUntil(flushMorning(env, env.SITE_URL || DEFAULT_SITE, BOT_ORIGIN));
     } else {
@@ -197,8 +202,12 @@ export default {
 
   async fetch(request, env) {
     // notifiche di sistema del sito: iscrizioni dal browser e invii dai run su GitHub (src/push.js)
-    if (new URL(request.url).pathname.startsWith("/push/")) {
+    const path = new URL(request.url).pathname;
+    if (path.startsWith("/push/")) {
       return handlePush(request, env);
+    }
+    if (path === "/fast/annuncio.json" && request.method === "GET") {
+      return fastAlerts(env);                       // l'app Android lo legge insieme a bot/ultime.json
     }
     if (request.method !== "POST") {
       return new Response("HLX Watch bot: ok", { status: 200 });

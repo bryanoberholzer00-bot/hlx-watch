@@ -194,6 +194,9 @@ steam_news:                              # post ufficiali di Valve su Steam (ISt
     - {appid: 593110,  name: steamclient, title: "Client Steam", patchnotes: false}   # di aggiornamento: escono ogni
     - {appid: 1675200, name: steamdeck,   title: "Steam Deck", patchnotes: false}   # settimana
 
+archive_guard:                           # prima di salvare: l'archivio non deve essersi svuotato
+  max_drop_percent: 5                    # calo massimo di voci, build o stringhe viste rispetto all'ultimo salvataggio
+
 esiti:                                   # registro degli esiti delle tracce HLX (pagina esiti.html)
   manuali:                               # esiti che lo strumento non può dimostrare da solo
     - match: "hlx_physics_particle_spawner"

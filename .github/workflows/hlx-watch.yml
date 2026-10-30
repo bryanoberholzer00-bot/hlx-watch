@@ -43,6 +43,10 @@ on:
         description: "Scansione completa del contenuto subito (anche se non è ancora dovuta)"
         type: boolean
         default: false
+      accetta_calo:
+        description: "Salva l'archivio anche se è più piccolo dell'ultimo (dopo aver tolto parole chiave dal config)"
+        type: boolean
+        default: false
       archeologia:
         description: "Archeologia: cerca le righe HLX in tutta la storia dei repository (una volta sola, circa un'ora)"
         type: boolean
@@ -147,8 +151,19 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.send_report == 'true'
         run: python -m hlxwatch report --hours 24 --send
 
+      - name: Controlla l'archivio prima di salvarlo
+        id: guard
+        if: always() && hashFiles('data/hlxwatch.sqlite') != ''
+        env:
+          ACCETTA: ${{ github.event.inputs.accetta_calo == 'true' && '--accetta' || '' }}
+        run: |
+          OLD="$RUNNER_TEMP/old_stats.json"
+          rm -f "$OLD"
+          if git fetch --quiet --depth 1 origin data 2>/dev/null; then git show FETCH_HEAD:stats.json > "$OLD" || true; fi
+          python -m hlxwatch controlla-archivio --old "$OLD" $ACCETTA
+
       - name: Salva il database per il prossimo run
-        if: always()
+        if: always() && steps.guard.outputs.ok != 'false'
         uses: actions/cache/save@v6
         with:
           path: data/hlxwatch.sqlite
@@ -169,7 +184,7 @@ jobs:
         run: python -m hlxwatch site --out site
 
       - name: "Salva l'archivio nel ramo data (copia permanente, tiene attivo il workflow)"
-        if: always() && hashFiles('data/hlxwatch.sqlite') != ''
+        if: always() && hashFiles('data/hlxwatch.sqlite') != '' && steps.guard.outputs.ok != 'false'
         run: |
           OUT="$RUNNER_TEMP/databranch"
           rm -rf "$OUT"
@@ -179,6 +194,24 @@ jobs:
           git add -A
           git -c user.name="hlx-watch[bot]" -c user.email="hlx-watch@users.noreply.github.com"             commit --quiet -m "Archivio HLX Watch $(date -u +'%Y-%m-%d %H:%M') UTC"
           git push --quiet --force "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" data
+
+      - name: "Copia settimanale dell'archivio (release \"archivio\", ultime 8 settimane)"
+        if: always() && steps.guard.outputs.ok == 'true' && hashFiles('data/hlxwatch.sqlite') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NAME="hlxwatch-$(date -u +%G-W%V).sqlite.gz"
+          FILE="$RUNNER_TEMP/databranch/hlxwatch.sqlite.gz"
+          [ -f "$FILE" ] || { echo "archivio esportato non trovato"; exit 0; }
+          gh release view archivio >/dev/null 2>&1 || gh release create archivio --latest=false             --title "Archivio HLX Watch"             --notes "Copie settimanali dell'archivio di HLX Watch (le ultime 8). Ripristino: python -m hlxwatch restore <file>"
+          if gh release view archivio --json assets --jq '.assets[].name' | grep -qx "$NAME"; then
+            echo "copia della settimana già presente: $NAME"
+          else
+            cp "$FILE" "$RUNNER_TEMP/$NAME"
+            gh release upload archivio "$RUNNER_TEMP/$NAME"
+            gh release view archivio --json assets --jq '.assets[].name' | grep -E '^hlxwatch-.*\.sqlite\.gz$' | sort | head -n -8 |
+              while read -r old; do gh release delete-asset archivio "$old" -y; done
+          fi
 
       - uses: actions/upload-pages-artifact@v5
         with:

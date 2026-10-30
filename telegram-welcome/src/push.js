@@ -221,6 +221,27 @@ export function morningSummary(list, site) {
   };
 }
 
+// Invio a tutti i browser iscritti, a pagine da 50 (usato dal controllo veloce dell'annuncio, src/fast.js).
+// Un messaggio "urgente" passa anche nell'orario di silenzio; gli altri si mettono da parte per il mattino.
+export async function broadcast(env, message, ackOrigin) {
+  if (!env.SUBS || !env.VAPID_PRIVATE_JWK) return null;
+  if (!message.urgente && isQuiet(env)) {
+    await queueForMorning(env, message);
+    return { queued: true };
+  }
+  const payload = JSON.stringify({ ...message, ack: `${ackOrigin}/push/ack` });
+  const total = { sent: 0, removed: 0 };
+  let cursor;
+  do {
+    const res = await sendPage(env, payload, cursor, 50);
+    total.sent += res.sent;
+    total.removed += res.removed;
+    cursor = res.next || undefined;
+  } while (cursor);
+  console.log("notifica inviata a", total.sent, "browser:", String(message.title || "").slice(0, 60));
+  return total;
+}
+
 // Chiamata ogni ora dal cron del Worker: finito il silenzio, manda il riassunto e svuota la coda.
 export async function flushMorning(env, site, ackOrigin) {
   if (!env.SUBS || !env.VAPID_PRIVATE_JWK || isQuiet(env)) return null;

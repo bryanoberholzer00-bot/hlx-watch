@@ -47,6 +47,9 @@ public class CheckJob extends JobService {
     static final String CHANNEL = "novita";
     private static final String PREFS = "check";
     private static final String DATA_URL = MainActivity.HOME + "bot/ultime.json";
+    // controllo veloce dell'annuncio nel bot su Cloudflare (ogni 10 minuti, telegram-welcome/src/fast.js):
+    // un possibile annuncio arriva da qui anche se il giro su GitHub, che aggiorna il sito, è in ritardo di ore
+    private static final String FAST_URL = "https://hlx-watch-bot.bryan-oberholzer00.workers.dev/fast/annuncio.json";
 
     /** Pianifica il controllo periodico (se c'è già, non lo tocca). Sopravvive ai riavvii del telefono. */
     static void schedule(Context context) {
@@ -96,6 +99,12 @@ public class CheckJob extends JobService {
 
     static void check(Context context) throws Exception {
         JSONArray items = new JSONArray(download(DATA_URL));
+        try {
+            JSONArray fast = new JSONArray(download(FAST_URL));
+            for (int i = 0; i < fast.length(); i++) items.put(fast.getJSONObject(i));
+        } catch (Exception e) {
+            Log.w(TAG, "controllo veloce non raggiungibile: " + e);    // il sito basta per tutto il resto
+        }
         SharedPreferences prefs = context.getSharedPreferences(PREFS, MODE_PRIVATE);
         boolean firstRun = !prefs.contains("seen");
         Set<String> seen = new HashSet<>(prefs.getStringSet("seen", new HashSet<>()));
