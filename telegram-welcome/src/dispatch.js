@@ -100,7 +100,9 @@ export async function dispatchRun(env, sendTelegram, now = Date.now()) {
     return { done: false, why: `token rifiutato (${list.status})` };
   }
   if (!list.ok) return { done: false, why: `GitHub non risponde (${list.status})` };   // si riprova fra 10 minuti
-  await checkExpiry(env, list.headers.get(EXPIRY_HEADER), sendTelegram, now);
+  const expiryHeader = list.headers.get(EXPIRY_HEADER);
+  console.log("scadenza del token secondo GitHub:", expiryHeader || "nessuna (token senza scadenza?)");
+  await checkExpiry(env, expiryHeader, sendTelegram, now);
   const runs = ((await list.json()).workflow_runs || []);
   const decision = shouldDispatch(runs, now);
   if (!decision.go) {
