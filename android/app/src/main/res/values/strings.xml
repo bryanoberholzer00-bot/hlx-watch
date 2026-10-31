@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">HLX Watch</string>
+    <string name="settings_title">Impostazioni</string>
+    <string name="settings_long">Impostazioni di HLX Watch</string>
 </resources>
