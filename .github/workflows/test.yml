@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
       - run: node --test telegram-welcome/test/fast.test.mjs telegram-welcome/test/dispatch.test.mjs telegram-welcome/test/noise.test.mjs
