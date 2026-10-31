@@ -53,3 +53,30 @@ def test_home_page_has_glance_menu_and_compact_list(tmp_path):
     assert html.count('<li class="voce') == 40
     assert "Mostra tutte (5 in più)" in html and "Mostra tutte (8 in più)" in html
     db.close()
+
+
+def test_brief_pages_and_link_preview(tmp_path):
+    cfg, db = make(tmp_path)
+    b = db.upsert_build(BuildInfo(game="cs2", source="github", ref="b" * 40, date=utcnow() - timedelta(days=3)))
+    db.add_finding(Finding(game="cs2", source="github", file_path="game/bin/win64/tools/hammer_strings.txt", change_type="added",
+                           text="CHLXCoverPreviewHelper", token="CHLXCoverPreviewHelper", score=115,
+                           keywords=["hlx_class"]), b)
+    out = build_site(db, cfg, tmp_path / "site")
+    it = (out / "hlx.html").read_text(encoding="utf-8")
+    en = (out / "en.html").read_text(encoding="utf-8")
+    assert "Half-Life 3 è stato annunciato?" in it and "<b>No.</b>" in it and "CHLXCoverPreviewHelper" in it
+    assert '<html lang="en">' in en and "Has Half-Life 3 been announced?" in en and "Counter-Strike 2" in en
+    assert 'property="og:image"' in it and "anteprima.png?v=" in it
+    assert 'href="hlx.html"' in (out / "index.html").read_text(encoding="utf-8")
+    from PIL import Image
+    with Image.open(out / "anteprima.png") as img:
+        assert img.size == (1200, 630)
+    db.close()
+
+
+def test_brief_shows_announcement():
+    from hlxwatch.reports.brief import brief_data
+    termo = {"indice": 100, "livello": "annuncio", "etichetta": "POSSIBILE ANNUNCIO", "colore": "#B71C1C",
+             "annuncio": True, "ultima_traccia": None}
+    data = brief_data(None, termo, {"picchi": [], "inizio": "2021-01-01"}, {"traces": [], "counts": {}})
+    assert data["level_en"] == "POSSIBLE ANNOUNCEMENT" and data["last"] is None and data["first"] is None

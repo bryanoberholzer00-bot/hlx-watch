@@ -1,9 +1,17 @@
 <!doctype html>
-<html lang="it">
+<html lang="{% block lang %}it{% endblock %}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}HLX Watch{% endblock %}</title>
+<meta name="description" content="{% block description %}Riferimenti a HLX, il presunto nuovo Half-Life, nei dati pubblici dei giochi Valve su Source 2: avvisi, termometro e archivio dal 2016.{% endblock %}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="HLX Watch">
+<meta property="og:title" content="{{ self.title() }}">
+<meta property="og:description" content="{{ self.description() }}">
+{% if og_image %}<meta property="og:image" content="{{ og_image }}">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">{% endif %}
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="alternate" type="application/atom+xml" title="HLX Watch" href="feed.xml">
 <link rel="icon" type="image/png" href="favicon.png">
@@ -82,6 +90,12 @@
  details.altre summary,section>details>summary{cursor:pointer;color:#3b82f6;padding:.6rem .4rem}
  section>details>summary{color:inherit;padding:0} section>details>summary h2{display:inline;margin:0}
  section>details[open]>summary{margin-bottom:.8rem}
+ .breve{max-width:820px;margin:0 auto} .breve section p{line-height:1.55} .breve h2{font-size:1.15rem}
+ .breve .fatti p{margin:.2rem 0} .lingua{text-align:right;margin:0 0 -.4rem;font-size:.9rem}
+ .avviso{border:2px solid #e53935;background:rgba(229,57,53,.08)}
+ ul.giochi{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4rem .6rem}
+ ul.giochi li{background:var(--code);border-radius:999px;padding:.15rem .7rem;font-size:.9rem}
+ .nuovo-qui{font-size:.85rem;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -98,6 +112,7 @@
   <div class="more">
    <button class="more-btn" aria-expanded="false" aria-haspopup="true">Altro &#9662;</button>
    <div class="menu">
+    <a href="hlx.html">HLX in breve</a>
     <a href="analisi.html">Analisi AI</a>
     <a href="search.html?min=100">Alta rilevanza</a>
     <a href="search.html?new=1&min=50">Nuove</a>
@@ -105,6 +120,7 @@
     <a href="reports/report-7d.html">Ultimi 7 giorni</a>
     <a href="reports/report-30d.html">Ultimi 30 giorni</a>
     <a href="metodologia.html">Metodologia</a>
+    <a href="en.html" lang="en">English</a>
     <a href="https://github.com/bryanoberholzer00-bot/hlx-watch/releases/download/android-latest/hlx-watch.apk">App Android</a>
    </div>
   </div>

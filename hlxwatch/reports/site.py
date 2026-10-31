@@ -4,6 +4,7 @@ Non serve un server: la ricerca nello storico avviene nel browser su findings.js
 """
 from __future__ import annotations
 
+import importlib.util
 import json
 import shutil
 import logging
@@ -220,8 +221,16 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
             titles[repo["name"]] = repo.get("title", repo["name"])
     for app in extra_watch(db):
         titles[app["name"]] = app["title"]
+    site_url = str(cfg.get("general.site_url", "https://bryanoberholzer00-bot.github.io/hlx-watch/"))
+    site_url = site_url if site_url.endswith("/") else site_url + "/"
+    stamp = now_local()
     env.globals.update(version=__version__, titles=titles,
-                       generated=f"{now_local().strftime('%Y-%m-%d %H:%M')} ({tz_label()})")
+                       generated=f"{stamp.strftime('%Y-%m-%d %H:%M')} ({tz_label()})",
+                       generated_en=f"{stamp.strftime('%Y-%m-%d %H:%M')} (Italian time)",
+                       # ?v=: Telegram e Discord tengono in memoria le anteprime, così vedono quella nuova
+                       og_image=(f"{site_url}anteprima.png?v={stamp.strftime('%Y%m%d%H')}"
+                                 if importlib.util.find_spec("PIL") else ""),
+                       repo_url=str(cfg.get("general.repo_url", "https://github.com/bryanoberholzer00-bot/hlx-watch")))
     register_filters(env)
     push = cfg.get("notifiers.webpush", {}) or {}
     env.globals["push_url"] = str(push.get("worker_url", "")).rstrip("/") if push.get("enabled") else ""
@@ -248,7 +257,8 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     (out_dir / "index.html").write_text(index_html, encoding="utf-8")
     (out_dir / "hardware.html").write_text(env.get_template("hardware.html").render(hw=hardware_data(cfg, db)),
                                            encoding="utf-8")
-    (out_dir / "esiti.html").write_text(env.get_template("esiti.html").render(reg=outcome_register(cfg, db)),
+    outcomes = outcome_register(cfg, db)
+    (out_dir / "esiti.html").write_text(env.get_template("esiti.html").render(reg=outcomes),
                                         encoding="utf-8")
     # termometro HLX: valore di adesso e storico giorno per giorno (bot/termometro_storico.json, dati aperti)
     termo = history(cfg, db)
@@ -257,8 +267,14 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
                                                              encoding="utf-8")
     (out_dir / "termometro.html").write_text(env.get_template("termometro.html").render(
         h=termo, svg=history_svg(termo), now=termo_current), encoding="utf-8")
-    site_url = str(cfg.get("general.site_url", "https://bryanoberholzer00-bot.github.io/hlx-watch/"))
-    write_feed(db, out_dir, site_url if site_url.endswith("/") else site_url + "/", ctx)
+    # risposte veloci per chi arriva da un motore di ricerca, in italiano e in inglese, più l'anteprima dei link
+    from hlxwatch.reports.brief import brief_data, preview_image
+    brief = brief_data(cfg, termo_current, termo, outcomes)
+    for name in ("hlx.html", "en.html"):
+        (out_dir / name).write_text(env.get_template(name).render(b=brief), encoding="utf-8")
+    if not preview_image(brief, out_dir / "anteprima.png", site_url.split("//", 1)[-1].rstrip("/")):
+        env.globals["og_image"] = ""
+    write_feed(db, out_dir, site_url, ctx)
     kw = cfg.keywords
     (out_dir / "metodologia.html").write_text(env.get_template("metodologia.html").render(
         repos=tracked_repos(cfg, db), steam_apps=[a.get("title", a.get("name")) for a in cfg.steam_watch_apps],

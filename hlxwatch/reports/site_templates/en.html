@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block lang %}en{% endblock %}
+{% block title %}HLX and Half-Life 3: what we actually know - HLX Watch{% endblock %}
+{% block description %}What HLX is, whether Half-Life 3 has been announced, when it comes out and how much Valve is working on it right now: short answers backed by public data, updated automatically.{% endblock %}
+{% block content %}
+<div class="breve">
+<p class="lingua"><a href="hlx.html" hreflang="it" lang="it">Leggi in italiano</a></p>
+<h1>HLX and Half-Life 3: what we actually know</h1>
+<p class="muted">Short answers. The numbers come from the HLX Watch archive and update automatically: last update {{ generated_en }}.
+The rest of the site is in Italian; the entries themselves (code strings, file names) read the same in any language.</p>
+
+{% if b.termo.annuncio %}
+<section class="avviso"><b>Possible announcement in the last few days.</b> HLX Watch has seen signs of an announcement:
+ check the <a href="index.html">latest entries</a> and Valve's official channels.</section>
+{% endif %}
+
+<section>
+ <h2>What is HLX?</h2>
+ <p>It is a code name that shows up in the public files of Valve's games: Counter-Strike 2, Dota 2, Deadlock and others.
+ Valve has never said what it is. The most common theory is that it is a <b>new Half-Life</b>, not in virtual reality:
+ Valve names its games with short tags like this. Half-Life: Alyx, for example, is called <code>hlvr</code> in its files.</p>
+ {% if b.first %}<p>The oldest trace in the archive dates from <b>{{ b.first.en }}</b>, in {{ b.first.game }}: <code>{{ b.first.label }}</code>.</p>{% endif %}
+</section>
+
+<section>
+ <h2>Has Half-Life 3 been announced?</h2>
+ {% if b.termo.annuncio %}
+ <p>Maybe: in the last three days HLX Watch has seen signs of an announcement. Check Valve's official channels.</p>
+ {% else %}
+ <p><b>No.</b> Valve has not announced a new Half-Life. When it happens, this page will say so on its own:
+ HLX Watch checks Steam's official news every 10 minutes.</p>
+ {% endif %}
+</section>
+
+<section>
+ <h2>When does it come out?</h2>
+ <p><b>Nobody knows.</b> The dates going around (anniversaries, events, "this year") are rumours, and none of them has
+ come true so far. The game files show that Valve is working on it, not when it will be done.</p>
+</section>
+
+<section>
+ <h2>How much are they working on it right now?</h2>
+ <div class="colpo">
+  <a class="termo" href="termometro.html" style="background:{{ b.termo.colore }}"><b>{{ b.termo.indice }}</b><span>{{ b.level_en }}</span><small>HLX thermometer &rarr;</small></a>
+  <div class="fatti">
+   <p>The thermometer goes from 0 to 100 and measures how many new HLX traces Valve has touched in recent weeks.</p>
+   {% if b.last %}<p>Latest strong trace: <b>{{ b.last.en }}</b> in {{ b.last.game_en }} (<code>{{ b.last.testo[:60] }}</code>).</p>{% endif %}
+   {% if b.peak %}<p>The highest value since {{ b.since_en }} is <b>{{ b.peak.indice }}</b>, on {{ b.peak.en }}.</p>{% endif %}
+  </div>
+ </div>
+ <p class="muted"><small>A high value does not mean an announcement is close: so far no peak has been followed by an announcement.</small></p>
+</section>
+
+<section>
+ <h2>Which games does it show up in?</h2>
+ <p>The archive holds <b>{{ b.total }}</b> distinct HLX traces: {{ b.present }} are still in the files today,
+ {{ b.renamed }} have been renamed (usually when the technology moves into the shared engine).</p>
+ <ul class="giochi">{% for g in b.games %}<li><b>{{ g.n }}</b> {{ g.en }}</li>{% endfor %}</ul>
+</section>
+
+<section>
+ <h2>How can anyone know, if Valve says nothing?</h2>
+ <p>Every game update on Steam ships public files: text strings, Source 2 engine class names, resource lists.
+ The SteamTracking project archives them on GitHub. When Valve shares code between its games, names from the HLX
+ project end up in those files too, such as classes starting with <code>CHLX</code>.</p>
+ <p>HLX Watch reads this public data, scores every line and sends alerts. It uses no accounts, private files or
+ leaked data.</p>
+</section>
+
+<section>
+ <h2>How do I get notified right away?</h2>
+ <ul>
+  <li><b>Notifications</b> on your computer or phone: the "Attiva notifiche" (turn on notifications) button at the top.</li>
+  <li><b>Android app</b> with an alarm for possible announcements: <a href="https://github.com/bryanoberholzer00-bot/hlx-watch/releases/download/android-latest/hlx-watch.apk">download the APK</a>.</li>
+  <li><b>Feed</b> for RSS readers: <a href="feed.xml">feed.xml</a>.</li>
+ </ul>
+</section>
+
+<section>
+ <h2>Who is behind this?</h2>
+ <p>A personal project, <b>not affiliated with Valve</b>. The code is public on <a href="{{ repo_url }}">GitHub</a>.</p>
+</section>
+</div>
+{% endblock %}
