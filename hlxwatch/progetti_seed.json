@@ -1,0 +1,2838 @@
+{
+ "generated": "2026-10-31",
+ "repos": {
+  "dota2": {
+   "title": "Dota 2",
+   "repo": "SteamTracking/GameTracking-Dota2",
+   "start": "2016-12-11"
+  },
+  "dota2test": {
+   "title": "Dota 2 Test",
+   "repo": "SteamTracking/GameTracking-Dota2Test",
+   "start": "2016-12-11"
+  },
+  "cs2": {
+   "title": "Counter-Strike",
+   "repo": "SteamTracking/GameTracking-CS2",
+   "start": "2016-12-11"
+  },
+  "underlords": {
+   "title": "Dota Underlords",
+   "repo": "SteamTracking/GameTracking-Underlords",
+   "start": "2019-06-13"
+  },
+  "artifact": {
+   "title": "Artifact",
+   "repo": "SteamTracking/GameTracking-Artifact",
+   "start": "2018-03-26"
+  },
+  "steamvr": {
+   "title": "SteamVR",
+   "repo": "SteamTracking/GameTracking-SteamVR",
+   "start": "2017-05-23"
+  },
+  "steam": {
+   "title": "client di Steam",
+   "repo": "SteamTracking/SteamTracking",
+   "start": "2013-03-01"
+  }
+ },
+ "projects": {
+  "deadlock": {
+   "names": [
+    {
+     "name": "ambient_citadel_paths",
+     "day": "2016-12-11",
+     "repo": "dota2test",
+     "path": "game/core/base.fgd",
+     "sha": "34445c80",
+     "line": "model(studio) : \"Script Model\" : \"models/Ambient_citadel_paths.vmdl\" : \"Model to use for animation sequences.\""
+    },
+    {
+     "name": "citadel",
+     "day": "2016-12-11",
+     "repo": "cs2",
+     "path": "csgo/scripts/dsp_presets.txt",
+     "sha": "0fb1319d4",
+     "line": "// alien citadel"
+    },
+    {
+     "name": "citadel_metalwall060a",
+     "day": "2016-12-11",
+     "repo": "cs2",
+     "path": "csgo/pak01_dir.txt",
+     "sha": "0fb1319d4",
+     "line": "materials/metal/citadel_metalwall060a.vmt CRC:00550c7317 size:168"
+    },
+    {
+     "name": "citadel_tilefloor016a",
+     "day": "2016-12-11",
+     "repo": "cs2",
+     "path": "csgo/pak01_dir.txt",
+     "sha": "0fb1319d4",
+     "line": "materials/metal/citadel_tilefloor016a.vmt CRC:004190d592 size:947"
+    },
+    {
+     "name": "d3_citadel",
+     "day": "2016-12-11",
+     "repo": "cs2",
+     "path": "Strings/server_i486.txt",
+     "sha": "0fb1319d4",
+     "line": "d3_citadel_"
+    },
+    {
+     "name": "d3_citadel_03",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "Strings/libclient.txt",
+     "sha": "6aa033b241",
+     "line": "d3_citadel_03"
+    },
+    {
+     "name": "d3_citadel_04",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "Strings/libclient.txt",
+     "sha": "6aa033b241",
+     "line": "d3_citadel_04"
+    },
+    {
+     "name": "d3_citadel_05",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "Strings/libclient.txt",
+     "sha": "6aa033b241",
+     "line": "d3_citadel_05"
+    },
+    {
+     "name": "ep1_citadel_02",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "Strings/libclient.txt",
+     "sha": "6aa033b241",
+     "line": "ep1_citadel_02"
+    },
+    {
+     "name": "ep1_citadel_02b",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "Strings/libclient.txt",
+     "sha": "6aa033b241",
+     "line": "ep1_citadel_02b"
+    },
+    {
+     "name": "ep1_citadel_03",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "Strings/libclient.txt",
+     "sha": "6aa033b241",
+     "line": "ep1_citadel_03"
+    },
+    {
+     "name": "mod_dire_citadel_000",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir.txt",
+     "sha": "6aa033b241",
+     "line": "materials/blends/mod_dire_citadel_000.vmat_c CRC:0024d7573c size:10176"
+    },
+    {
+     "name": "mod_dire_citadel_000_temp",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/stringtokendatabase.txt",
+     "sha": "6aa033b241",
+     "line": "K<99G mod_dire_citadel_000_temp"
+    },
+    {
+     "name": "mod_dire_citadel_000b",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/stringtokendatabase.txt",
+     "sha": "6aa033b241",
+     "line": "&'V.; mod_dire_citadel_000b"
+    },
+    {
+     "name": "mod_dire_citadel_001",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir.txt",
+     "sha": "6aa033b241",
+     "line": "materials/blends/mod_dire_citadel_001.vmat_c CRC:00f6c3521e size:6344"
+    },
+    {
+     "name": "mod_dire_citadel_001b",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/stringtokendatabase.txt",
+     "sha": "6aa033b241",
+     "line": "#BJ\"^0mod_dire_citadel_001b"
+    },
+    {
+     "name": "mod_dire_citadel_001c",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/stringtokendatabase.txt",
+     "sha": "6aa033b241",
+     "line": "YJ'P#0mod_dire_citadel_001c"
+    },
+    {
+     "name": "mod_dire_citadel_trim_000",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir.txt",
+     "sha": "6aa033b241",
+     "line": "materials/blends/mod_dire_citadel_trim_000.vmat_c CRC:001b3caad0 size:10080"
+    },
+    {
+     "name": "pmod_dire_citadel_trim_000",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/stringtokendatabase.txt",
+     "sha": "6aa033b241",
+     "line": ":0KW[Pmod_dire_citadel_trim_000"
+    },
+    {
+     "name": "tgpmod_dire_citadel_001",
+     "day": "2016-12-11",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/stringtokendatabase.txt",
+     "sha": "6aa033b241",
+     "line": "-&5TGPmod_dire_citadel_001"
+    },
+    {
+     "name": "ep1_citadel_00",
+     "day": "2017-04-26",
+     "repo": "cs2",
+     "path": "Strings/server.txt",
+     "sha": "1d622d107",
+     "line": "ep1_citadel_00"
+    },
+    {
+     "name": "ep1_citadel_01",
+     "day": "2017-04-26",
+     "repo": "cs2",
+     "path": "Strings/server.txt",
+     "sha": "1d622d107",
+     "line": "ep1_citadel_01"
+    },
+    {
+     "name": "ep1_citadel_04",
+     "day": "2017-04-26",
+     "repo": "cs2",
+     "path": "Strings/server.txt",
+     "sha": "1d622d107",
+     "line": "ep1_citadel_04"
+    },
+    {
+     "name": "dota_item_arms_of_the_fractured_citadel",
+     "day": "2018-05-31",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/scripts/items/items_game.txt",
+     "sha": "ff52bb981c",
+     "line": "\"item_name\"\t\t\"#DOTA_Item_Arms_of_the_Fractured_Citadel\""
+    },
+    {
+     "name": "dota_item_belt_of_the_fractured_citadel",
+     "day": "2018-05-31",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/scripts/items/items_game.txt",
+     "sha": "ff52bb981c",
+     "line": "\"item_name\"\t\t\"#DOTA_Item_Belt_of_the_Fractured_Citadel\""
+    },
+    {
+     "name": "dota_item_desc_pillar_of_the_fractured_citadel",
+     "day": "2018-05-31",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/scripts/items/items_game.txt",
+     "sha": "ff52bb981c",
+     "line": "\"item_description\"\t\t\"#DOTA_Item_Desc_Pillar_of_the_Fractured_Citadel\""
+    },
+    {
+     "name": "dota_item_flail_of_the_fractured_citadel",
+     "day": "2018-05-31",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/scripts/items/items_game.txt",
+     "sha": "ff52bb981c",
+     "line": "\"item_name\"\t\t\"#DOTA_Item_Flail_of_the_Fractured_Citadel\""
+    },
+    {
+     "name": "dota_item_head_of_the_fractured_citadel",
+     "day": "2018-05-31",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/scripts/items/items_game.txt",
+     "sha": "ff52bb981c",
+     "line": "\"item_name\"\t\t\"#DOTA_Item_Head_of_the_Fractured_Citadel\""
+    },
+    {
+     "name": "dota_item_pillar_of_the_fractured_citadel",
+     "day": "2018-05-31",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/scripts/items/items_game.txt",
+     "sha": "ff52bb981c",
+     "line": "\"item_name\"\t\t\"#DOTA_Item_Pillar_of_the_Fractured_Citadel\""
+    },
+    {
+     "name": "dota_item_shoulder_of_the_fractured_citadel",
+     "day": "2018-05-31",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/scripts/items/items_game.txt",
+     "sha": "ff52bb981c",
+     "line": "\"item_name\"\t\t\"#DOTA_Item_Shoulder_of_the_Fractured_Citadel\""
+    },
+    {
+     "name": "dota_item_tail_of_the_fractured_citadel",
+     "day": "2018-05-31",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/scripts/items/items_game.txt",
+     "sha": "ff52bb981c",
+     "line": "\"item_name\"\t\t\"#DOTA_Item_Tail_of_the_Fractured_Citadel\""
+    },
+    {
+     "name": "dota_set_pillar_of_the_fractured_citadel",
+     "day": "2018-05-31",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/scripts/items/items_game.txt",
+     "sha": "ff52bb981c",
+     "line": "\"name\"\t\t\"#DOTA_Set_Pillar_of_the_Fractured_Citadel\""
+    },
+    {
+     "name": "pillar_of_the_fractured_citadel",
+     "day": "2018-05-31",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/scripts/items/items_game.txt",
+     "sha": "ff52bb981c",
+     "line": "\"pillar_of_the_fractured_citadel\""
+    },
+    {
+     "name": "citadelle",
+     "day": "2018-06-05",
+     "repo": "dota2",
+     "path": "game/dota/resource/items_french.txt",
+     "sha": "0459fd331a",
+     "line": "\"DOTA_Item_Arms_of_the_Fractured_Citadel\"\t\"Bras de la citadelle brisée\""
+    },
+    {
+     "name": "citadella",
+     "day": "2018-06-13",
+     "repo": "dota2",
+     "path": "game/dota/resource/items_hungarian.txt",
+     "sha": "93cba6cf23",
+     "line": "\"DOTA_Item_Arms_of_the_Fractured_Citadel\"\t\"A Töredezett Citadella Karvédői\""
+    },
+    {
+     "name": "cmarkupvolumetagged_navcitadel",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libserver_strings.txt",
+     "sha": "8053bcd6",
+     "line": "30CMarkupVolumeTagged_NavCitadel"
+    },
+    {
+     "name": "func_nav_markup_citadel",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libserver_strings.txt",
+     "sha": "8053bcd6",
+     "line": "func_nav_markup_citadel"
+    },
+    {
+     "name": "soundscapes_citadel",
+     "day": "2019-07-17",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/scripts/soundscapes_manifest.txt",
+     "sha": "0474f01579",
+     "line": "\"file\"\t\t\"scripts/soundscapes_citadel.txt\""
+    },
+    {
+     "name": "c_init_statuseffectcitadel",
+     "day": "2020-05-25",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libparticles_strings.txt",
+     "sha": "969291015f",
+     "line": "26C_INIT_StatusEffectCitadel"
+    },
+    {
+     "name": "c_op_renderstatuseffectcitadel",
+     "day": "2020-05-25",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libparticles_strings.txt",
+     "sha": "969291015f",
+     "line": "30C_OP_RenderStatusEffectCitadel"
+    },
+    {
+     "name": "cparticlefunctiondefinitiontypedi26c_init_statuseffectcitadele",
+     "day": "2020-05-25",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libparticles_strings.txt",
+     "sha": "969291015f",
+     "line": "32CParticleFunctionDefinitionTypedI26C_INIT_StatusEffectCitadelE"
+    },
+    {
+     "name": "cparticlefunctiondefinitiontypedi30c_op_renderstatuseffectcitadele",
+     "day": "2020-05-25",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libparticles_strings.txt",
+     "sha": "969291015f",
+     "line": "32CParticleFunctionDefinitionTypedI30C_OP_RenderStatusEffectCitadelE"
+    },
+    {
+     "name": "ccitadelmodifierhandletyped",
+     "day": "2021-03-25",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libengine2_strings.txt",
+     "sha": "fdc15c99b7",
+     "line": "CCitadelModifierHandleTyped<"
+    },
+    {
+     "name": "citadelhudevent",
+     "day": "2021-03-25",
+     "repo": "dota2",
+     "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "fdc15c99b7",
+     "line": "CitadelHudEvent"
+    },
+    {
+     "name": "ckv3transferdefaulthelperi26c_init_statuseffectcitadele",
+     "day": "2021-04-09",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libparticles_strings.txt",
+     "sha": "2956304e4c",
+     "line": "25CKV3TransferDefaultHelperI26C_INIT_StatusEffectCitadelE"
+    },
+    {
+     "name": "ckv3transferdefaulthelperi30c_op_renderstatuseffectcitadele",
+     "day": "2021-04-09",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libparticles_strings.txt",
+     "sha": "2956304e4c",
+     "line": "25CKV3TransferDefaultHelperI30C_OP_RenderStatusEffectCitadelE"
+    },
+    {
+     "name": "ccitadel",
+     "day": "2021-09-16",
+     "repo": "dota2",
+     "path": "game/core/tools/entityreport/dota_colors.txt",
+     "sha": "3979b2c8af",
+     "line": "// { class = \"CCitadel*\"\t\t\tcolor = \"(255, 0, 255, 255)\" },"
+    },
+    {
+     "name": "a2_3_stonehall_citadel",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/dota_addons/aghanim/resource/overviews/a2_3_stonehall_citadel.txt",
+     "sha": "3f2935e63e",
+     "line": "a2_3_stonehall_citadel"
+    },
+    {
+     "name": "cmapencounter_stonehallcitadel",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/dota_addons/aghanim/scripts/vscripts/encounters/2021/encounter_stonehall_citadel.lua",
+     "sha": "3f2935e63e",
+     "line": "if CMapEncounter_StonehallCitadel == nil then"
+    },
+    {
+     "name": "encounter_stonehall_citadel",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/resource/localization/dota_english.txt",
+     "sha": "3f2935e63e",
+     "line": "\"encounter_stonehall_citadel\"\t\t\t\t\t\t\t\t\t\t\"Stonehall Citadel\""
+    },
+    {
+     "name": "citadela",
+     "day": "2021-12-21",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir/resource/localization/dota_czech.txt",
+     "sha": "5a8061fdc6",
+     "line": "\"encounter_stonehall_citadel\"\t\"Citadela Kamenných vrchů\""
+    },
+    {
+     "name": "citadeloutlineenabledepthtest",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/tools/sfm_strings.txt",
+     "sha": "d673eeda3a",
+     "line": "CitadelOutlineEnableDepthTest"
+    },
+    {
+     "name": "ccitadelusercmdpb",
+     "day": "2022-06-09",
+     "repo": "dota2",
+     "path": "Protobufs/usercmd.proto",
+     "sha": "7e011a5768",
+     "line": "message CCitadelUserCmdPB {"
+    },
+    {
+     "name": "cp_citadel",
+     "day": "2022-06-30",
+     "repo": "dota2",
+     "path": "game/dota_addons/conquest/readonly_tools_asset_info.txt",
+     "sha": "61fcf512b4",
+     "line": "resource/overviews/cp_citadel.txt"
+    },
+    {
+     "name": "env_entities_citadel",
+     "day": "2022-06-30",
+     "repo": "dota2",
+     "path": "game/dota_addons/conquest/readonly_tools_asset_info.txt",
+     "sha": "61fcf512b4",
+     "line": "maps/prefabs/env_entities_citadel.vmap"
+    },
+    {
+     "name": "avc_init_statuseffectcitadel",
+     "day": "2023-03-22",
+     "repo": "cs2",
+     "path": "game/bin/win64/particles_strings.txt",
+     "sha": "0eb1f5bc4",
+     "line": ".?AVC_INIT_StatusEffectCitadel@@"
+    },
+    {
+     "name": "avc_op_renderstatuseffectcitadel",
+     "day": "2023-03-22",
+     "repo": "cs2",
+     "path": "game/bin/win64/particles_strings.txt",
+     "sha": "0eb1f5bc4",
+     "line": ".?AVC_OP_RenderStatusEffectCitadel@@"
+    },
+    {
+     "name": "vc_init_statuseffectcitadel",
+     "day": "2023-03-22",
+     "repo": "cs2",
+     "path": "game/bin/win64/particles_strings.txt",
+     "sha": "0eb1f5bc4",
+     "line": ".?AV?$CParticleFunctionDefinitionTyped@VC_INIT_StatusEffectCitadel@@@@"
+    },
+    {
+     "name": "vc_op_renderstatuseffectcitadel",
+     "day": "2023-03-22",
+     "repo": "cs2",
+     "path": "game/bin/win64/particles_strings.txt",
+     "sha": "0eb1f5bc4",
+     "line": ".?AV?$CParticleFunctionDefinitionTyped@VC_OP_RenderStatusEffectCitadel@@@@"
+    },
+    {
+     "name": "pillar_of_the_fractured_citadel_png",
+     "day": "2023-08-31",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir.txt",
+     "sha": "87fde94f0d",
+     "line": "panorama/images/econ/sets/v2/pillar_of_the_fractured_citadel_png.vtex_c CRC:00d3a3df45 size:261452"
+    },
+    {
+     "name": "pillar_of_the_fractured_citadel_small_png",
+     "day": "2023-08-31",
+     "repo": "dota2",
+     "path": "game/dota/pak01_dir.txt",
+     "sha": "87fde94f0d",
+     "line": "panorama/images/econ/sets/v2/pillar_of_the_fractured_citadel_small_png.vtex_c CRC:006399b642 size:28970"
+    },
+    {
+     "name": "citadellobbyplayerslot_t",
+     "day": "2024-02-07",
+     "repo": "cs2",
+     "path": "game/core/tools/demoinfo2/demoinfo2.txt",
+     "sha": "20133c8b7",
+     "line": "{ m_Name = \"CitadelLobbyPlayerSlot_t\"\t\t\t\tm_VarType = \"NET_DATA_TYPE_UINT64\" },\t// uint8"
+    },
+    {
+     "name": "ccitadelsoundopvarsetobb",
+     "day": "2024-02-08",
+     "repo": "dota2",
+     "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "c8305d7337",
+     "line": "24CCitadelSoundOpvarSetOBB"
+    },
+    {
+     "name": "citadel_snd_opvar_set_obb",
+     "day": "2024-02-08",
+     "repo": "dota2",
+     "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "c8305d7337",
+     "line": "citadel_snd_opvar_set_obb"
+    },
+    {
+     "name": "avccitadelsoundopvarsetobb",
+     "day": "2024-05-23",
+     "repo": "cs2",
+     "path": "game/csgo/bin/win64/client_strings.txt",
+     "sha": "b0ba56458",
+     "line": ".?AVCCitadelSoundOpvarSetOBB@@"
+    }
+   ],
+   "truncated": false
+  },
+  "cs2": {
+   "names": [
+    {
+     "name": "csgo",
+     "day": "2017-01-28",
+     "repo": "dota2",
+     "path": "game/dota/resource/items_german.txt",
+     "sha": "c1a6a261d3",
+     "line": "\"DOTA_Item_Desc_AES_Amateur_Open__Dota_2\"\t\"AES Gaming ist der neuste Zuwachs in Südostasiens E-Sport-Szene und wir werden zweiwöchige Amateurligen für Dota 2, C"
+    },
+    {
+     "name": "k_ngamecsgo",
+     "day": "2017-06-04",
+     "repo": "steamvr",
+     "path": "Strings/libvideo.txt",
+     "sha": "c3eac3d7",
+     "line": "k_nGameCSGO"
+    },
+    {
+     "name": "k_ngamecsgoalt",
+     "day": "2017-06-04",
+     "repo": "steamvr",
+     "path": "Strings/libvideo.txt",
+     "sha": "c3eac3d7",
+     "line": "k_nGameCSGOAlt"
+    },
+    {
+     "name": "k_ngamecsgobeta",
+     "day": "2017-06-04",
+     "repo": "steamvr",
+     "path": "Strings/libvideo.txt",
+     "sha": "c3eac3d7",
+     "line": "k_nGameCSGOBeta"
+    },
+    {
+     "name": "k_ngamecsgomain",
+     "day": "2017-06-04",
+     "repo": "steamvr",
+     "path": "Strings/libvideo.txt",
+     "sha": "c3eac3d7",
+     "line": "k_nGameCSGOMain"
+    },
+    {
+     "name": "k_ngamecsgosdk",
+     "day": "2017-06-04",
+     "repo": "steamvr",
+     "path": "Strings/libvideo.txt",
+     "sha": "c3eac3d7",
+     "line": "k_nGameCSGOSDK"
+    },
+    {
+     "name": "k_ngameidcsgops3",
+     "day": "2017-06-04",
+     "repo": "steamvr",
+     "path": "Strings/libvideo.txt",
+     "sha": "c3eac3d7",
+     "line": "k_nGameIDCSGOPS3"
+    },
+    {
+     "name": "act_csgo_alive_loop",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_ALIVE_LOOP"
+    },
+    {
+     "name": "act_csgo_catch",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_CATCH"
+    },
+    {
+     "name": "act_csgo_climb_ladder",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_CLIMB_LADDER"
+    },
+    {
+     "name": "act_csgo_defuse",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_DEFUSE"
+    },
+    {
+     "name": "act_csgo_defuse_with_kit",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_DEFUSE_WITH_KIT"
+    },
+    {
+     "name": "act_csgo_deploy",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_DEPLOY"
+    },
+    {
+     "name": "act_csgo_exit_ladder_bottom",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_EXIT_LADDER_BOTTOM"
+    },
+    {
+     "name": "act_csgo_exit_ladder_top",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_EXIT_LADDER_TOP"
+    },
+    {
+     "name": "act_csgo_fall",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_FALL"
+    },
+    {
+     "name": "act_csgo_fire_primary",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_FIRE_PRIMARY"
+    },
+    {
+     "name": "act_csgo_fire_primary_opt_1",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_FIRE_PRIMARY_OPT_1"
+    },
+    {
+     "name": "act_csgo_fire_primary_opt_2",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_FIRE_PRIMARY_OPT_2"
+    },
+    {
+     "name": "act_csgo_fire_secondary",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_FIRE_SECONDARY"
+    },
+    {
+     "name": "act_csgo_fire_secondary_opt_1",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_FIRE_SECONDARY_OPT_1"
+    },
+    {
+     "name": "act_csgo_fire_secondary_opt_2",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_FIRE_SECONDARY_OPT_2"
+    },
+    {
+     "name": "act_csgo_flashbang_reaction",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_FLASHBANG_REACTION"
+    },
+    {
+     "name": "act_csgo_flinch",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_FLINCH"
+    },
+    {
+     "name": "act_csgo_flinch_head",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_FLINCH_HEAD"
+    },
+    {
+     "name": "act_csgo_flinch_molotov",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_FLINCH_MOLOTOV"
+    },
+    {
+     "name": "act_csgo_idle_adjust_stoppedmoving",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_IDLE_ADJUST_STOPPEDMOVING"
+    },
+    {
+     "name": "act_csgo_idle_turn_balanceadjust",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_IDLE_TURN_BALANCEADJUST"
+    },
+    {
+     "name": "act_csgo_jump",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_JUMP"
+    },
+    {
+     "name": "act_csgo_land_heavy",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_LAND_HEAVY"
+    },
+    {
+     "name": "act_csgo_land_light",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_LAND_LIGHT"
+    },
+    {
+     "name": "act_csgo_null",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_NULL"
+    },
+    {
+     "name": "act_csgo_operate",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_OPERATE"
+    },
+    {
+     "name": "act_csgo_parachute",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_PARACHUTE"
+    },
+    {
+     "name": "act_csgo_plant_bomb",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_PLANT_BOMB"
+    },
+    {
+     "name": "act_csgo_reload",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_RELOAD"
+    },
+    {
+     "name": "act_csgo_reload_end",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_RELOAD_END"
+    },
+    {
+     "name": "act_csgo_reload_loop",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_RELOAD_LOOP"
+    },
+    {
+     "name": "act_csgo_reload_start",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_RELOAD_START"
+    },
+    {
+     "name": "act_csgo_silencer_attach",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_SILENCER_ATTACH"
+    },
+    {
+     "name": "act_csgo_silencer_detach",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_SILENCER_DETACH"
+    },
+    {
+     "name": "act_csgo_twitch",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_TWITCH"
+    },
+    {
+     "name": "act_csgo_twitch_buyzone",
+     "day": "2019-04-26",
+     "repo": "steamvr",
+     "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "8053bcd6",
+     "line": "ACT_CSGO_TWITCH_BUYZONE"
+    },
+    {
+     "name": "clightbinnercsgo",
+     "day": "2019-06-07",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "1a530b162a",
+     "line": "Too many point(%d) + spot(%d) + dir(%d) lights found! CLightBinnerCsgo supports %d active point + spot + dir lights!"
+    },
+    {
+     "name": "csgo_dump_lights",
+     "day": "2019-06-07",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "1a530b162a",
+     "line": "csgo_dump_lights"
+    },
+    {
+     "name": "csgo_enable_lights",
+     "day": "2019-06-07",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "1a530b162a",
+     "line": "csgo_enable_lights"
+    },
+    {
+     "name": "csgo_light_bin",
+     "day": "2019-06-07",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "1a530b162a",
+     "line": "CSGO_LIGHT_BIN.vtex"
+    },
+    {
+     "name": "csgo_shadow_depthds",
+     "day": "2019-06-07",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "1a530b162a",
+     "line": "csgo_shadow_depthDS.vtex"
+    },
+    {
+     "name": "csgolightbinner",
+     "day": "2019-06-07",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "1a530b162a",
+     "line": "SceneSystem/CsgoLightBinner"
+    },
+    {
+     "name": "csgolightcookiesettings",
+     "day": "2019-06-07",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "1a530b162a",
+     "line": "CsgoLightCookieSettings"
+    },
+    {
+     "name": "cpointlightobjectdesccsgo",
+     "day": "2019-06-19",
+     "repo": "underlords",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "130a796",
+     "line": "25CPointLightObjectDescCsgo"
+    },
+    {
+     "name": "cspotlightobjectdesccsgo",
+     "day": "2019-06-19",
+     "repo": "underlords",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "130a796",
+     "line": "24CSpotLightObjectDescCsgo"
+    },
+    {
+     "name": "act_csgo_taunt",
+     "day": "2019-09-26",
+     "repo": "dota2",
+     "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+     "sha": "4334d5c44f",
+     "line": "ACT_CSGO_TAUNT"
+    },
+    {
+     "name": "pw_csgo",
+     "day": "2019-11-07",
+     "repo": "underlords",
+     "path": "game/bin/linuxsteamrt64/libvideo_strings.txt",
+     "sha": "935243c",
+     "line": "pw_csgo"
+    },
+    {
+     "name": "ccsgo3dskyboxrenderer",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "21CCsgo3DSkyboxRenderer"
+    },
+    {
+     "name": "ccsgoclearquadoverdrawvisualizationtextures",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "43CCsgoClearQuadOverdrawVisualizationTextures"
+    },
+    {
+     "name": "ccsgocomputeshaderrenderer",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "26CCsgoComputeShaderRenderer"
+    },
+    {
+     "name": "ccsgoquadrenderer",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "17CCsgoQuadRenderer"
+    },
+    {
+     "name": "createperviewlightingconstantbuffercsgo",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "CreatePerViewLightingConstantBufferCsgo"
+    },
+    {
+     "name": "crenderingpipelinecsgo",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "22CRenderingPipelineCsgo"
+    },
+    {
+     "name": "crenderingpipelinecsgo3dskybox",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "30CRenderingPipelineCsgo3DSkybox"
+    },
+    {
+     "name": "crenderingpipelinefactoryi22crenderingpipelinecsgoe",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "25CRenderingPipelineFactoryI22CRenderingPipelineCsgoE"
+    },
+    {
+     "name": "crenderingpipelinefactoryi30crenderingpipelinecsgo3dskyboxe",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "25CRenderingPipelineFactoryI30CRenderingPipelineCsgo3DSkyboxE"
+    },
+    {
+     "name": "csgo3dskybox",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "Csgo3DSkybox"
+    },
+    {
+     "name": "csgo3dskyboxrenderertemplate",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "Csgo3DSkyboxRendererTemplate"
+    },
+    {
+     "name": "csgo3dskyboxview",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "Csgo3DSkyboxView"
+    },
+    {
+     "name": "csgo_3d_skybox",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_3d_skybox"
+    },
+    {
+     "name": "csgo_allow_time_sliced_shadow_map_rendering",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_allow_time_sliced_shadow_map_rendering"
+    },
+    {
+     "name": "csgo_aoproxy_debug",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_aoproxy_debug"
+    },
+    {
+     "name": "csgo_aoproxy_enable",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_aoproxy_enable"
+    },
+    {
+     "name": "csgo_baked_sun_shadow_distance",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_baked_sun_shadow_distance"
+    },
+    {
+     "name": "csgo_cubemap_normalization",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_cubemap_normalization"
+    },
+    {
+     "name": "csgo_cubemap_normalization_max",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_cubemap_normalization_max"
+    },
+    {
+     "name": "csgo_cubemap_normalization_roughness_begin",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_cubemap_normalization_roughness_begin"
+    },
+    {
+     "name": "csgo_custom_msaa_resolve",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_custom_msaa_resolve"
+    },
+    {
+     "name": "csgo_decal_debug",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_decal_debug"
+    },
+    {
+     "name": "csgo_depth_prepass",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_depth_prepass"
+    },
+    {
+     "name": "csgo_depth_prepass_alphatested",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_depth_prepass_alphatested"
+    },
+    {
+     "name": "csgo_depth_prepass_cull_threshold",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_depth_prepass_cull_threshold"
+    },
+    {
+     "name": "csgo_directional_lightmaps",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_directional_lightmaps"
+    },
+    {
+     "name": "csgo_dither_scale",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_dither_scale"
+    },
+    {
+     "name": "csgo_effects_bloom",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_effects_bloom"
+    },
+    {
+     "name": "csgo_enable_cached_lights",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_enable_cached_lights"
+    },
+    {
+     "name": "csgo_enable_cubemap_fog",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_enable_cubemap_fog"
+    },
+    {
+     "name": "csgo_enable_glows",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_enable_glows"
+    },
+    {
+     "name": "csgo_enable_gradient_fog",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_enable_gradient_fog"
+    },
+    {
+     "name": "csgo_enable_tonemapping",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_enable_tonemapping"
+    },
+    {
+     "name": "csgo_enable_translucent_screen_space",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_enable_translucent_screen_space"
+    },
+    {
+     "name": "csgo_enable_volume_fog",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_enable_volume_fog"
+    },
+    {
+     "name": "csgo_fullsort_depth_prepass",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_fullsort_depth_prepass"
+    },
+    {
+     "name": "csgo_max_lights",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_max_lights"
+    },
+    {
+     "name": "csgo_postprocess_enable",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_postprocess_enable"
+    },
+    {
+     "name": "csgo_readonly_depth_stencil_enable",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_readonly_depth_stencil_enable"
+    },
+    {
+     "name": "csgo_render_decals",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_render_decals"
+    },
+    {
+     "name": "csgo_render_dynamic_objects",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_render_dynamic_objects"
+    },
+    {
+     "name": "csgo_render_opaque",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_render_opaque"
+    },
+    {
+     "name": "csgo_render_opaque_notzprepassed",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_render_opaque_notzprepassed"
+    },
+    {
+     "name": "csgo_render_overlays",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_render_overlays"
+    },
+    {
+     "name": "csgo_render_refraction",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_render_refraction"
+    },
+    {
+     "name": "csgo_render_translucent",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_render_translucent"
+    },
+    {
+     "name": "csgo_shadows_debug",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_shadows_debug"
+    },
+    {
+     "name": "csgo_show_light_fog_clipmap_cb_cost",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "Fog Clipmaps - insufficient shadow atlas space %d units centered on (setpos %d %d %d) - some lighting will be missing from the fog - csgo_show_light_fog_clipmap"
+    },
+    {
+     "name": "csgo_show_light_priority",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_show_light_priority"
+    },
+    {
+     "name": "csgo_stencil_debug",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_stencil_debug"
+    },
+    {
+     "name": "csgo_unlit_shadow_color",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_unlit_shadow_color"
+    },
+    {
+     "name": "csgo_use_fullsort_for_opaque",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "csgo_use_fullsort_for_opaque"
+    },
+    {
+     "name": "csgodefaultshadowtextureheight",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "SceneSystem/CsgoDefaultShadowTextureHeight"
+    },
+    {
+     "name": "csgodefaultshadowtexturewidth",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "SceneSystem/CsgoDefaultShadowTextureWidth"
+    },
+    {
+     "name": "csgolightbinnercachedshadowmapheight",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "SceneSystem/CsgoLightBinnerCachedShadowMapHeight"
+    },
+    {
+     "name": "csgolightbinnercachedshadowmaptilesize",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "SceneSystem/CsgoLightBinnerCachedShadowMapTileSize"
+    },
+    {
+     "name": "csgolightbinnercachedshadowmapwidth",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "SceneSystem/CsgoLightBinnerCachedShadowMapWidth"
+    },
+    {
+     "name": "csgolightbinnermaxlights",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "SceneSystem/CsgoLightBinnerMaxLights"
+    },
+    {
+     "name": "csgolightbinnersinglelightfastpath",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "SceneSystem/CsgoLightBinnerSingleLightFastPath"
+    },
+    {
+     "name": "csgomaxlights",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "CLightBinnerCsgo: Unsupported CsgoMaxLights %d"
+    },
+    {
+     "name": "csgonumbakedlights",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "CLightBinnerCsgo: Unsupported CSGONumBakedLights %d"
+    },
+    {
+     "name": "csgoquadlayout",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "CsgoQuadLayout"
+    },
+    {
+     "name": "csgoshadowdepthmasks",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "Scenesystem/CsgoShadowDepthMasks"
+    },
+    {
+     "name": "dskyboxlightbinnercsgo",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "3DSkyboxLightBinnerCsgo"
+    },
+    {
+     "name": "lightbinner_csgo",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "lightbinner_csgo.cpp"
+    },
+    {
+     "name": "renderingpipeline_csgo",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "renderingpipeline_csgo.cpp"
+    },
+    {
+     "name": "renderingpipelinecsgocomputeshadermanifest",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "RenderingPipelineCsgoComputeShaderManifest"
+    },
+    {
+     "name": "renderingpipelinecsgodevelopermode",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "RenderingPipelineCsgoDeveloperMode"
+    },
+    {
+     "name": "renderingpipelinecsgodevelopermodegroup",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "RenderingPipelineCsgoDeveloperModeGroup"
+    },
+    {
+     "name": "renderingpipelinecsgogroup",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "RenderingPipelineCsgoGroup"
+    },
+    {
+     "name": "renderingpipelinecsgomanifest",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "RenderingPipelineCsgoManifest"
+    },
+    {
+     "name": "renderingpipelinecsgomanifestdevelopermodeonly",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "RenderingPipelineCsgoManifestDeveloperModeOnly"
+    },
+    {
+     "name": "renderingpipelinecsgostartup",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "ERROR! Cannot load RenderingPipelineCsgoStartup resource manifest for the Csgo render pipeline!"
+    },
+    {
+     "name": "renderpipelinecsgo",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "RenderPipelineCsgo"
+    },
+    {
+     "name": "setuplightingforviewcsgo",
+     "day": "2020-02-03",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3febfe0d89",
+     "line": "SetupLightingForViewCsgo"
+    },
+    {
+     "name": "csgo_kill_indexed_light",
+     "day": "2020-02-25",
+     "repo": "underlords",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "299ff46",
+     "line": "csgo_kill_indexed_light"
+    },
+    {
+     "name": "csgo_shadow_map_culling",
+     "day": "2020-02-25",
+     "repo": "underlords",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "299ff46",
+     "line": "csgo_shadow_map_culling"
+    },
+    {
+     "name": "csgo_single_light_fast_path_sun_cascade_0_texels_per_world",
+     "day": "2020-02-25",
+     "repo": "underlords",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "299ff46",
+     "line": "csgo_single_light_fast_path_sun_cascade_0_texels_per_world"
+    },
+    {
+     "name": "csgo_single_light_fast_path_sun_cascade_1_texels_per_world",
+     "day": "2020-02-25",
+     "repo": "underlords",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "299ff46",
+     "line": "csgo_single_light_fast_path_sun_cascade_1_texels_per_world"
+    },
+    {
+     "name": "csgo_single_light_fast_path_sun_size_cull_threshold",
+     "day": "2020-02-25",
+     "repo": "underlords",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "299ff46",
+     "line": "csgo_single_light_fast_path_sun_size_cull_threshold"
+    },
+    {
+     "name": "csgo_show_indexed_light_indices",
+     "day": "2020-05-25",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "969291015f",
+     "line": "csgo_show_indexed_light_indices"
+    },
+    {
+     "name": "csgo_show_lod_origin",
+     "day": "2020-05-25",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "969291015f",
+     "line": "csgo_show_lod_origin"
+    },
+    {
+     "name": "csgo_show_nonfogging_cached_lights",
+     "day": "2020-05-25",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "969291015f",
+     "line": "csgo_show_nonfogging_cached_lights"
+    },
+    {
+     "name": "csgo_single_light_fast_path_sun_cascade_vignette",
+     "day": "2020-05-25",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "969291015f",
+     "line": "csgo_single_light_fast_path_sun_cascade_vignette"
+    },
+    {
+     "name": "mat_tonemap_csgo_bloom_scale",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3f2935e63e",
+     "line": "mat_tonemap_csgo_bloom_scale"
+    },
+    {
+     "name": "mat_tonemap_csgo_bloom_start_value",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3f2935e63e",
+     "line": "mat_tonemap_csgo_bloom_start_value"
+    },
+    {
+     "name": "mat_tonemap_csgo_debug",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3f2935e63e",
+     "line": "mat_tonemap_csgo_debug"
+    },
+    {
+     "name": "mat_tonemap_csgo_force_accelerate_exposure_down",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3f2935e63e",
+     "line": "mat_tonemap_csgo_force_accelerate_exposure_down"
+    },
+    {
+     "name": "mat_tonemap_csgo_force_average_lum_min",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3f2935e63e",
+     "line": "mat_tonemap_csgo_force_average_lum_min"
+    },
+    {
+     "name": "mat_tonemap_csgo_force_max",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3f2935e63e",
+     "line": "mat_tonemap_csgo_force_max"
+    },
+    {
+     "name": "mat_tonemap_csgo_force_min",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3f2935e63e",
+     "line": "mat_tonemap_csgo_force_min"
+    },
+    {
+     "name": "mat_tonemap_csgo_force_percent_bright_pixels",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3f2935e63e",
+     "line": "mat_tonemap_csgo_force_percent_bright_pixels"
+    },
+    {
+     "name": "mat_tonemap_csgo_force_percent_target",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3f2935e63e",
+     "line": "mat_tonemap_csgo_force_percent_target"
+    },
+    {
+     "name": "mat_tonemap_csgo_force_rate",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3f2935e63e",
+     "line": "mat_tonemap_csgo_force_rate"
+    },
+    {
+     "name": "mat_tonemap_csgo_force_scale",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3f2935e63e",
+     "line": "mat_tonemap_csgo_force_scale"
+    },
+    {
+     "name": "mat_tonemap_csgo_force_use_alpha",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3f2935e63e",
+     "line": "mat_tonemap_csgo_force_use_alpha"
+    },
+    {
+     "name": "mat_tonemap_csgo_uncap_exposure",
+     "day": "2021-12-15",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libscenesystem_strings.txt",
+     "sha": "3f2935e63e",
+     "line": "mat_tonemap_csgo_uncap_exposure"
+    },
+    {
+     "name": "avcmodeldocmeshmodifier_meshopcsgostickerposition",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/assetrename_strings.txt",
+     "sha": "d673eeda3a",
+     "line": ".?AVCModelDocMeshModifier_MeshOpCSGOStickerPosition@@"
+    },
+    {
+     "name": "cmodeldocmeshmodifier_meshopcsgostickerposition",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/assetrename_strings.txt",
+     "sha": "d673eeda3a",
+     "line": ".?AUCAttr_m_bStickerEnable@?1??GetStaticAttributes@CModelDocMeshModifier_MeshOpCSGOStickerPosition@@MEAAXPEAV?$CUtlVector@PEAVIBaseToolAttr@@HV?$CUtlMemory@PEAV"
+    },
+    {
+     "name": "csgo_import_map_terrain",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/tools/hammer_strings.txt",
+     "sha": "d673eeda3a",
+     "line": "C:\\buildworker\\source2_dota_rel_2019_win64\\build\\src\\vmf_to_vmap\\csgo_import_map_terrain.cpp"
+    },
+    {
+     "name": "csgo_workshop_extramisctags",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/tools/workshopmanager_strings.txt",
+     "sha": "d673eeda3a",
+     "line": "#CSGO_Workshop_ExtraMiscTags"
+    },
+    {
+     "name": "csgo_workshop_mode_armsrace",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/tools/workshopmanager_strings.txt",
+     "sha": "d673eeda3a",
+     "line": "#CSGO_Workshop_Mode_armsrace"
+    },
+    {
+     "name": "csgo_workshop_mode_classic",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/tools/workshopmanager_strings.txt",
+     "sha": "d673eeda3a",
+     "line": "#CSGO_Workshop_Mode_classic"
+    },
+    {
+     "name": "csgo_workshop_mode_coopstrike",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/tools/workshopmanager_strings.txt",
+     "sha": "d673eeda3a",
+     "line": "#CSGO_Workshop_Mode_coopstrike"
+    },
+    {
+     "name": "csgo_workshop_mode_custom",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/tools/workshopmanager_strings.txt",
+     "sha": "d673eeda3a",
+     "line": "#CSGO_Workshop_Mode_custom"
+    },
+    {
+     "name": "csgo_workshop_mode_deathmatch",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/tools/workshopmanager_strings.txt",
+     "sha": "d673eeda3a",
+     "line": "#CSGO_Workshop_Mode_deathmatch"
+    },
+    {
+     "name": "csgo_workshop_mode_demolition",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/tools/workshopmanager_strings.txt",
+     "sha": "d673eeda3a",
+     "line": "#CSGO_Workshop_Mode_demolition"
+    },
+    {
+     "name": "csgo_workshop_mode_flyingscoutsman",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/tools/workshopmanager_strings.txt",
+     "sha": "d673eeda3a",
+     "line": "#CSGO_Workshop_Mode_flyingscoutsman"
+    },
+    {
+     "name": "csgo_workshop_mode_training",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/tools/workshopmanager_strings.txt",
+     "sha": "d673eeda3a",
+     "line": "#CSGO_Workshop_Mode_training"
+    },
+    {
+     "name": "csgo_workshop_mode_wingman",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/tools/workshopmanager_strings.txt",
+     "sha": "d673eeda3a",
+     "line": "#CSGO_Workshop_Mode_wingman"
+    },
+    {
+     "name": "hvcmodeldocmeshmodifier_meshopcsgostickerposition",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/assetrename_strings.txt",
+     "sha": "d673eeda3a",
+     "line": ".?AV?$CBaseConcreteToolAttr@HVCModelDocMeshModifier_MeshOpCSGOStickerPosition@@@@"
+    },
+    {
+     "name": "nvcmodeldocmeshmodifier_meshopcsgostickerposition",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/assetrename_strings.txt",
+     "sha": "d673eeda3a",
+     "line": ".?AV?$CBaseConcreteToolAttr@_NVCModelDocMeshModifier_MeshOpCSGOStickerPosition@@@@"
+    },
+    {
+     "name": "vcmodeldocmeshmodifier_meshopcsgostickerposition",
+     "day": "2022-03-26",
+     "repo": "dota2",
+     "path": "game/bin/win64/assetrename_strings.txt",
+     "sha": "d673eeda3a",
+     "line": ".?AV?$CBaseConcreteToolAttr@VVector@@VCModelDocMeshModifier_MeshOpCSGOStickerPosition@@@@"
+    },
+    {
+     "name": "csgolauncher",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/audio_strings.txt",
+     "sha": "bd9f5394",
+     "line": "csgolauncher.exe"
+    },
+    {
+     "name": "csgoinputhistoryentrypb",
+     "day": "2022-06-09",
+     "repo": "dota2",
+     "path": "Protobufs/usercmd.proto",
+     "sha": "7e011a5768",
+     "line": "message CSGOInputHistoryEntryPB {"
+    },
+    {
+     "name": "csgousercmdpb",
+     "day": "2022-06-09",
+     "repo": "dota2",
+     "path": "Protobufs/usercmd.proto",
+     "sha": "7e011a5768",
+     "line": "message CSGOUserCmdPB {"
+    },
+    {
+     "name": "avcresourcecompilercsgoitem",
+     "day": "2022-09-01",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "bce1224064",
+     "line": ".?AVCResourceCompilerCSGOItem@@"
+    },
+    {
+     "name": "compilecsgoitem",
+     "day": "2022-09-01",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "bce1224064",
+     "line": "CompileCSGOItem"
+    },
+    {
+     "name": "csgo_item_type",
+     "day": "2022-09-01",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "bce1224064",
+     "line": "csgo_item_type"
+    },
+    {
+     "name": "cvdatacsgoeconnode",
+     "day": "2022-09-01",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "bce1224064",
+     "line": "CVDataCSGOEconNode_"
+    },
+    {
+     "name": "avccsgoitemtypemanager",
+     "day": "2022-11-03",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "ad8c7556a7",
+     "line": ".?AVCCSGOItemTypeManager@@"
+    },
+    {
+     "name": "csgo_case_lg",
+     "day": "2022-11-03",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "ad8c7556a7",
+     "line": "tools/csgo_item_tool/csgo_case_lg.png"
+    },
+    {
+     "name": "csgo_item_tool",
+     "day": "2022-11-03",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "ad8c7556a7",
+     "line": "tools/csgo_item_tool/csgo_case_lg.png"
+    },
+    {
+     "name": "csgo_key_lg",
+     "day": "2022-11-03",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "ad8c7556a7",
+     "line": "tools/csgo_item_tool/csgo_key_lg.png"
+    },
+    {
+     "name": "csgo_paintkit_lg",
+     "day": "2022-11-03",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "ad8c7556a7",
+     "line": "tools/csgo_item_tool/csgo_paintkit_lg.png"
+    },
+    {
+     "name": "csgo_unusual_lg",
+     "day": "2022-11-03",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "ad8c7556a7",
+     "line": "tools/csgo_item_tool/csgo_unusual_lg.png"
+    },
+    {
+     "name": "csgoitemh",
+     "day": "2022-11-03",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "ad8c7556a7",
+     "line": "csgoitemH"
+    },
+    {
+     "name": "cvdatacsgoeconnode_casekey",
+     "day": "2022-11-03",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "ad8c7556a7",
+     "line": "CVDataCSGOEconNode_CaseKey"
+    },
+    {
+     "name": "cvdatacsgoeconnode_communitycase",
+     "day": "2022-11-03",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "ad8c7556a7",
+     "line": "CVDataCSGOEconNode_CommunityCase"
+    },
+    {
+     "name": "cvdatacsgoeconnode_paintkit",
+     "day": "2022-11-03",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "ad8c7556a7",
+     "line": "CVDataCSGOEconNode_PaintKit"
+    },
+    {
+     "name": "cvdatacsgoeconnode_unusuallootlist",
+     "day": "2022-11-03",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "ad8c7556a7",
+     "line": "CVDataCSGOEconNode_UnusualLootList"
+    },
+    {
+     "name": "resource_type_csgo_item",
+     "day": "2022-11-03",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "ad8c7556a7",
+     "line": "RESOURCE_TYPE_CSGO_ITEM"
+    },
+    {
+     "name": "ccsgoeconnode",
+     "day": "2023-03-06",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "1aa90b207f",
+     "line": "CCSGOEconNode_"
+    },
+    {
+     "name": "ccsgoeconnode_casekey",
+     "day": "2023-03-06",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "1aa90b207f",
+     "line": "CCSGOEconNode_CaseKey"
+    },
+    {
+     "name": "ccsgoeconnode_communitycase",
+     "day": "2023-03-06",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "1aa90b207f",
+     "line": "CCSGOEconNode_CommunityCase"
+    },
+    {
+     "name": "ccsgoeconnode_paintkit",
+     "day": "2023-03-06",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "1aa90b207f",
+     "line": "CCSGOEconNode_PaintKit"
+    },
+    {
+     "name": "ccsgoeconnode_spraykit",
+     "day": "2023-03-06",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "1aa90b207f",
+     "line": "CCSGOEconNode_SprayKit"
+    },
+    {
+     "name": "ccsgoeconnode_stickerkit",
+     "day": "2023-03-06",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "1aa90b207f",
+     "line": "CCSGOEconNode_StickerKit"
+    },
+    {
+     "name": "ccsgoeconnode_unusuallootlist",
+     "day": "2023-03-06",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "1aa90b207f",
+     "line": "CCSGOEconNode_UnusualLootList"
+    },
+    {
+     "name": "csgo_item",
+     "day": "2023-03-06",
+     "repo": "dota2",
+     "path": "game/bin/assettypes_common.txt",
+     "sha": "1aa90b207f",
+     "line": "csgo_item ="
+    },
+    {
+     "name": "csgo_spraykit_lg",
+     "day": "2023-03-06",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "1aa90b207f",
+     "line": "tools/csgo_item_tool/csgo_spraykit_lg.png"
+    },
+    {
+     "name": "csgo_stickerkit_lg",
+     "day": "2023-03-06",
+     "repo": "dota2",
+     "path": "game/bin/win64/resourcecompiler_strings.txt",
+     "sha": "1aa90b207f",
+     "line": "tools/csgo_item_tool/csgo_stickerkit_lg.png"
+    },
+    {
+     "name": "csgoitem",
+     "day": "2023-03-06",
+     "repo": "dota2",
+     "path": "game/bin/assettypes_common.txt",
+     "sha": "1aa90b207f",
+     "line": "m_Ext = \"csgoitem\""
+    },
+    {
+     "name": "csgoitem_lg",
+     "day": "2023-03-06",
+     "repo": "dota2",
+     "path": "game/bin/assettypes_common.txt",
+     "sha": "1aa90b207f",
+     "line": "m_IconLg = \"game:tools/images/assettypes/csgoitem_lg.png\""
+    },
+    {
+     "name": "csgoitem_sm",
+     "day": "2023-03-06",
+     "repo": "dota2",
+     "path": "game/bin/assettypes_common.txt",
+     "sha": "1aa90b207f",
+     "line": "m_IconSm = \"game:tools/images/assettypes/csgoitem_sm.png\""
+    },
+    {
+     "name": "infoforresourcetypeccsgoitem",
+     "day": "2023-03-06",
+     "repo": "dota2",
+     "path": "game/bin/linuxsteamrt64/libresourcesystem_strings.txt",
+     "sha": "1aa90b207f",
+     "line": "InfoForResourceTypeCCSGOItem"
+    }
+   ],
+   "truncated": false
+  },
+  "deck": {
+   "names": [
+    {
+     "name": "jupiter",
+     "day": "2013-10-29",
+     "repo": "steam",
+     "path": "ItemSchema/API/TeamFortress2.vdf",
+     "sha": "1be9dea8d5",
+     "line": "\"name\"\t\t\"The Jupiter Jumpers\""
+    },
+    {
+     "name": "invasion_jupiter_jetpack",
+     "day": "2015-10-07",
+     "repo": "steam",
+     "path": "ItemSchema/TeamFortress2.json",
+     "sha": "3228f56223",
+     "line": "\"model_player\": \"models/workshop/player/items/pyro/invasion_jupiter_jetpack/invasion_jupiter_jetpack.mdl\","
+    },
+    {
+     "name": "invasion_jupiter_jetpack_large",
+     "day": "2015-10-07",
+     "repo": "steam",
+     "path": "ItemSchema/TeamFortress2.json",
+     "sha": "3228f56223",
+     "line": "\"image_url_large\": \"http://media.steampowered.com/apps/440/icons/invasion_jupiter_jetpack_large.4e0530a175564b902f3d47dfef3eab0441d3a9af.png\","
+    },
+    {
+     "name": "tf_invasion_jupiter_jetpack",
+     "day": "2015-10-07",
+     "repo": "steam",
+     "path": "ItemSchema/TeamFortress2.vdf",
+     "sha": "3228f56223",
+     "line": "\"item_name\"\t\t\"#TF_invasion_jupiter_jetpack\""
+    },
+    {
+     "name": "tf_invasion_jupiter_jetpack_desc",
+     "day": "2015-10-07",
+     "repo": "steam",
+     "path": "ItemSchema/TeamFortress2.vdf",
+     "sha": "3228f56223",
+     "line": "\"item_description\"\t\t\"#TF_invasion_jupiter_jetpack_Desc\""
+    },
+    {
+     "name": "neptune",
+     "day": "2015-10-29",
+     "repo": "steam",
+     "path": "ItemSchema/TeamFortress2.json",
+     "sha": "f6e43ea9bd",
+     "line": "\"name\": \"Neptune's Nightmare\","
+    },
+    {
+     "name": "s_rgpropvaluesgyrobuttonneptune",
+     "day": "2019-11-19",
+     "repo": "steam",
+     "path": "Symbols/steamui.txt",
+     "sha": "dbfc9b21d5",
+     "line": "d s_rgPropValuesGyroButtonNeptune"
+    },
+    {
+     "name": "bigpicture_neptune",
+     "day": "2020-02-07",
+     "repo": "steam",
+     "path": "Strings/steamui.txt",
+     "sha": "de6e388d78",
+     "line": "bigpicture_neptune.vdf"
+    },
+    {
+     "name": "controller_neptune",
+     "day": "2020-02-22",
+     "repo": "steam",
+     "path": "Strings/steamui.txt",
+     "sha": "62902e954f",
+     "line": "controller_neptune"
+    },
+    {
+     "name": "basicui_neptune",
+     "day": "2020-05-25",
+     "repo": "steam",
+     "path": "Strings/steamui.txt",
+     "sha": "0e20c2b56d",
+     "line": "basicui_neptune.vdf"
+    },
+    {
+     "name": "neptunegames",
+     "day": "2020-09-11",
+     "repo": "steam",
+     "path": "ClientExtracted/steamui/libraryroot.js",
+     "sha": "db9118c45b",
+     "line": "(Ko.NeptuneGames = \"neptune\");"
+    },
+    {
+     "name": "neptunegamescollection",
+     "day": "2020-09-11",
+     "repo": "steam",
+     "path": "ClientExtracted/steamui/libraryroot.js",
+     "sha": "db9118c45b",
+     "line": "Object.defineProperty(e.prototype, \"neptuneGamesCollection\", {"
+    },
+    {
+     "name": "steampal",
+     "day": "2021-02-25",
+     "repo": "steam",
+     "path": "ClientExtracted/steamui/libraryroot.js",
+     "sha": "36a840c142",
+     "line": "(Ra.SteamPal = \"AppDetails\"),"
+    },
+    {
+     "name": "k_econtrollertype_steamcontrollerneptune",
+     "day": "2021-05-11",
+     "repo": "steam",
+     "path": "Scripts/WebUI/steammobile_android.js",
+     "sha": "d0f5c34a2d",
+     "line": "(t[(t.k_eControllerType_SteamControllerNeptune = 4)] ="
+    },
+    {
+     "name": "steamcontrollerneptune",
+     "day": "2021-05-11",
+     "repo": "steam",
+     "path": "Structs/enums.steamd",
+     "sha": "8bbc6e27f2",
+     "line": "SteamControllerNeptune = 4;"
+    },
+    {
+     "name": "gamelist_view_neptunegames",
+     "day": "2021-05-24",
+     "repo": "steam",
+     "path": "ClientExtracted/steamui/6.js",
+     "sha": "97f862b04d",
+     "line": "GameList_View_NeptuneGames: \"SteamPal Games\","
+    },
+    {
+     "name": "neptunename",
+     "day": "2021-05-24",
+     "repo": "steam",
+     "path": "ClientExtracted/steamui/6.js",
+     "sha": "97f862b04d",
+     "line": "NeptuneName: \"SteamPal\","
+    }
+   ],
+   "truncated": false
+  },
+  "frame": {
+   "names": [
+    {
+     "name": "bibexport",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "bibexport -- Extract a BibTeX file based on a .aux file."
+    },
+    {
+     "name": "libexcalibur",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Suggests: libavalon-framework-java, libcommons-logging-java-doc, libexcalibur-logkit-java, liblog4j1.2-java, libservlet2.5-java"
+    },
+    {
+     "name": "libexception",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Package: libexception-class-perl"
+    },
+    {
+     "name": "libexempi",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Package: libexempi-dev"
+    },
+    {
+     "name": "libexempi3",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Depends: libatk1.0-0 (>= 1.12.4), libc6 (>= 2.14), libcairo2 (>= 1.6.0), libexempi3 (>= 2.2.0), libexif12, libgdk-pixbuf2.0-0 (>= 2.22.0), libgirepository-1.0-1"
+    },
+    {
+     "name": "libexempi3_2",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Filename: pool/main/e/exempi/libexempi3_2.2.0-1+bsos6_amd64.deb"
+    },
+    {
+     "name": "libexif",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Package: libexif-dev"
+    },
+    {
+     "name": "libexif12",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Depends: libatk1.0-0 (>= 1.12.4), libc6 (>= 2.14), libcairo2 (>= 1.6.0), libexempi3 (>= 2.2.0), libexif12, libgdk-pixbuf2.0-0 (>= 2.22.0), libgirepository-1.0-1"
+    },
+    {
+     "name": "libexif12_0",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Filename: pool/main/libe/libexif/libexif12_0.6.20-3+bsos6_amd64.deb"
+    },
+    {
+     "name": "libexiv2",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Depends: libc6 (>= 2.14), libexiv2-12, libgcc1 (>= 1:4.1.1), libstdc++6 (>= 4.4.0)"
+    },
+    {
+     "name": "libexml",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Package: libexml-java"
+    },
+    {
+     "name": "libexo",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Depends: libexo-1-0 (= 0.6.2-5+bsos7), libatk1.0-0 (>= 1.12.4), libc6 (>= 2.2.5), libgdk-pixbuf2.0-0 (>= 2.22.0), libglib2.0-0 (>= 2.27), libgtk2.0-0 (>= 2.14.0"
+    },
+    {
+     "name": "libexpat",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Conflicts: libexpat-dev"
+    },
+    {
+     "name": "libexpat1",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Depends: libavahi-common3 (>= 0.6.16), libavahi-core7 (>= 0.6.24), libc6 (>= 2.14), libcap2 (>= 2.10), libdaemon0 (>= 0.13), libdbus-1-3 (>= 1.1.1), libexpat1 ("
+    },
+    {
+     "name": "libexpat1_2",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Filename: pool/main/e/expat/libexpat1_2.1.0-1+bsos3_amd64.deb"
+    },
+    {
+     "name": "libext2fs",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "that directly accesses extended file systems. Programs that use libext2fs"
+    },
+    {
+     "name": "libext2fs2",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Provides: libe2p2, libext2fs2"
+    },
+    {
+     "name": "libextutils",
+     "day": "2013-12-14",
+     "repo": "steam",
+     "path": "Repos/alchemist_packages.txt",
+     "sha": "b62b986254",
+     "line": "Package: libextutils-depends-perl"
+    },
+    {
+     "name": "libexec",
+     "day": "2021-09-23",
+     "repo": "steam",
+     "path": "Strings/libgio-2.0.txt",
+     "sha": "8a332c3098",
+     "line": "/libexec"
+    },
+    {
+     "name": "eglquerydeviceattribext",
+     "day": "2021-09-28",
+     "repo": "steamvr",
+     "path": "bin/vrwebhelper/linux64/libEGL.txt",
+     "sha": "d5a3b881",
+     "line": "T eglQueryDeviceAttribEXT"
+    },
+    {
+     "name": "eglquerydisplayattribext",
+     "day": "2021-09-28",
+     "repo": "steamvr",
+     "path": "bin/vrwebhelper/linux64/libEGL.txt",
+     "sha": "d5a3b881",
+     "line": "T eglQueryDisplayAttribEXT"
+    },
+    {
+     "name": "gldisablevertexarrayattribext",
+     "day": "2021-09-28",
+     "repo": "steamvr",
+     "path": "bin/vrwebhelper/linux64/libGLESv2_strings.txt",
+     "sha": "d5a3b881",
+     "line": "glDisableVertexArrayAttribEXT"
+    },
+    {
+     "name": "glenablevertexarrayattribext",
+     "day": "2021-09-28",
+     "repo": "steamvr",
+     "path": "bin/vrwebhelper/linux64/libGLESv2_strings.txt",
+     "sha": "d5a3b881",
+     "line": "glEnableVertexArrayAttribEXT"
+    },
+    {
+     "name": "querydeviceattribext",
+     "day": "2021-09-28",
+     "repo": "steamvr",
+     "path": "bin/vrwebhelper/linux64/libEGL.txt",
+     "sha": "d5a3b881",
+     "line": "egl::QueryDeviceAttribEXT(void*, int, long*)"
+    },
+    {
+     "name": "querydisplayattribext",
+     "day": "2021-09-28",
+     "repo": "steamvr",
+     "path": "bin/vrwebhelper/linux64/libEGL.txt",
+     "sha": "d5a3b881",
+     "line": "egl::QueryDisplayAttribEXT(void*, int, long*)"
+    },
+    {
+     "name": "deckard",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "drivers/lighthouse/bin/win32/driver_lighthouse_strings.txt",
+     "sha": "bd9f5394",
+     "line": "Deckard Mini-D"
+    },
+    {
+     "name": "elibexec",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "tools/steamvr_room_setup/win64/steamvr_room_setup_Data/Managed/Mono.Posix_strings.txt",
+     "sha": "bd9f5394",
+     "line": "ELIBEXEC"
+    },
+    {
+     "name": "glewdisablevertexarrayattribext",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/vrwebhelper/win64/glew32_strings.txt",
+     "sha": "bd9f5394",
+     "line": "__glewDisableVertexArrayAttribEXT"
+    },
+    {
+     "name": "glewenablevertexarrayattribext",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/vrwebhelper/win64/glew32_strings.txt",
+     "sha": "bd9f5394",
+     "line": "__glewEnableVertexArrayAttribEXT"
+    },
+    {
+     "name": "ibexaavqnetworkconfiguration",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Network_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?setPrivateConfiguration@QNetworkSessionPrivate@@IBEXAAVQNetworkConfiguration@@V?$QExplicitlySharedDataPointer@VQNetworkConfigurationPrivate@@@@@Z"
+    },
+    {
+     "name": "ibexabv",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Core_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?encodeData@QAbstractItemModel@@IBEXABV?$QList@VQModelIndex@@@@AAVQDataStream@@@Z"
+    },
+    {
+     "name": "ibexabvqstyleoptionviewitem",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?doLayout@QItemDelegate@@IBEXABVQStyleOptionViewItem@@PAVQRect@@11_N@Z"
+    },
+    {
+     "name": "ibexi",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/msvcp100_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?_Internal_throw_exception@_Concurrent_vector_base_v4@details@Concurrency@@IBEXI@Z"
+    },
+    {
+     "name": "ibexnaapavinitialtimezonerule",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/icui18n_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?getTimeZoneRulesAfter@BasicTimeZone@icu_52@@IBEXNAAPAVInitialTimeZoneRule@2@AAPAVUVector@2@AAW4UErrorCode@@@Z"
+    },
+    {
+     "name": "ibexpavqabstractitemview",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initializeColumn@QColumnView@@IBEXPAVQAbstractItemView@@@Z"
+    },
+    {
+     "name": "ibexpavqpainter",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?drawBackground@QItemDelegate@@IBEXPAVQPainter@@ABVQStyleOptionViewItem@@ABVQModelIndex@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoption",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QFocusFrame@@IBEXPAVQStyleOption@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptionbutton",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QCheckBox@@IBEXPAVQStyleOptionButton@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptioncombobox",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QComboBox@@IBEXPAVQStyleOptionComboBox@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptiondockwidget",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QDockWidget@@IBEXPAVQStyleOptionDockWidget@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptionframe",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QFrame@@IBEXPAVQStyleOptionFrame@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptiongroupbox",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QGroupBox@@IBEXPAVQStyleOptionGroupBox@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptionheader",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QHeaderView@@IBEXPAVQStyleOptionHeader@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptionmenuitem",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QMenu@@IBEXPAVQStyleOptionMenuItem@@PBVQAction@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptionprogressbar",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QProgressBar@@IBEXPAVQStyleOptionProgressBar@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptionrubberband",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QRubberBand@@IBEXPAVQStyleOptionRubberBand@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptionslider",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QDial@@IBEXPAVQStyleOptionSlider@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptionspinbox",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QAbstractSpinBox@@IBEXPAVQStyleOptionSpinBox@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptiontab",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QTabBar@@IBEXPAVQStyleOptionTab@@H@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptiontabwidgetframe",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QTabWidget@@IBEXPAVQStyleOptionTabWidgetFrame@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptiontoolbar",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QToolBar@@IBEXPAVQStyleOptionToolBar@@@Z"
+    },
+    {
+     "name": "ibexpavqstyleoptiontoolbutton",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/Qt5Widgets_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?initStyleOption@QToolButton@@IBEXPAVQStyleOptionToolButton@@@Z"
+    },
+    {
+     "name": "ibexxz",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "bin/win32/msvcp100_strings.txt",
+     "sha": "bd9f5394",
+     "line": "?_Internal_throw_exception@_Concurrent_queue_base_v4@details@Concurrency@@IBEXXZ"
+    },
+    {
+     "name": "itypelibexporternameprovider",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "tools/steamvr_desktop_game_theater/win64/steamvr_desktop_game_theater_Data/Managed/mscorlib_strings.txt",
+     "sha": "bd9f5394",
+     "line": "ITypeLibExporterNameProvider"
+    },
+    {
+     "name": "itypelibexporternotifysink",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "tools/steamvr_desktop_game_theater/win64/steamvr_desktop_game_theater_Data/Managed/mscorlib_strings.txt",
+     "sha": "bd9f5394",
+     "line": "ITypeLibExporterNotifySink"
+    },
+    {
+     "name": "typelibexporterflags",
+     "day": "2022-03-31",
+     "repo": "steamvr",
+     "path": "tools/steamvr_desktop_game_theater/win64/steamvr_desktop_game_theater_Data/Managed/mscorlib_strings.txt",
+     "sha": "bd9f5394",
+     "line": "TypeLibExporterFlags"
+    },
+    {
+     "name": "deckard_devtools",
+     "day": "2022-06-15",
+     "repo": "steamvr",
+     "path": "resources/webinterface/dashboard/vrwebui_shared.js",
+     "sha": "25634a9c",
+     "line": "(window.webpackJsonp=window.webpackJsonp||[]).push([[1],{\"/CXA\":function(e,t,n){\"use strict\";n.d(t,\"b\",(function(){return p})),n.d(t,\"c\",(function(){return h}))"
+    },
+    {
+     "name": "egl_querydeviceattribext",
+     "day": "2023-07-05",
+     "repo": "steamvr",
+     "path": "bin/vrwebhelper/linux64/libEGL_strings.txt",
+     "sha": "2e2cd6c1",
+     "line": "EGL_QueryDeviceAttribEXT"
+    },
+    {
+     "name": "egl_querydisplayattribext",
+     "day": "2023-07-05",
+     "repo": "steamvr",
+     "path": "bin/vrwebhelper/linux64/libEGL_strings.txt",
+     "sha": "2e2cd6c1",
+     "line": "EGL_QueryDisplayAttribEXT"
+    },
+    {
+     "name": "l_egl_querydeviceattribext",
+     "day": "2023-07-05",
+     "repo": "steamvr",
+     "path": "bin/vrwebhelper/linux64/libEGL.txt",
+     "sha": "2e2cd6c1",
+     "line": "b l_EGL_QueryDeviceAttribEXT"
+    },
+    {
+     "name": "l_egl_querydisplayattribext",
+     "day": "2023-07-05",
+     "repo": "steamvr",
+     "path": "bin/vrwebhelper/linux64/libEGL.txt",
+     "sha": "2e2cd6c1",
+     "line": "b l_EGL_QueryDisplayAttribEXT"
+    },
+    {
+     "name": "validatequerydisplayattribext",
+     "day": "2023-07-05",
+     "repo": "steamvr",
+     "path": "bin/vrwebhelper/linux64/libGLESv2.txt",
+     "sha": "2e2cd6c1",
+     "line": "t egl::ValidateQueryDisplayAttribEXT(egl::Display const*, int)"
+    },
+    {
+     "name": "ibex",
+     "day": "2024-03-06",
+     "repo": "steam",
+     "path": "Strings/libSDL3.txt",
+     "sha": "6c6e1fc143",
+     "line": "IbeX)"
+    },
+    {
+     "name": "libexpatw",
+     "day": "2025-05-09",
+     "repo": "steam",
+     "path": "ClientExtracted/ClientContentLinux.txt",
+     "sha": "351fcfab75",
+     "line": "e372b07b steamrt64/steam-runtime-steamrt/steamrt3c_platform_3c.0.20250425.126096/files/lib/i386-linux-gnu/libexpatw.so.1.6.12"
+    },
+    {
+     "name": "libexslt",
+     "day": "2025-06-28",
+     "repo": "steam",
+     "path": "ClientExtracted/ThirdPartyLegalNotices-Chromium.html",
+     "sha": "2bc6ad2940",
+     "line": "Licence for libxslt except libexslt"
+    }
+   ],
+   "truncated": false
+  }
+ }
+}

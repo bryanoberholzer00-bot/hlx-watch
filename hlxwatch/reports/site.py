@@ -275,7 +275,9 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     # confronto con Half-Life: Alyx (storia chiusa in alyx_seed.json) accanto alle tracce HLX di oggi
     from hlxwatch import alyx
     cmp = alyx.compare(alyx.load_seed(), outcomes, stamp.date().isoformat(), cfg.game_title)
-    (out_dir / "alyx.html").write_text(env.get_template("alyx.html").render(c=cmp), encoding="utf-8")
+    from hlxwatch import progetti
+    others = progetti.summary(progetti.load_seed(), stamp.date().isoformat())
+    (out_dir / "alyx.html").write_text(env.get_template("alyx.html").render(c=cmp, altri=others), encoding="utf-8")
     if not preview_image(brief, out_dir / "anteprima.png", site_url.split("//", 1)[-1].rstrip("/")):
         env.globals["og_image"] = ""
     write_feed(db, out_dir, site_url, ctx)

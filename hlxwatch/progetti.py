@@ -35,17 +35,28 @@ REPOS = {
 }
 
 # announced: giorno dell'annuncio ufficiale. codes: nomi in codice (espressione per git e per i nomi).
-# skip: nomi da non contare (espressioni), trovati controllando i risultati a mano.
+# keep / skip: quali nomi contare, decisi controllando a mano i risultati della raccolta (ottobre 2026).
+# Il file grezzo resta intero: le regole si applicano quando il sito lo legge, così si possono correggere.
 PROJECTS = {
     "deadlock": {"title": "Deadlock", "code": "citadel", "announced": "2024-08-23",
                  "codes": r"citadel", "repos": ["dota2", "dota2test", "cs2", "underlords", "artifact", "steamvr"],
-                 "skip": []},
+                 # solo classi e sistemi del gioco (CCitadel..., CitadelHudEvent, citadel_snd...)
+                 "keep": [r"^c?citadel(?:[a-z]{3,}|_snd)"], "skip": [],
+                 "nota": "non contano le mappe di Half-Life 2 (d3_citadel), gli oggetti di Dota (Fractured Citadel) "
+                         "e i nomi ambigui più vecchi, come gli effetti di particelle del 2020"},
     "cs2": {"title": "Counter-Strike 2", "code": "csgo (in Source 2)", "announced": "2023-03-22",
-            "codes": r"csgo", "repos": ["dota2", "dota2test", "underlords", "artifact", "steamvr"], "skip": []},
+            "codes": r"csgo", "repos": ["dota2", "dota2test", "underlords", "artifact", "steamvr"],
+            "keep": [], "skip": [r"^csgo$", r"^k_ngame", r"^act_csgo"],
+            "nota": "contano i pezzi del motore Source 2 per CS (luci, grafica); non contano gli identificativi dei "
+                    "giochi di Steam e le animazioni ACT_CSGO, che possono venire dal vecchio motore"},
     "deck": {"title": "Steam Deck", "code": "neptune, steampal", "announced": "2021-07-15",
-             "codes": r"neptune|steampal|jupiter", "repos": ["steam"], "skip": []},
-    "frame": {"title": "Steam Frame, Steam Machine e Steam Controller", "code": "deckard, fremont, ibex",
-              "announced": "2025-11-12", "codes": r"deckard|fremont|ibex", "repos": ["steamvr", "steam"], "skip": []},
+             "codes": r"neptune|steampal|jupiter", "repos": ["steam"],
+             "keep": [], "skip": [r"jupiter", r"^neptune$"],
+             "nota": "non contano gli oggetti di TF2 (Jupiter Jetpack) e di altri giochi (Neptune's Nightmare)"},
+    "frame": {"title": "Steam Frame", "code": "deckard", "announced": "2025-11-12",
+              "codes": r"deckard|fremont|ibex", "repos": ["steamvr", "steam"],
+              "keep": [r"^deckard"], "skip": [],
+              "nota": "per Steam Machine (fremont) e il nuovo Steam Controller (ibex) non c'è nessun nome sicuro"},
 }
 
 MAX_NAMES = 4000           # per progetto: i nomi molto comuni (csgo) non devono gonfiare il file
@@ -118,6 +129,13 @@ def load_seed(path: Path = SEED) -> dict[str, Any] | None:
         return None
 
 
+def counted(proj: dict[str, Any], names: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    keep = [re.compile(s) for s in proj.get("keep", [])]
+    skip = [re.compile(s) for s in proj.get("skip", [])]
+    return [n for n in names if (not keep or any(k.search(n["name"]) for k in keep))
+            and not any(s.search(n["name"]) for s in skip)]
+
+
 def summary(seed: dict[str, Any] | None, today: str) -> list[dict[str, Any]]:
     """Per ogni progetto: prima traccia, mesi fino all'annuncio, nomi contati (senza i falsi positivi)."""
     if not seed:
@@ -127,8 +145,7 @@ def summary(seed: dict[str, Any] | None, today: str) -> list[dict[str, Any]]:
         data = (seed.get("projects") or {}).get(key)
         if not data:
             continue
-        skip = [re.compile(s) for s in proj.get("skip", [])]
-        names = [n for n in data["names"] if not any(s.search(n["name"]) for s in skip)]
+        names = counted(proj, data["names"])
         if not names:
             continue
         first = names[0]
@@ -138,5 +155,6 @@ def summary(seed: dict[str, Any] | None, today: str) -> list[dict[str, Any]]:
         rows.append({"key": key, "title": proj["title"], "code": proj["code"], "first": first["day"],
                      "first_it": _it(first["day"]), "first_name": first["name"], "first_line": first.get("line", ""),
                      "where": repo.get("title", first["repo"]), "announced_it": _it(proj["announced"]),
-                     "months": _months(first["day"], proj["announced"]), "names": len(names), "at_start": near})
+                     "months": _months(first["day"], proj["announced"]), "names": len(names), "at_start": near,
+                     "nota": proj.get("nota", "")})
     return sorted(rows, key=lambda r: -r["months"])

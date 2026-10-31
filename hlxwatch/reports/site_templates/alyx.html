@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}HLX e Half-Life: Alyx a confronto - HLX Watch{% endblock %}
-{% block description %}Prima dell'annuncio, Half-Life: Alyx compariva nei file pubblici di Valve con il nome hlvr. Quanto tempo prima, con quanti nomi, e come si confronta con HLX oggi.{% endblock %}
+{% block description %}Prima dell'annuncio, Half-Life: Alyx compariva nei file pubblici di Valve con il nome hlvr. Quanto tempo prima, con quanti nomi, come è andata per Deadlock, Counter-Strike 2, Steam Deck e Steam Frame, e come si confronta con HLX oggi.{% endblock %}
 {% block content %}
 <style>
  .confronto{display:grid;grid-template-columns:1fr 1fr;gap:1rem} @media(max-width:700px){.confronto{grid-template-columns:1fr}}
@@ -12,6 +12,11 @@
  svg.alyxchart .griglia{stroke:var(--line)} .legenda{display:flex;gap:1rem;flex-wrap:wrap;font-size:.85rem;margin-top:.3rem}
  .legenda span::before{content:"";display:inline-block;width:1.2rem;height:3px;vertical-align:middle;margin-right:.35rem;background:currentColor}
  table.nomi td:first-child{white-space:nowrap}
+ .barre{display:flex;flex-direction:column;gap:.45rem;margin:.6rem 0 1rem}
+ .barra{display:grid;grid-template-columns:13rem 1fr;gap:.6rem;align-items:center;font-size:.9rem}
+ .barra .riga{display:flex;align-items:center;gap:.5rem} .barra i{display:block;height:.9rem;border-radius:3px;background:#3b82f6;min-width:2px}
+ .barra.hlx i{background:var(--accent)} .barra .riga b{white-space:nowrap;font-size:.85rem}
+ @media(max-width:700px){.barra{grid-template-columns:1fr;gap:.15rem}}
 </style>
 <div class="breve">
 <h1>HLX e Half-Life: Alyx a confronto</h1>
@@ -41,6 +46,35 @@
   </div>
  </div>
 </section>
+
+{% if altri %}
+{% set righe = altri + [{"title": "Half-Life: Alyx", "code": "hlvr", "first_it": c.alyx.first_it, "where": c.alyx.first_game,
+   "months": c.alyx.months_to_announce, "names": c.alyx.pre, "at_start": c.alyx.at_archive_start, "announced_it": c.alyx.announced_it,
+   "nota": "non contano i nomi con alyx di Half-Life 2 Episodio 2"}] %}
+{% set righe = righe|sort(attribute="months", reverse=true) %}
+{% set massimo = [c.hlx.months, righe[0].months]|max %}
+<section id="altri">
+ <h2>Gli altri progetti Valve: quanto prima dell'annuncio</h2>
+ <p>Lo stesso conteggio per altri prodotti Valve con un nome in codice noto: dal primo nome sicuro nei file pubblici
+ al giorno dell'annuncio. Per gli altri progetti è andata da <b>{{ righe[-1].months }}</b> a <b>{{ righe[0].months }} mesi</b>;
+ HLX è a <b>{{ c.hlx.months }}</b>{% if c.hlx.months > righe[0].months %}, il percorso più lungo,{% endif %} e non è ancora stato annunciato.</p>
+ <div class="barre">
+  <div class="barra hlx"><span class="nome"><b>HLX</b> <small class="muted">ancora in corso</small></span>
+   <span class="riga"><i style="width:{{ (100 * c.hlx.months / massimo)|round(1) }}%"></i><b>{{ c.hlx.months }} mesi</b></span></div>
+  {% for r in righe %}<div class="barra"><span class="nome">{{ r.title }}</span>
+   <span class="riga"><i style="width:{{ (100 * r.months / massimo)|round(1) }}%"></i><b>{% if r.at_start %}&ge; {% endif %}{{ r.months }} mesi</b></span></div>{% endfor %}
+ </div>
+ <table class="nomi">
+  <tr><th>Progetto</th><th>Nome in codice</th><th>Prima traccia</th><th>Annuncio</th><th>Nomi trovati</th></tr>
+  {% for r in righe %}<tr><td>{{ r.title }}{% if r.nota %}<br><small class="muted">{{ r.nota }}</small>{% endif %}</td><td><code>{{ r.code }}</code></td>
+   <td>{{ r.first_it }}<br><small class="muted">{{ r.where }}{% if r.at_start %}, già all'inizio dell'archivio{% endif %}</small></td>
+   <td>{{ r.announced_it }}</td><td>{{ r.names }}</td></tr>{% endfor %}
+ </table>
+ <p class="muted"><small>"&ge;" vuol dire che il nome c'era già quando l'archivio è cominciato: il tempo vero è più lungo.
+ Gli archivi pubblici partono dal 2013 (client di Steam) o dal 2016 (giochi Source 2). I nomi trovati non si possono
+ confrontare tra progetti: un motore grafico (Counter-Strike 2) lascia molti più nomi di un visore (Steam Frame).</small></p>
+</section>
+{% endif %}
 
 <section>
  <h2>Quanti nomi, mese dopo mese</h2>
