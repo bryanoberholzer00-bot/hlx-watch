@@ -201,6 +201,17 @@ def cmd_alyx_storia(args: argparse.Namespace) -> int:
     return 1 if data["repos"] and all(r.get("error") for r in data["repos"].values()) else 0
 
 
+def cmd_progetti_storia(args: argparse.Namespace) -> int:
+    """Prima comparsa dei nomi in codice di altri progetti Valve, fino al loro annuncio."""
+    from hlxwatch import progetti
+    data = progetti.run(Path(args.out), workdir=args.workdir, only=args.progetto)
+    for name, r in data["repos"].items():
+        print(f"{name}: " + (f"ERRORE {r['error']}" if r.get("error") else f"archivio dal {r['start']}"))
+    for key, p in data["projects"].items():
+        print(f"{key}: {len(p['names'])} nomi" + (" (troncati)" if p["truncated"] else ""))
+    return 1 if data["repos"] and all(r.get("error") for r in data["repos"].values()) else 0
+
+
 def cmd_daemon(args: argparse.Namespace) -> int:
     cfg, db = _open(args)
     from hlxwatch.core import Pipeline
@@ -389,6 +400,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--repo", action="append", help="limita a un repo per nome (steamvr, dota2, ...); ripetibile")
     p.add_argument("--workdir", help="cartella per le copie dei repository (default: temporanea)")
     p.set_defaults(func=cmd_alyx_storia)
+
+    p = sub.add_parser("progetti-storia", help="prima comparsa dei nomi in codice di altri progetti Valve (Deadlock, Deck...)")
+    p.add_argument("--out", default=str(Path(__file__).with_name("progetti_seed.json")), help="file JSON da scrivere")
+    p.add_argument("--progetto", action="append", help="limita a un progetto (deadlock, cs2, deck, frame); ripetibile")
+    p.add_argument("--workdir", help="cartella per le copie dei repository (default: temporanea)")
+    p.set_defaults(func=cmd_progetti_storia)
 
     p = sub.add_parser("weekly", help="riepilogo della settimana precedente (anteprima; --send per Telegram)")
     p.add_argument("--send", action="store_true", help="invia il riepilogo su Telegram")

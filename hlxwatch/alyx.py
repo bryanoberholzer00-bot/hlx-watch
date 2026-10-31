@@ -73,8 +73,9 @@ def names_in(line: str) -> Iterator[str]:
             yield name
 
 
-def scan_history(lines: Iterable[str], repo: str) -> dict[str, dict[str, Any]]:
+def scan_history(lines: Iterable[str], repo: str, extract=None) -> dict[str, dict[str, Any]]:
     """Da `git log --reverse -p` alla prima comparsa (riga aggiunta) di ogni nome."""
+    extract = extract or names_in
     first: dict[str, dict[str, Any]] = {}
     sha = day = path = ""
     for raw in lines:
@@ -84,7 +85,7 @@ def scan_history(lines: Iterable[str], repo: str) -> dict[str, dict[str, Any]]:
         elif line.startswith("+++ "):
             path = line[6:] if line.startswith("+++ b/") else ""
         elif line.startswith("+") and day:
-            for name in names_in(line):
+            for name in extract(line):
                 if name not in first or day < first[name]["day"]:
                     first[name] = {"name": name, "day": day, "repo": repo, "path": path, "sha": sha,
                                    "line": line[1:].strip()[:160]}

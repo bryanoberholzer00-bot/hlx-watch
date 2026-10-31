@@ -1,23 +1,30 @@
-# Confronto con Half-Life: Alyx: una volta sola, a mano. Clona gli archivi SteamTracking degli anni 2016-2020
-# (Dota 2 pesa quasi 7 GB, troppo per un PC) e cerca la prima comparsa di ogni nome hlvr fino all'uscita del gioco.
-# Il risultato (alyx_seed.json) si scarica dagli artifact del run e si salva nel repository: è storia chiusa.
+# Storia dei progetti Valve: una volta sola, a mano. Clona gli archivi SteamTracking (Dota 2 pesa quasi 7 GB, troppo
+# per un PC) e cerca la prima comparsa dei nomi in codice prima dell'annuncio:
+#   alyx-storia      -> alyx_seed.json     (Half-Life: Alyx, nomi hlvr)
+#   progetti-storia  -> progetti_seed.json (Deadlock, Counter-Strike 2, Steam Deck, Steam Frame...)
+# Il risultato si scarica dagli artifact del run e si salva nel repository: è storia chiusa.
 
-name: Storia di Alyx
+name: Storia dei progetti Valve
 
 on:
   workflow_dispatch:
     inputs:
-      repo:
-        description: "Solo questi archivi (nomi separati da virgola, es. dota2,steam; vuoto = tutti)"
+      comando:
+        description: "Cosa raccogliere"
+        type: choice
+        options: [progetti-storia, alyx-storia]
+        default: progetti-storia
+      filtro:
+        description: "Solo questi (alyx-storia: archivi; progetti-storia: progetti), separati da virgola; vuoto = tutti"
         default: ""
 
 permissions:
   contents: read
 
 jobs:
-  alyx:
+  storia:
     runs-on: ubuntu-latest
-    timeout-minutes: 240
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v7
 
@@ -28,15 +35,17 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - name: Prima comparsa dei nomi hlvr
+      - name: Prima comparsa dei nomi in codice
         env:
-          REPOS: ${{ github.event.inputs.repo }}
+          COMANDO: ${{ github.event.inputs.comando }}
+          FILTRO: ${{ github.event.inputs.filtro }}
         run: |
+          FLAG=--repo; [ "$COMANDO" = "progetti-storia" ] && FLAG=--progetto
           ARGS=""
-          for r in ${REPOS//,/ }; do ARGS="$ARGS --repo $r"; done
-          python -m hlxwatch alyx-storia --workdir "$RUNNER_TEMP/alyx" --out alyx_seed.json $ARGS
+          for r in ${FILTRO//,/ }; do ARGS="$ARGS $FLAG $r"; done
+          python -m hlxwatch "$COMANDO" --workdir "$RUNNER_TEMP/storia" --out storia.json $ARGS
 
       - uses: actions/upload-artifact@v7
         with:
-          name: alyx-seed
-          path: alyx_seed.json
+          name: storia
+          path: storia.json
