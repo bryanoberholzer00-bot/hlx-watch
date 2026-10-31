@@ -1,0 +1,32 @@
+{# Una voce in forma compatta: punteggio, token, poi in piccolo dove, quando e perché. #}
+{% macro voce(f) %}
+<li class="voce {{ f.severity }}">
+ <span class="badge {{ f.severity }}">{{ f.score }}</span>
+ <div class="corpo">
+  <div class="riga1"><code title="{{ f.token or f.text }}">{{ (f.token or f.text)[:120] }}</code>
+   <span class="quando">{% if f.day_at_least %}almeno dal {% endif %}{{ f.day }} &middot; {{ titles.get(f.game, f.game) }}</span></div>
+  {% if f.token and f.text != f.token %}<div class="testo">{{ f.text[:140] }}</div>{% endif %}
+  <div class="dettagli">
+   {% if f.is_new %}<span class="chip nuova" title="La riga non era mai comparsa nell'archivio, che parte dal 2016">mai vista prima</span>{% endif %}
+   {% if f.merge %}<span class="chip" title="La stessa riga è comparsa anche in questi giochi entro 60 giorni: viaggia con il codice condiviso di Source 2">anche in {{ f.merge|join(', ') }}</span>{% endif %}
+   <span title="{{ f.file_path }}">{% if f.file_path|length > 70 %}…{{ f.file_path[-68:] }}{% else %}{{ f.file_path }}{% endif %}{% if f.line_no %}:{{ f.line_no }}{% endif %}</span>
+   <span>{{ f.change_type }}{% if f.evidence_label and f.evidence != 'altro' %}, {{ f.evidence_label }}{% endif %}</span>
+   {% if f.dup_count > 1 %}<span title="{{ f.dup_files|join('&#10;') }}">{{ f.dup_short }}</span>{% endif %}
+   {% if f.build_url %}<a href="{{ f.build_url }}">{{ f.build_url|linklabel }}{% if 'commit' == f.build_url|linklabel %} {{ (f.build_ref or '')[:8] }}{% endif %}</a>{% endif %}
+   {% if f.schema_url %}<a href="{{ f.schema_url }}" title="Campi e opzioni della classe nello Schema Explorer di s2v.app">vedi la classe</a>{% endif %}
+  </div>
+  {% if f.related %}<div class="correlate" title="{{ f.related|join('&#10;') }}">+ {{ f.related|length }} {{ 'riga correlata' if f.related|length == 1 else 'righe correlate' }} nello stesso commit:
+   {% for r in f.related[:4] %}<code>{{ r[:50] }}</code>{% if not loop.last %} {% endif %}{% endfor %}{% if f.related|length > 4 %} …{% endif %}</div>{% endif %}
+ </div>
+</li>
+{% endmacro %}
+
+{# Elenco con le prime `shown` voci in vista e le altre dietro "mostra tutte" (funziona anche senza JavaScript). #}
+{% macro elenco(items, shown=15) %}
+<ul class="voci">{% for f in items[:shown] %}{{ voce(f) }}{% endfor %}</ul>
+{% if items|length > shown %}
+<details class="altre"><summary>Mostra tutte ({{ items|length - shown }} in più)</summary>
+<ul class="voci">{% for f in items[shown:] %}{{ voce(f) }}{% endfor %}</ul>
+</details>
+{% endif %}
+{% endmacro %}

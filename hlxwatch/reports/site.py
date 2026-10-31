@@ -19,7 +19,7 @@ from hlxwatch.dashboard.app import _row, group_rows, timeline_svg
 from hlxwatch.reports.daily import collect_report_data, render_html
 from hlxwatch.repos import tracked_repos
 from hlxwatch.storage import Database
-from hlxwatch.storage.db import iso, utcnow
+from hlxwatch.storage.db import iso, parse_iso, utcnow
 from hlxwatch.sources.steam_news import SteamNewsSource
 from hlxwatch.outcomes import engine_merge_index, merge_partners, outcome_register
 from hlxwatch.analyzers.codenames import CodenameTracker
@@ -68,6 +68,55 @@ def decorate(item: dict[str, Any], ctx: dict[str, Any] | None = None) -> dict[st
     item["merge"] = (merge_partners(ctx["merge"], item.get("game") or "", item.get("token"), item.get("text"),
                                     item.get("day"), ctx.get("titles")) if ctx else [])
     return item
+
+
+def bundle_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Per la pagina iniziale: le voci dello stesso commit, file e tipo diventano una riga sola
+    (es. CHLXCoverPreviewHelper e GetAttributeTable_CHLXCoverPreviewHelper nello stesso hammer_strings.txt).
+    La prima voce resta in vista, le altre finiscono in `related`."""
+    out: list[dict[str, Any]] = []
+    index: dict[tuple[Any, ...], dict[str, Any]] = {}
+    for row in rows:
+        if row.get("build_id") is None:
+            out.append(dict(row, related=[]))
+            continue
+        key = (row["build_id"], row.get("file_path"), row.get("change_type"))
+        if key in index:
+            head = index[key]
+            head["related"].append(row.get("token") or row.get("text") or "")
+            head["is_new"] = head.get("is_new") or row.get("is_new")
+            if row["score"] > head["score"]:
+                head["score"], head["severity"] = row["score"], row["severity"]
+        else:
+            head = index[key] = dict(row, related=[])
+            out.append(head)
+    return out
+
+
+def glance(termo: dict[str, Any], status: dict[str, Any]) -> dict[str, Any]:
+    """Riquadro in cima alla pagina iniziale: termometro, ultima traccia forte e salute delle fonti in una riga."""
+    problems: list[str] = []
+    if status.get("problems"):
+        problems.append(f"{len(status['problems'])} fonti con errori")
+    stale = [r["title"] for r in status.get("repos", []) if r.get("stale")]
+    if stale:
+        problems.append("ferme: " + ", ".join(stale))
+    fast = status.get("fast") or {}
+    if fast.get("irraggiungibile"):
+        problems.append("il bot non risponde")
+    elif fast.get("fermo"):
+        problems.append("controllo veloce fermo")
+    restore = status.get("restore") or {}
+    if restore and not restore.get("ok", True):
+        problems.append("prova di ripristino non riuscita")
+    hours = None
+    if status.get("last_scan"):
+        last = parse_iso(status["last_scan"])
+        if last is not None:
+            hours = (utcnow() - last).total_seconds() / 3600
+    if hours is None or hours > 12:
+        problems.append("nessuna scansione da più di 12 ore" if hours is not None else "nessuna scansione")
+    return {"termo": termo, "problems": problems, "ok": not problems}
 
 
 def write_feed(db: Database, out_dir: Path, site_url: str, ctx: dict[str, Any], limit: int = 40) -> int:
@@ -185,13 +234,16 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
                                                              exclude_change_type=("baseline", "present"))])
     recent = group_rows([decorate(apply_first_seen(_row(r), days), ctx) for r in db.search_findings(min_score=50, limit=80, order="created_at",
                                                                exclude_change_type=("baseline", "present"))])
+    from hlxwatch.reports.termometro import compute as termo_now, history, history_svg
+    termo_current = termo_now(cfg, db)
+    status = source_status(cfg, db, fast_status(cfg))
     index_html = env.get_template("index.html").render(
-        stats=stats, high=high, recent=recent[:40],
+        stats=stats, high=bundle_rows(high), recent=bundle_rows(recent)[:40], glance=glance(termo_current, status),
         chart=timeline_svg(db.timeline(days=timeline_days), timeline_days, link="search.html?since={day}&until={day}"),
         timeline_days=timeline_days, tokens=[dict(r) for r in db.top_tokens(25)],
         builds=with_summaries(db, [dict(r) for r in db.recent_builds(15)]), apps=[dict(r) for r in db.flagged_apps(20)],
         steam_builds=[dict(r) for r in db.steam_builds(12)], present=present_groups(db),
-        analysis=analyses[0] if analyses else None, status=source_status(cfg, db, fast_status(cfg)),
+        analysis=analyses[0] if analyses else None, status=status,
     )
     (out_dir / "index.html").write_text(index_html, encoding="utf-8")
     (out_dir / "hardware.html").write_text(env.get_template("hardware.html").render(hw=hardware_data(cfg, db)),
@@ -199,13 +251,12 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     (out_dir / "esiti.html").write_text(env.get_template("esiti.html").render(reg=outcome_register(cfg, db)),
                                         encoding="utf-8")
     # termometro HLX: valore di adesso e storico giorno per giorno (bot/termometro_storico.json, dati aperti)
-    from hlxwatch.reports.termometro import compute as termo_now, history, history_svg
     termo = history(cfg, db)
     (out_dir / "bot").mkdir(parents=True, exist_ok=True)
     (out_dir / "bot" / "termometro_storico.json").write_text(json.dumps(termo, ensure_ascii=False, separators=(",", ":")),
                                                              encoding="utf-8")
     (out_dir / "termometro.html").write_text(env.get_template("termometro.html").render(
-        h=termo, svg=history_svg(termo), now=termo_now(cfg, db)), encoding="utf-8")
+        h=termo, svg=history_svg(termo), now=termo_current), encoding="utf-8")
     site_url = str(cfg.get("general.site_url", "https://bryanoberholzer00-bot.github.io/hlx-watch/"))
     write_feed(db, out_dir, site_url if site_url.endswith("/") else site_url + "/", ctx)
     kw = cfg.keywords
