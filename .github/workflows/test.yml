@@ -36,7 +36,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
-      - run: node --test telegram-welcome/test/fast.test.mjs telegram-welcome/test/dispatch.test.mjs
+      - run: node --test telegram-welcome/test/fast.test.mjs telegram-welcome/test/dispatch.test.mjs telegram-welcome/test/noise.test.mjs
 
   android:
     runs-on: ubuntu-latest

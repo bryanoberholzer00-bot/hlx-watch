@@ -198,6 +198,14 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
                                            encoding="utf-8")
     (out_dir / "esiti.html").write_text(env.get_template("esiti.html").render(reg=outcome_register(cfg, db)),
                                         encoding="utf-8")
+    # termometro HLX: valore di adesso e storico giorno per giorno (bot/termometro_storico.json, dati aperti)
+    from hlxwatch.reports.termometro import compute as termo_now, history, history_svg
+    termo = history(cfg, db)
+    (out_dir / "bot").mkdir(parents=True, exist_ok=True)
+    (out_dir / "bot" / "termometro_storico.json").write_text(json.dumps(termo, ensure_ascii=False, separators=(",", ":")),
+                                                             encoding="utf-8")
+    (out_dir / "termometro.html").write_text(env.get_template("termometro.html").render(
+        h=termo, svg=history_svg(termo), now=termo_now(cfg, db)), encoding="utf-8")
     site_url = str(cfg.get("general.site_url", "https://bryanoberholzer00-bot.github.io/hlx-watch/"))
     write_feed(db, out_dir, site_url if site_url.endswith("/") else site_url + "/", ctx)
     kw = cfg.keywords

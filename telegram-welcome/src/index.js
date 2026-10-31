@@ -8,11 +8,13 @@
 // Controllo veloce dell'annuncio ogni 10 minuti e /fast/annuncio.json: vedi src/fast.js
 // Avvio del giro completo su GitHub ogni 30 minuti (segreto facoltativo GH_DISPATCH_TOKEN): vedi src/dispatch.js
 // Notifiche di sistema del sito (percorsi /push/...): vedi src/push.js
+// Pulsante 👎 "è rumore" sotto gli avvisi e /rumore.json: vedi src/noise.js
 // Variabili facoltative: SITE_URL (default il sito pubblico), DRY_RUN=1 (risponde nella risposta HTTP: per i test)
 
 import { flushMorning, handlePush } from "./push.js";
 import { FAST_CRON, fastAlerts, fastCheck, fastStatus, fastWatchdog } from "./fast.js";
 import { dispatchRun } from "./dispatch.js";
+import { ensureWebhook, handleCallback, noiseList } from "./noise.js";
 
 const DEFAULT_SITE = "https://bryanoberholzer00-bot.github.io/hlx-watch/";
 const REPO = "https://github.com/bryanoberholzer00-bot/hlx-watch";
@@ -201,6 +203,7 @@ export default {
       // ogni ora: finito l'orario di silenzio manda il riassunto delle notifiche trattenute di notte
       ctx.waitUntil(flushMorning(env, env.SITE_URL || DEFAULT_SITE, BOT_ORIGIN));
       ctx.waitUntil(fastWatchdog(env, reply));      // e controlla che il controllo veloce stia girando
+      ctx.waitUntil(ensureWebhook(env).catch((err) => console.log("webhook non controllato:", String(err))));
     } else {
       ctx.waitUntil(scheduledCheck(env));
     }
@@ -218,6 +221,9 @@ export default {
     if (path === "/fast/stato.json" && request.method === "GET") {
       return fastStatus(env);                       // il sito lo mostra nello stato delle fonti
     }
+    if (path === "/rumore.json" && request.method === "GET") {
+      return noiseList(env);                        // voci segnate con 👎, lette dal giro su GitHub
+    }
     if (request.method !== "POST") {
       return new Response("HLX Watch bot: ok", { status: 200 });
     }
@@ -230,6 +236,10 @@ export default {
       update = await request.json();
     } catch {
       return new Response("bad request", { status: 400 });
+    }
+    if (update.callback_query) {
+      await handleCallback(env, update.callback_query);   // pulsante 👎 sotto un avviso
+      return new Response("ok", { status: 200 });
     }
     const message = update.message;
     if (message && message.chat && typeof message.text === "string") {

@@ -106,6 +106,9 @@
  {% if status.fast.irraggiungibile %}<b>il bot non risponde</b>{% elif status.fast.fermo %}<b>fermo</b>{% if status.fast.ultimo_ok %}, ultimo giro riuscito {{ status.fast.ultimo_ok|local }}{% endif %}{% else %}ultimo giro riuscito {{ status.fast.ultimo_ok|local }}{% endif %}.
  {% if status.fast.avvio %}Giro completo: {% if status.fast.avvio.attivo %}avviato dal bot ogni 30 minuti{% if status.fast.avvio.scadenza %} (token valido fino al {{ status.fast.avvio.scadenza[8:10] }}/{{ status.fast.avvio.scadenza[5:7] }}/{{ status.fast.avvio.scadenza[:4] }}){% endif %}{% elif status.fast.avvio.token %}<b>il bot non riesce più ad avviarlo</b> (token rifiutato da GitHub), restano i run pianificati{% else %}solo i run pianificati di GitHub (irregolari, anche ogni 4-5 ore){% endif %}.{% endif %}</small></p>{% endif %}
  {% if status.changes_gap_recent %}<p><small>Steam ha saltato l'elenco delle app cambiate il {{ status.changes_gap|local }}, anche se dal giro precedente erano passate solo {{ status.changes_gap_hours }} ore: le app private vengono ricontrollate.</small></p>{% endif %}
+ {% if status.rumore %}<p><small>Tipi di voce silenziati con il pulsante 👎 su Telegram (niente avvisi, ma restano qui e nella ricerca):
+ {% for r in status.rumore.values() %}{{ r.descrizione }} (es. <code>{{ r.esempio[:50] }}</code>){% if not loop.last %}; {% endif %}{% endfor %}.
+ Per annullare, ripremi il pulsante sotto il messaggio.</small></p>{% endif %}
  {% if status.problems %}<p><small><b>Fonti con errori:</b> {% for p in status.problems %}{{ p.source }} ({{ p.fails }} run di fila{% if p.last_ok %}, ultimo ok {{ p.last_ok }}{% endif %}){% if not loop.last %}; {% endif %}{% endfor %}</small></p>{% endif %}
 
  <h2 style="margin-top:1.2rem">Ultime build e commit</h2>

@@ -65,6 +65,8 @@ class FullScanSource:
         self.localization = LocalizationTracker(cfg, db)
         self.orphans = OrphanTracker(cfg, db)
         self.pulse = PulseTracker(cfg, db)
+        from hlxwatch.analyzers.class_families import ClassFamilyTracker
+        self.families = ClassFamilyTracker(cfg, db)
         self.ignore_patterns = [re.compile(p) for p in (cfg.get("github.ignore_path_patterns", []) or [])]
         self.max_per_repo = int(self.fcfg.get("max_findings_per_repo", 2000))
 
@@ -100,6 +102,7 @@ class FullScanSource:
                 # solo con tutti i repository letti: con un gioco mancante le sue classi sembrerebbero senza padrone
                 findings += self.orphans.finish()
                 findings += self.pulse.finish()
+                findings += self.families.finish()       # famiglie di classi mai viste, in tutti i giochi insieme
         return findings
 
     # ------------------------------------------------------------------ git
@@ -164,6 +167,7 @@ class FullScanSource:
         # entità e helper senza padrone: si raccolgono qui, il confronto tra tutti i giochi si fa alla fine del run
         self.orphans.collect(repo_cfg, lambda args: self._git(args, cwd=path, check=False))
         self.pulse.collect(repo_cfg, lambda args: self._git(args, cwd=path, check=False))
+        self.families.collect(repo_cfg, lambda args: self._git(args, cwd=path, check=False))
         loc_findings = self.localization.learn(name, self.token_counts(path),
                                                score_override=repo_cfg.get("loc_prefix_score"))
         for f in loc_findings:

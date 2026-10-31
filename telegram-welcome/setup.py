@@ -51,7 +51,7 @@ def main() -> int:
     wrangler_secret("OWNER_CHAT_ID", chat_id or "")
 
     r = requests.post(f"{api}/setWebhook", timeout=20, json={
-        "url": url, "secret_token": webhook_secret, "allowed_updates": ["message"], "drop_pending_updates": True,
+        "url": url, "secret_token": webhook_secret, "allowed_updates": ["message", "callback_query"], "drop_pending_updates": True,
     }).json()
     print("setWebhook:", r.get("ok"), r.get("description", ""))
     commands = [

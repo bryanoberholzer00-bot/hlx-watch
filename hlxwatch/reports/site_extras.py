@@ -109,9 +109,11 @@ def source_status(cfg: Config, db: Database, fast: dict[str, Any] | None = None)
         gap_hours = float("nan")
     from hlxwatch.announcement import drill_state
     from hlxwatch.restore_check import state as restore_state
+    from hlxwatch.noise import rules as noise_rules
     return {
         "drill": drill_state(db),
         "restore": restore_state(db),
+        "rumore": noise_rules(db),
         "repos": rows, "problems": problems,
         "last_scan": db.get_state("last_scan_at"), "last_fullscan": db.get_state("fullscan:last_at"),
         # con i run ogni 4-5 ore Steam salta quasi sempre l'elenco: si mostra solo se è successo dopo poche ore

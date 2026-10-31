@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Termometro HLX - HLX Watch{% endblock %}
+{% block content %}
+<style>
+ .termo{width:100%;height:auto;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:8px}
+ .now{display:inline-block;padding:.6rem 1rem;border-radius:8px;color:#fff;font-weight:bold;margin:.3rem 0 .8rem}
+ .now big{font-size:2rem;margin-right:.5rem;vertical-align:middle}
+ td.d{white-space:nowrap}
+</style>
+<h1>Termometro HLX</h1>
+
+<section>
+ <div class="now" style="background:{{ now.colore }}"><big>{{ now.indice }}</big>{{ now.etichetta }}</div>
+ {% if now.ultima_traccia %}<p>Ultima traccia HLX forte: <b>{{ now.ultima_traccia.data }}</b> in {{ now.ultima_traccia.gioco }}
+ (<code>{{ now.ultima_traccia.testo }}</code>). Tracce diverse negli ultimi 30 giorni: {{ now.tracce_30g }}.</p>{% endif %}
+ <p>Il valore più alto dal {{ h.inizio[8:10] }}/{{ h.inizio[5:7] }}/{{ h.inizio[:4] }} è <b>{{ h.massimo }}</b>;
+ l'indice è stato a 40 o più per {{ h.giorni_sopra_40 }} giorni in tutto.</p>
+</section>
+
+<section>
+ <h2>Giorno per giorno</h2>
+ {{ svg|safe }}
+ <p class="muted"><small>Linea arancione: l'indice di ogni giorno. Fasce: gialla da 15 (qualcosa si muove), arancione da 40
+ (tracce recenti), rossa da 75 (molta attività). Punti: i picchi (passa sopra con il mouse per la traccia).
+ Linee blu tratteggiate: fatti noti, per confronto.</small></p>
+</section>
+
+<section>
+ <h2>I picchi</h2>
+ {% if h.picchi %}
+ <table>
+  <tr><th>Giorno</th><th>Indice</th><th>Traccia che pesa di più</th><th>Gioco</th></tr>
+  {% for p in h.picchi|reverse %}
+  <tr><td class="d">{{ p.giorno }}</td><td><b>{{ p.indice }}</b></td>
+      <td><code>{{ p.traccia }}</code> <small class="muted">(commit del {{ p.traccia_del }})</small></td><td>{{ p.gioco }}</td></tr>
+  {% endfor %}
+ </table>
+ {% else %}<p class="muted">Nessun picco sopra 40.</p>{% endif %}
+ <h3>Fatti noti segnati sul grafico</h3>
+ <ul>{% for e in h.eventi %}<li>{{ e.data }}: {{ e.testo }}</li>{% endfor %}</ul>
+</section>
+
+<section>
+ <h2>Come si calcola</h2>
+ <p>Si contano le tracce HLX forti dell'archivio (parole della famiglia HLX come <code>hlx_</code>, <code>CHLX</code>,
+ Half-Life 3; almeno 100 punti) per <b>data del commit di Valve</b>. Ogni riga diversa pesa il suo punteggio diviso 100,
+ e il peso dimezza ogni settimana: una traccia di oggi conta il doppio di una di sette giorni fa. L'indice è
+ 100 &times; (1 &minus; e<sup>&minus;punti/6</sup>): sale in fretta con le prime tracce e da solo non arriva mai a 100.
+ 100 vuol dire solo una cosa: un possibile annuncio (o la prova generale in corso).</p>
+ <p>Il termometro misura quanto Valve tocca codice HLX in questi giorni, non quanto manca a un annuncio: nessun picco del
+ passato è stato seguito da un annuncio di HLX. I dati sono in <a href="bot/termometro_storico.json">bot/termometro_storico.json</a>;
+ il valore di adesso, quello del widget dell'app Android, in <a href="bot/termometro.json">bot/termometro.json</a>.</p>
+</section>
+{% endblock %}

@@ -65,8 +65,18 @@ class Pipeline:
         self.health = Health(cfg, db, self.notifiers)
 
     def select_alerts(self, findings: Iterable[Finding]) -> list[Finding]:
+        from hlxwatch import noise
         min_score = int(self.cfg.get("general.notify_min_score", 50))
-        return [f for f in findings if f.is_new and f.score >= min_score and f.change_type not in SILENT_CHANGE_TYPES]
+        active = noise.rules(self.db)                  # tipi di voce silenziati con il pulsante 👎 su Telegram
+        out: list[Finding] = []
+        for f in findings:
+            if not (f.is_new and f.score >= min_score and f.change_type not in SILENT_CHANGE_TYPES):
+                continue
+            if noise.muted(f, active):
+                log.info("Avviso non mandato (tipo silenziato con 👎): %s %s", f.game, (f.token or f.text)[:80])
+                continue
+            out.append(f)
+        return out
 
     def run_scan(self, *, sources: Iterable[str] = ALL_SOURCES, notify: bool = True,
                  github_since: datetime | None = None, repos: list[str] | None = None,
@@ -76,6 +86,9 @@ class Pipeline:
         started = time.time()
         result = ScanResult()
         log.info("=== Scansione avviata (sorgenti: %s) ===", ", ".join(sources))
+        if notify:
+            from hlxwatch import noise
+            noise.refresh(self.cfg, self.db)            # voti 👎 dal bot: quali tipi di voce non avvisano più
 
         status: dict[str, str | None] = result.status      # fonte -> None se ok, altrimenti il primo errore
 

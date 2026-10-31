@@ -197,6 +197,15 @@ steam_news:                              # post ufficiali di Valve su Steam (ISt
 archive_guard:                           # prima di salvare: l'archivio non deve essersi svuotato
   max_drop_percent: 5                    # calo massimo di voci, build o stringhe viste rispetto all'ultimo salvataggio
 
+noise:                                   # pulsante 👎 "è rumore" sotto gli avvisi di Telegram (voti nel bot su Cloudflare)
+  enabled: true
+  url: "https://hlx-watch-bot.bryan-oberholzer00.workers.dev/rumore.json"
+
+termometro:                              # pagina termometro.html: fatti noti segnati sul grafico dello storico
+  eventi:
+    - {data: "2024-08-23", testo: "Deadlock annunciato"}
+    - {data: "2025-11-12", testo: "Annunciati Steam Machine, Steam Frame e il nuovo Steam Controller"}
+
 restore_check:                           # prova di ripristino dell'ultima copia settimanale (release "archivio")
   enabled: true
   interval_days: 7
@@ -290,6 +299,14 @@ repo_discovery:
   org: SteamTracking
   auto_follow: true                      # i nuovi GameTracking-* vengono seguiti da soli, dalla data di creazione
   base_score: 70                         # punteggio di un repository nuovo (sopra la soglia: avviso su Telegram)
+
+class_families:                          # famiglie di classi C++ nuove (CHLX..., CCitadel...) nella scansione completa
+  enabled: true
+  min_names: 2                           # una famiglia mai vista conta da 2 nomi diversi in su
+  names_high: 5                          # da 5 nomi vale score_high
+  score: 55
+  score_high: 80
+  ignore: [CUDA, CURL, CLSID]            # famiglie di librerie esterne da non segnalare
 
 full_scan:
   enabled: true
