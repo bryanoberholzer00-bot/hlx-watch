@@ -3,6 +3,7 @@ package io.github.bryanoberholzer00bot.hlxwatch;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
@@ -37,6 +38,7 @@ public class SettingsActivity extends Activity {
     private float dp;
     private TextView versionText;
     private Button fullScreenButton;
+    private TextView volumeWarning;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,9 +113,15 @@ public class SettingsActivity extends Activity {
         alarm.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("alarm_on", on).apply());
         box.addView(alarm);
         Button test = button("Prova l'allarme adesso");
-        test.setOnClickListener(v -> CheckJob.showAlarm(this, 77, "HLX Watch: PROVA dell'allarme",
-                "Così suonerà un possibile annuncio. Tocca \"Ho visto\" per fermarlo.", MainActivity.HOME));
+        test.setOnClickListener(v -> {
+            Context app = getApplicationContext();
+            new Thread(() -> CheckJob.alarm(app, 77, "HLX Watch: PROVA dell'allarme",
+                    "Così suonerà un possibile annuncio. Tocca \"Ho visto\" per fermarlo.", MainActivity.HOME)).start();
+        });
         box.addView(test);
+        volumeWarning = note("");
+        volumeWarning.setTextColor(0xFFD32F2F);
+        box.addView(volumeWarning);
         fullScreenButton = button("Consenti la schermata a tutto schermo");
         fullScreenButton.setOnClickListener(v -> open(new Intent("android.settings.MANAGE_APP_USE_FULL_SCREEN_INTENT",
                 Uri.parse("package:" + getPackageName()))));
@@ -174,6 +182,10 @@ public class SettingsActivity extends Activity {
             needed = nm != null && !nm.canUseFullScreenIntent();
         }
         fullScreenButton.setVisibility(needed ? View.VISIBLE : View.GONE);
+        boolean silent = AlarmSound.alarmVolumeZero(this);
+        volumeWarning.setText(silent ? "Attenzione: il volume della SVEGLIA del telefono è a zero, l'allarme non si "
+                + "sentirebbe. Alzalo dalle impostazioni Suoni (volume sveglia)." : "");
+        volumeWarning.setVisibility(silent ? View.VISIBLE : View.GONE);
     }
 
     private void showVersion() {

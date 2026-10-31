@@ -108,6 +108,7 @@ public class AlarmActivity extends Activity {
 
     /** Chiudere la notifica ferma il suono (la notifica dell'allarme suona finché esiste). */
     private void stopAlarm(int id) {
+        AlarmSound.stop();
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (nm != null && id != 0) nm.cancel(id);
     }

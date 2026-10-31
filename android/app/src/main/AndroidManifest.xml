@@ -47,6 +47,10 @@
             android:showWhenLocked="true"
             android:turnScreenOn="true" />
 
+        <receiver
+            android:name=".StopAlarmReceiver"
+            android:exported="false" />
+
         <service
             android:name=".CheckJob"
             android:exported="false"
