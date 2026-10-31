@@ -3,4 +3,8 @@
     <string name="app_name">HLX Watch</string>
     <string name="settings_title">Impostazioni</string>
     <string name="settings_long">Impostazioni di HLX Watch</string>
+    <string name="widget_title">TERMOMETRO HLX</string>
+    <string name="widget_name">Termometro HLX</string>
+    <string name="widget_loading">Aggiornamento…</string>
+    <string name="widget_description">Indice da 0 a 100 delle tracce HLX recenti, con l\'ultima traccia e l\'ultima voce</string>
 </resources>

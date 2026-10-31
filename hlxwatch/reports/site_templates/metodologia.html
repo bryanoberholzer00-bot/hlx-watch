@@ -273,6 +273,9 @@
   <li><a href="feed.xml">feed.xml</a>: feed Atom delle voci da 100 punti, per un lettore di feed;</li>
   <li><a href="findings.json">findings.json</a>: le voci mostrate dalla Ricerca;</li>
   <li><a href="bot/ultime.json">bot/ultime.json</a> e <a href="bot/indice.json">bot/indice.json</a>: le ultime novità e l'indice usati dal bot e dall'app;</li>
+  <li><a href="bot/termometro.json">bot/termometro.json</a>: il termometro HLX del widget dell'app Android, un indice da 0 a
+   100 delle tracce HLX forti recenti (per data del commit; il peso di una traccia dimezza ogni settimana), con l'ultima
+   traccia e l'ultima voce; 100 solo per un possibile annuncio o durante la prova generale;</li>
   <li><a href="https://hlx-watch-bot.bryan-oberholzer00.workers.dev/fast/annuncio.json">fast/annuncio.json</a>: i possibili annunci trovati dal controllo veloce negli ultimi 3 giorni (di solito vuoto);</li>
   <li>nel ramo <a href="{{ repo_url }}/tree/data">data</a> del repository: <code>findings.csv</code> (tutte le voci),
   <code>hlxwatch.sqlite.gz</code> (l'archivio completo, SQLite) e <code>stats.json</code>, aggiornati a ogni run;</li>

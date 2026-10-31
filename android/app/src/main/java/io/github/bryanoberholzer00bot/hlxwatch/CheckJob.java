@@ -129,6 +129,13 @@ public class CheckJob extends JobService {
         } catch (Exception e) {
             Log.w(TAG, "controllo degli aggiornamenti fallito: " + e);
         }
+        if (TermometroWidget.hasWidgets(context)) {
+            try {
+                TermometroWidget.refresh(context);  // widget "Termometro HLX" sulla schermata home
+            } catch (Exception e) {
+                Log.w(TAG, "termometro non aggiornato: " + e);
+            }
+        }
         JSONArray items = new JSONArray(download(DATA_URL));
         try {
             JSONArray fast = new JSONArray(download(FAST_URL));
@@ -233,6 +240,9 @@ public class CheckJob extends JobService {
         } else {
             title = "HLX Watch: " + fresh.size() + " novità (max " + top.optInt("s") + ")";
             url = MainActivity.HOME + "search.html?new=1&min=50";
+        }
+        if (announcement && !drillOnly) {
+            TermometroWidget.markAnnouncement(context);     // il widget diventa rosso subito
         }
         if (announcement && Prefs.alarmOn(context)) {
             alarm(context, (int) (now / 1000), title, body.toString().trim(), url);

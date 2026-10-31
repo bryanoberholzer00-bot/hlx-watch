@@ -72,6 +72,11 @@ def export_bot_data(db: Database, cfg: Config, out_dir: Path, site_url: str) -> 
     if drill:
         ultime.insert(0, drill)
     (bot / "ultime.json").write_text(json.dumps(ultime, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    # termometro HLX per il widget dell'app Android: indice 0-100, ultima traccia, ultima voce
+    from hlxwatch.reports.termometro import compute as termometro
+    latest = next((u for u in ultime if not u.get("p")), None)
+    (bot / "termometro.json").write_text(json.dumps(termometro(cfg, db, latest), ensure_ascii=False, indent=1),
+                                         encoding="utf-8")
 
     rows = _group([_row(r) for r in db.search_findings(min_score=INDEX_MIN_SCORE, limit=20000, order="score",
                                                         exclude_change_type="baseline")])
