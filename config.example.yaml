@@ -281,6 +281,11 @@ achievements:                            # obiettivi delle app di steam.watch_ap
   score_new: 55                          # obiettivi nuovi in un gioco seguito
   score_visible: 90                      # obiettivi di un'app prima nascosta che diventano visibili
 
+restore_check:                           # prova di ripristino dell'ultima copia settimanale (release "archivio")
+  enabled: true
+  interval_days: 7
+  min_percent: 90                        # la copia deve avere almeno il 90% delle voci dell'archivio attuale
+
 repo_discovery:
   enabled: true                          # a ogni run elenca i repository dell'organizzazione e avvisa dei nuovi
   org: SteamTracking

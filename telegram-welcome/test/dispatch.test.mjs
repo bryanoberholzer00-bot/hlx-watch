@@ -42,7 +42,7 @@ test("senza token non fa niente", async () => {
     const r = await dispatchRun({ SUBS: new FakeKV() }, async () => {}, now);
     assert.equal(r.done, false);
     assert.equal(calls.length, 0);
-    assert.deepEqual(await dispatchStatus({ SUBS: new FakeKV() }), { attivo: false, token: false, errore: null });
+    assert.deepEqual(await dispatchStatus({ SUBS: new FakeKV() }), { attivo: false, token: false, errore: null, scadenza: null });
   } finally {
     globalThis.fetch = realFetch;
   }
@@ -75,7 +75,7 @@ test("avvia il run, e avvisa una volta sola se il token viene rifiutato", async 
     assert.equal((await dispatchRun(env, tg, now)).done, true);
     assert.equal(sent.length, 2);
     assert.match(sent[1], /di nuovo/);
-    assert.deepEqual(await dispatchStatus(env), { attivo: true, token: true, errore: null });
+    assert.deepEqual(await dispatchStatus(env), { attivo: true, token: true, errore: null, scadenza: null });
   } finally {
     globalThis.fetch = realFetch;
   }
@@ -95,4 +95,45 @@ test("repository nuovi di ValveSoftware: il primo giro registra, poi avvisa solo
   assert.equal(second.alerts[0].g, valve.label);
   assert.match(second.alerts[0].x, /ValveSoftware\/hlx-sdk/);
   assert.deepEqual(second.state.repos, ["SteamTracking/GameTracking-CS2"]);   // SteamTracking non letto: invariato
+});
+
+test("scadenza del token: avviso 7 giorni prima e il giorno prima, una volta sola", async () => {
+  const { checkExpiry, parseExpiry } = await import("../src/dispatch.js");
+  assert.equal(parseExpiry("2026-11-29 12:00:00 UTC"), Date.parse("2026-11-29T12:00:00Z"));
+  assert.equal(parseExpiry("2026-11-29 05:00:00 -0700"), Date.parse("2026-11-29T12:00:00Z"));
+  assert.ok(Number.isNaN(parseExpiry(null)));
+  const env = { SUBS: new FakeKV(), OWNER_CHAT_ID: "1", GH_DISPATCH_TOKEN: "t" };
+  const sent = [];
+  const tg = async (_e, _c, text) => sent.push(text);
+  const exp = "2026-11-29 12:00:00 UTC";
+  const at = (days) => Date.parse("2026-11-29T12:00:00Z") - days * 86400000;
+  assert.equal(await checkExpiry(env, exp, tg, at(20)), 20);
+  assert.equal(sent.length, 0);
+  assert.equal((await dispatchStatus(env)).scadenza, "2026-11-29");
+  await checkExpiry(env, exp, tg, at(6.5));
+  await checkExpiry(env, exp, tg, at(6));
+  assert.equal(sent.length, 1);
+  assert.match(sent[0], /scade tra 6 giorni \(29\/11\/2026\)/);
+  await checkExpiry(env, exp, tg, at(0.5));
+  await checkExpiry(env, exp, tg, at(0.4));
+  assert.equal(sent.length, 2);
+  assert.match(sent[1], /scade oggi/);
+  // token rinnovato: data nuova, nessun avviso finché non si avvicina
+  await checkExpiry(env, "2027-11-29 12:00:00 UTC", tg, at(0.3));
+  assert.equal(sent.length, 2);
+  assert.equal((await dispatchStatus(env)).scadenza, "2027-11-29");
+});
+
+test("il giro legge la scadenza dalle risposte di GitHub", async () => {
+  const realFetch = globalThis.fetch;
+  const env = { SUBS: new FakeKV(), OWNER_CHAT_ID: "1", GH_DISPATCH_TOKEN: "t" };
+  globalThis.fetch = async (url) => String(url).endsWith("/dispatches") ? new Response(null, { status: 204 })
+    : new Response(JSON.stringify({ workflow_runs: [] }), { status: 200,
+      headers: { "github-authentication-token-expiration": "2026-12-31 00:00:00 UTC" } });
+  try {
+    await dispatchRun(env, async () => {}, now);
+    assert.equal((await dispatchStatus(env)).scadenza, "2026-12-31");
+  } finally {
+    globalThis.fetch = realFetch;
+  }
 });

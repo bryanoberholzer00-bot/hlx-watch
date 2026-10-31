@@ -91,6 +91,7 @@
  <p class="muted"><small>Tutto dipende da SteamTracking, mantenuto da una sola persona, e da Steam. Se una fonte tace si vede qui,
  invece di sembrare "nessuna novità". Ultimo controllo {{ status.last_scan|local if status.last_scan else 'mai' }};
  ultima scansione completa {{ status.last_fullscan|local if status.last_fullscan else 'mai' }};
+ ultima prova di ripristino della copia settimanale: {% if status.restore %}{{ status.restore.at|local }}{% if status.restore.ok %} (riuscita){% else %} (<b>NON riuscita</b>: {{ status.restore.problemi|join('; ') }}){% endif %}{% else %}mai{% endif %};
  ultima <a href="metodologia.html#prova">prova generale dell'annuncio</a>: {% if status.drill %}{{ status.drill.at|local }}{% if not status.drill.ok %} (invio non riuscito){% endif %}{% else %}mai{% endif %}.</small></p>
  <table>
   <tr><th>Repository</th><th>Ultimo commit</th><th>Ultimo riassunto AI</th></tr>
@@ -103,7 +104,7 @@
  </table>
  {% if status.fast %}<p><small>Controllo veloce dell'annuncio (ogni 10 minuti, sul bot):
  {% if status.fast.irraggiungibile %}<b>il bot non risponde</b>{% elif status.fast.fermo %}<b>fermo</b>{% if status.fast.ultimo_ok %}, ultimo giro riuscito {{ status.fast.ultimo_ok|local }}{% endif %}{% else %}ultimo giro riuscito {{ status.fast.ultimo_ok|local }}{% endif %}.
- {% if status.fast.avvio %}Giro completo: {% if status.fast.avvio.attivo %}avviato dal bot ogni 30 minuti{% elif status.fast.avvio.token %}<b>il bot non riesce più ad avviarlo</b> (token rifiutato da GitHub), restano i run pianificati{% else %}solo i run pianificati di GitHub (irregolari, anche ogni 4-5 ore){% endif %}.{% endif %}</small></p>{% endif %}
+ {% if status.fast.avvio %}Giro completo: {% if status.fast.avvio.attivo %}avviato dal bot ogni 30 minuti{% if status.fast.avvio.scadenza %} (token valido fino al {{ status.fast.avvio.scadenza[8:10] }}/{{ status.fast.avvio.scadenza[5:7] }}/{{ status.fast.avvio.scadenza[:4] }}){% endif %}{% elif status.fast.avvio.token %}<b>il bot non riesce più ad avviarlo</b> (token rifiutato da GitHub), restano i run pianificati{% else %}solo i run pianificati di GitHub (irregolari, anche ogni 4-5 ore){% endif %}.{% endif %}</small></p>{% endif %}
  {% if status.changes_gap_recent %}<p><small>Steam ha saltato l'elenco delle app cambiate il {{ status.changes_gap|local }}, anche se dal giro precedente erano passate solo {{ status.changes_gap_hours }} ore: le app private vengono ricontrollate.</small></p>{% endif %}
  {% if status.problems %}<p><small><b>Fonti con errori:</b> {% for p in status.problems %}{{ p.source }} ({{ p.fails }} run di fila{% if p.last_ok %}, ultimo ok {{ p.last_ok }}{% endif %}){% if not loop.last %}; {% endif %}{% endfor %}</small></p>{% endif %}
 

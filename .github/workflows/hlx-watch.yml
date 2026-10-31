@@ -149,6 +149,9 @@ jobs:
       - name: Scansione + report giornaliero se è ora
         run: python -m hlxwatch cron
 
+      - name: "Prova di ripristino dell'ultima copia settimanale (una volta a settimana)"
+        run: python -m hlxwatch prova-ripristino
+
       - name: Report delle ultime 24 ore su richiesta
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.send_report == 'true'
         run: python -m hlxwatch report --hours 24 --send

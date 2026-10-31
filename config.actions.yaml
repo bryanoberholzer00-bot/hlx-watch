@@ -197,6 +197,11 @@ steam_news:                              # post ufficiali di Valve su Steam (ISt
 archive_guard:                           # prima di salvare: l'archivio non deve essersi svuotato
   max_drop_percent: 5                    # calo massimo di voci, build o stringhe viste rispetto all'ultimo salvataggio
 
+restore_check:                           # prova di ripristino dell'ultima copia settimanale (release "archivio")
+  enabled: true
+  interval_days: 7
+  min_percent: 90                        # la copia deve avere almeno il 90% delle voci dell'archivio attuale
+
 fast_check:                              # controllo veloce dell'annuncio nel bot su Cloudflare (ogni 10 minuti)
   status_url: "https://hlx-watch-bot.bryan-oberholzer00.workers.dev/fast/stato.json"   # mostrato nello stato delle fonti
 

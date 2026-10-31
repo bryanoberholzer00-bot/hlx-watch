@@ -1,0 +1,55 @@
+# Test automatici delle proposte di modifica (pull request), per esempio gli aggiornamenti di Dependabot:
+# test Python, test del bot su Cloudflare e compilazione dell'app Android (senza firma). Se è tutto verde,
+# l'aggiornamento non rompe niente di quello che i test controllano.
+
+name: Test
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: python -m pytest -q
+
+  bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - run: node --test telegram-welcome/test/fast.test.mjs telegram-welcome/test/dispatch.test.mjs
+
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: "8.11.1"
+      - name: Compila l'app (debug, senza firma)
+        working-directory: android
+        run: gradle assembleDebug --no-daemon

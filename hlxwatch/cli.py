@@ -305,6 +305,23 @@ def cmd_guard(args: argparse.Namespace) -> int:
     return 0                         # il run continua: decide il workflow con l'output ok
 
 
+def cmd_restore_check(args: argparse.Namespace) -> int:
+    """Prova di ripristino dell'ultima copia settimanale (una volta a settimana, salvo --forza)."""
+    cfg, db = _open(args)
+    from hlxwatch.notifiers import load_notifiers
+    from hlxwatch.restore_check import RestoreCheck
+    try:
+        result = RestoreCheck(cfg, db).run(load_notifiers(cfg), force=args.forza)
+    except Exception as exc:                 # GitHub non risponde: si riprova al prossimo giro, il run continua
+        log.warning("Prova di ripristino non eseguita: %s", exc)
+        return 0
+    if result is None:
+        print("prova di ripristino non dovuta (o nessuna copia da provare)")
+    else:
+        print(("copia ripristinabile: " if result["ok"] else "copia NON ripristinabile: ") + result["file"])
+    return 0                                 # il risultato va nello stato e sul sito; il run continua
+
+
 # ------------------------------------------------------------------ parser
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="hlxwatch", description=f"HLX Watch {__version__}")
@@ -402,6 +419,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--accetta", action="store_true", help="accetta un calo voluto (dopo una modifica al config)")
     p.add_argument("--no-notify", action="store_true", help="non inviare l'avviso")
     p.set_defaults(func=cmd_guard)
+
+    p = sub.add_parser("prova-ripristino", help="scarica l'ultima copia settimanale dell'archivio e verifica che si apra")
+    p.add_argument("--forza", action="store_true", help="anche se non è passata una settimana dall'ultima prova")
+    p.set_defaults(func=cmd_restore_check)
 
     p = sub.add_parser("prova-annuncio", help="prova generale: un finto annuncio, segnato come prova, su ogni canale")
     p.set_defaults(func=cmd_drill)

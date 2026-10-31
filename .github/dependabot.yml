@@ -1,0 +1,49 @@
+# Aggiornamenti automatici dei componenti (Dependabot di GitHub): ogni lunedì, se c'è una versione nuova, arriva una
+# proposta di modifica (pull request) già pronta, una per gruppo. Il workflow "Test" la prova da solo: se è verde,
+# basta "Merge" su GitHub; se è rossa, l'aggiornamento rompe qualcosa e conviene lasciarlo lì.
+version: 2
+updates:
+  # azioni di GitHub Actions usate nei workflow (checkout, setup-python, cache, pages...)
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Rome
+    commit-message:
+      prefix: "Aggiornamento azioni"
+    groups:
+      azioni:
+        patterns: ["*"]
+    open-pull-requests-limit: 3
+
+  # librerie Python (requirements.txt e requirements-dev.txt)
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Rome
+    commit-message:
+      prefix: "Aggiornamento librerie Python"
+    groups:
+      python:
+        patterns: ["*"]
+    open-pull-requests-limit: 3
+
+  # app Android (plugin Gradle e libreria swiperefreshlayout)
+  - package-ecosystem: gradle
+    directory: "/android"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Rome
+    commit-message:
+      prefix: "Aggiornamento app Android"
+    groups:
+      android:
+        patterns: ["*"]
+    open-pull-requests-limit: 3

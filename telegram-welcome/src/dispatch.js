@@ -14,6 +14,10 @@ export const WORKFLOW = "hlx-watch.yml";
 const BRANCH = "main";
 export const DISPATCH_EVERY_MS = 28 * 60 * 1000;     // con il controllo ogni 10 minuti: un run ogni 30 minuti
 const ERROR_KEY = "dispatch:errore";
+// scadenza del token: GitHub la manda in ogni risposta (intestazione github-authentication-token-expiration)
+const EXPIRY_KEY = "dispatch:scadenza";
+const WARNED_KEY = "dispatch:scadenza_avvisata";
+const EXPIRY_HEADER = "github-authentication-token-expiration";
 const API = `https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}`;
 const BUSY = new Set(["queued", "in_progress", "waiting", "requested", "pending"]);
 
@@ -53,6 +57,40 @@ async function recovered(env, sendTelegram) {
   }
 }
 
+// "2026-11-29 12:00:00 UTC" (o con "-0700") in millisecondi; NaN se non si legge
+export function parseExpiry(value) {
+  const s = String(value || "").trim();
+  if (!s) return NaN;
+  const iso = s.replace(" UTC", "Z").replace(/ ([+-]\d{2})(\d{2})$/, "$1:$2").replace(" ", "T");
+  return Date.parse(iso);
+}
+
+// Salva la data di scadenza (solo se cambia: il KV gratuito concede poche scritture) e avvisa 7 giorni e 1 giorno
+// prima, una volta per soglia. Un token rinnovato ha un'altra data: gli avvisi ripartono da capo.
+export async function checkExpiry(env, header, sendTelegram, now = Date.now()) {
+  const ms = parseExpiry(header);
+  if (Number.isNaN(ms)) return null;
+  const day = new Date(ms).toISOString().slice(0, 10);
+  if ((await env.SUBS.get(EXPIRY_KEY)) !== day) await env.SUBS.put(EXPIRY_KEY, day);
+  const days = Math.floor((ms - now) / 86400000);
+  const stage = days <= 1 ? "1" : days <= 7 ? "7" : null;
+  if (!stage) return days;
+  const warned = await env.SUBS.get(WARNED_KEY);
+  if (warned === `${day}:${stage}` || (stage === "7" && warned === `${day}:1`)) return days;
+  await env.SUBS.put(WARNED_KEY, `${day}:${stage}`);
+  if (env.OWNER_CHAT_ID) {
+    const when = days <= 0 ? "oggi" : days === 1 ? "domani" : `tra ${days} giorni`;
+    const [y, m, d] = day.split("-");
+    await sendTelegram(env, env.OWNER_CHAT_ID,
+      `⏳ <b>HLX Watch: il token del giro ogni 30 minuti scade ${when} (${d}/${m}/${y})</b>\n` +
+      "Rinnovalo prima, così il giro non si ferma:\n" +
+      "1. GitHub → Settings → Developer settings → Fine-grained tokens → <b>hlx-watch-bot</b> → <b>Regenerate token</b>\n" +
+      "2. Nella cartella telegram-welcome: <code>npx wrangler secret put GH_DISPATCH_TOKEN</code> e incolla il token nuovo.\n" +
+      "Se scade, restano comunque i run pianificati di GitHub (ogni 4-5 ore).");
+  }
+  return days;
+}
+
 // Chiamata dal cron di 10 minuti. Ritorna cosa ha fatto (per i log e i test).
 export async function dispatchRun(env, sendTelegram, now = Date.now()) {
   if (!env.GH_DISPATCH_TOKEN || !env.SUBS) return { done: false, why: "token non impostato" };
@@ -62,6 +100,7 @@ export async function dispatchRun(env, sendTelegram, now = Date.now()) {
     return { done: false, why: `token rifiutato (${list.status})` };
   }
   if (!list.ok) return { done: false, why: `GitHub non risponde (${list.status})` };   // si riprova fra 10 minuti
+  await checkExpiry(env, list.headers.get(EXPIRY_HEADER), sendTelegram, now);
   const runs = ((await list.json()).workflow_runs || []);
   const decision = shouldDispatch(runs, now);
   if (!decision.go) {
@@ -86,5 +125,7 @@ export async function dispatchRun(env, sendTelegram, now = Date.now()) {
 // Per /fast/stato.json: il sito mostra se l'avvio ogni 30 minuti è attivo
 export async function dispatchStatus(env) {
   const error = env.SUBS ? await env.SUBS.get(ERROR_KEY) : null;
-  return { attivo: Boolean(env.GH_DISPATCH_TOKEN) && !error, token: Boolean(env.GH_DISPATCH_TOKEN), errore: error || null };
+  const expiry = env.SUBS ? await env.SUBS.get(EXPIRY_KEY) : null;
+  return { attivo: Boolean(env.GH_DISPATCH_TOKEN) && !error, token: Boolean(env.GH_DISPATCH_TOKEN), errore: error || null,
+    scadenza: env.GH_DISPATCH_TOKEN ? expiry || null : null };
 }

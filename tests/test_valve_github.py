@@ -101,7 +101,9 @@ def test_site_says_whether_the_bot_starts_the_runs(tmp_path, monkeypatch):
     from hlxwatch.reports.site import build_site
     cfg, db = make(tmp_path)
     base = {"ultimo_ok": "2026-10-30T17:30:00Z", "minuti": 5, "fermo": False}
-    cases = [({"attivo": True, "token": True, "errore": None}, "avviato dal bot ogni 30 minuti"),
+    cases = [({"attivo": True, "token": True, "errore": None, "scadenza": "2026-11-29"},
+              "avviato dal bot ogni 30 minuti (token valido fino al 29/11/2026)"),
+             ({"attivo": True, "token": True, "errore": None}, "avviato dal bot ogni 30 minuti"),
              ({"attivo": False, "token": True, "errore": "HTTP 401"}, "il bot non riesce più ad avviarlo"),
              ({"attivo": False, "token": False, "errore": None}, "solo i run pianificati di GitHub")]
     for i, (avvio, text) in enumerate(cases):
