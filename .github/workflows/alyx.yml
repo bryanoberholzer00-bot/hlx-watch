@@ -1,0 +1,42 @@
+# Confronto con Half-Life: Alyx: una volta sola, a mano. Clona gli archivi SteamTracking degli anni 2016-2020
+# (Dota 2 pesa quasi 7 GB, troppo per un PC) e cerca la prima comparsa di ogni nome hlvr fino all'uscita del gioco.
+# Il risultato (alyx_seed.json) si scarica dagli artifact del run e si salva nel repository: è storia chiusa.
+
+name: Storia di Alyx
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: "Solo questi archivi (nomi separati da virgola, es. dota2,steam; vuoto = tutti)"
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  alyx:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Prima comparsa dei nomi hlvr
+        env:
+          REPOS: ${{ github.event.inputs.repo }}
+        run: |
+          ARGS=""
+          for r in ${REPOS//,/ }; do ARGS="$ARGS --repo $r"; done
+          python -m hlxwatch alyx-storia --workdir "$RUNNER_TEMP/alyx" --out alyx_seed.json $ARGS
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: alyx-seed
+          path: alyx_seed.json

@@ -190,6 +190,17 @@ def cmd_archeologia(args: argparse.Namespace) -> int:
     return 1 if summary and all(st.get("errore") for st in summary.values()) else 0
 
 
+def cmd_alyx_storia(args: argparse.Namespace) -> int:
+    """Prima comparsa dei nomi hlvr (Half-Life: Alyx) negli archivi pubblici, fino all'uscita del gioco."""
+    from hlxwatch import alyx
+    data = alyx.run(Path(args.out), workdir=args.workdir, only=args.repo)
+    for name, r in data["repos"].items():
+        print(f"{name}: " + (f"ERRORE {r['error']}" if r.get("error") else f"archivio dal {r['start']}, {r['names']} nomi"))
+    pre = sum(1 for n in data["names"] if n["day"] < data["announced"])
+    print(f"{len(data['names'])} nomi hlvr, {pre} prima dell'annuncio -> {args.out}")
+    return 1 if data["repos"] and all(r.get("error") for r in data["repos"].values()) else 0
+
+
 def cmd_daemon(args: argparse.Namespace) -> int:
     cfg, db = _open(args)
     from hlxwatch.core import Pipeline
@@ -372,6 +383,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--workdir", help="cartella per le copie dei repository (default: temporanea)")
     p.add_argument("--keep", action="store_true", help="non cancellare le copie alla fine")
     p.set_defaults(func=cmd_archeologia)
+
+    p = sub.add_parser("alyx-storia", help="prima comparsa dei nomi hlvr (Half-Life: Alyx) negli archivi, fino al 2020")
+    p.add_argument("--out", default=str(Path(__file__).with_name("alyx_seed.json")), help="file JSON da scrivere")
+    p.add_argument("--repo", action="append", help="limita a un repo per nome (steamvr, dota2, ...); ripetibile")
+    p.add_argument("--workdir", help="cartella per le copie dei repository (default: temporanea)")
+    p.set_defaults(func=cmd_alyx_storia)
 
     p = sub.add_parser("weekly", help="riepilogo della settimana precedente (anteprima; --send per Telegram)")
     p.add_argument("--send", action="store_true", help="invia il riepilogo su Telegram")
