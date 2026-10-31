@@ -1,0 +1,414 @@
+{
+ "generated": "2026-10-31",
+ "announced": "2019-11-21",
+ "released": "2020-03-23",
+ "pickaxe": "hlvr|hl_?alyx|half.?life.?alyx",
+ "repos": {
+  "steamvr": {
+   "title": "SteamVR",
+   "repo": "SteamTracking/GameTracking-SteamVR",
+   "start": "2017-05-23",
+   "names": 36
+  },
+  "dota2": {
+   "title": "Dota 2",
+   "repo": "SteamTracking/GameTracking-Dota2",
+   "start": "2016-12-11",
+   "names": 32
+  },
+  "dota2test": {
+   "title": "Dota 2 Test",
+   "repo": "SteamTracking/GameTracking-Dota2Test",
+   "start": "2016-12-11",
+   "names": 6
+  },
+  "artifact": {
+   "title": "Artifact",
+   "repo": "SteamTracking/GameTracking-Artifact",
+   "start": "2018-03-26",
+   "names": 19
+  },
+  "underlords": {
+   "title": "Dota Underlords",
+   "repo": "SteamTracking/GameTracking-Underlords",
+   "start": "2019-06-13",
+   "names": 8
+  },
+  "steam": {
+   "title": "client di Steam",
+   "repo": "SteamTracking/SteamTracking",
+   "start": "2013-03-01",
+   "names": 0
+  }
+ },
+ "names": [
+  {
+   "name": "hlvr",
+   "day": "2016-12-11",
+   "repo": "dota2test",
+   "path": "game/core/tools/help/sndtool_help.txt",
+   "sha": "612d3f8c",
+   "line": "string m_FriendlyName = \"HLVR Default 3D\""
+  },
+  {
+   "name": "hlvr_default_3d",
+   "day": "2016-12-11",
+   "repo": "dota2test",
+   "path": "game/core/tools/help/sndtool_help.txt",
+   "sha": "612d3f8c",
+   "line": "string m_Id = \"Stack hlvr_default_3d\""
+  },
+  {
+   "name": "item_hlvr_weapon_crowbar",
+   "day": "2016-12-11",
+   "repo": "dota2test",
+   "path": "Strings/libserver.txt",
+   "sha": "34445c80",
+   "line": "item_hlvr_weapon_crowbar"
+  },
+  {
+   "name": "item_hlvr_weapon_energygun",
+   "day": "2016-12-11",
+   "repo": "dota2test",
+   "path": "Strings/libserver.txt",
+   "sha": "34445c80",
+   "line": "item_hlvr_weapon_energygun"
+  },
+  {
+   "name": "cmarkupvolumetagged_navhlvr",
+   "day": "2017-01-26",
+   "repo": "dota2",
+   "path": "Strings/libserver.txt",
+   "sha": "c6a10d9fc4",
+   "line": "CMarkupVolumeTagged_NavHLVR"
+  },
+  {
+   "name": "func_hlvr_nav_markup",
+   "day": "2017-01-26",
+   "repo": "dota2",
+   "path": "Strings/libserver.txt",
+   "sha": "c6a10d9fc4",
+   "line": "func_hlvr_nav_markup"
+  },
+  {
+   "name": "hlvr_weapon_energygun",
+   "day": "2017-06-04",
+   "repo": "steamvr",
+   "path": "Strings/libclient.txt",
+   "sha": "c3eac3d7",
+   "line": "hlvr_weapon_energygun"
+  },
+  {
+   "name": "hlvr_weapon_pistol",
+   "day": "2017-06-04",
+   "repo": "steamvr",
+   "path": "Strings/libclient.txt",
+   "sha": "c3eac3d7",
+   "line": "hlvr_weapon_pistol"
+  },
+  {
+   "name": "hlvr_weaponmodule",
+   "day": "2017-06-04",
+   "repo": "steamvr",
+   "path": "Strings/libclient.txt",
+   "sha": "c3eac3d7",
+   "line": "hlvr_weaponmodule_"
+  },
+  {
+   "name": "item_hlvr_grenade",
+   "day": "2017-06-04",
+   "repo": "steamvr",
+   "path": "Strings/libclient.txt",
+   "sha": "c3eac3d7",
+   "line": "item_hlvr_grenade_"
+  },
+  {
+   "name": "prop_hlvr_weapon_energygun_clip",
+   "day": "2017-06-04",
+   "repo": "steamvr",
+   "path": "Strings/libclient.txt",
+   "sha": "c3eac3d7",
+   "line": "prop_hlvr_weapon_energygun_clip"
+  },
+  {
+   "name": "prop_hlvr_weapon_pistol_clip",
+   "day": "2017-06-04",
+   "repo": "steamvr",
+   "path": "Strings/libclient.txt",
+   "sha": "c3eac3d7",
+   "line": "prop_hlvr_weapon_pistol_clip"
+  },
+  {
+   "name": "item_hlvr_prop_battery",
+   "day": "2017-07-14",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "004420fa74",
+   "line": "item_hlvr_prop_battery"
+  },
+  {
+   "name": "hlvr_weapon_rapidfire",
+   "day": "2017-10-25",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "2e30c445",
+   "line": "hlvr_weapon_rapidfire"
+  },
+  {
+   "name": "hlvr_weapon_shotgun",
+   "day": "2017-10-25",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "2e30c445",
+   "line": "hlvr_weapon_shotgun"
+  },
+  {
+   "name": "prop_hlvr_weapon_rapidfire_clip",
+   "day": "2017-10-25",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "2e30c445",
+   "line": "prop_hlvr_weapon_rapidfire_clip"
+  },
+  {
+   "name": "prop_hlvr_weapon_shotgun_clip",
+   "day": "2017-10-25",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "2e30c445",
+   "line": "prop_hlvr_weapon_shotgun_clip"
+  },
+  {
+   "name": "prop_hlvr_weapon_shotgun_shellgroup",
+   "day": "2018-03-12",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "b930575edb",
+   "line": "prop_hlvr_weapon_shotgun_shellgroup"
+  },
+  {
+   "name": "ai_markup_hlvr",
+   "day": "2018-05-08",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libserver_strings.txt",
+   "sha": "18705b1dfb",
+   "line": "ai_markup_hlvr"
+  },
+  {
+   "name": "cmarkupvolumetagged_ai_hlvr",
+   "day": "2018-05-08",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libserver_strings.txt",
+   "sha": "18705b1dfb",
+   "line": "27CMarkupVolumeTagged_AI_HLVR"
+  },
+  {
+   "name": "item_hlvr_grenade_frag",
+   "day": "2018-05-08",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "18705b1dfb",
+   "line": "item_hlvr_grenade_frag"
+  },
+  {
+   "name": "prop_hlvr_weapon_energygun_clip_large",
+   "day": "2018-05-08",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "18705b1dfb",
+   "line": "prop_hlvr_weapon_energygun_clip_large"
+  },
+  {
+   "name": "prop_hlvr_weapon_shotgun_speedloader",
+   "day": "2018-05-08",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "18705b1dfb",
+   "line": "prop_hlvr_weapon_shotgun_speedloader"
+  },
+  {
+   "name": "item_hlvr_clip_energygun",
+   "day": "2018-09-13",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "2a4a9b803e",
+   "line": "item_hlvr_clip_energygun"
+  },
+  {
+   "name": "item_hlvr_clip_energygun_large",
+   "day": "2018-09-13",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "2a4a9b803e",
+   "line": "item_hlvr_clip_energygun_large"
+  },
+  {
+   "name": "item_hlvr_clip_rapidfire",
+   "day": "2018-09-13",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "2a4a9b803e",
+   "line": "item_hlvr_clip_rapidfire"
+  },
+  {
+   "name": "item_hlvr_clip_shotgun_shellgroup",
+   "day": "2018-09-13",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "2a4a9b803e",
+   "line": "item_hlvr_clip_shotgun_shellgroup"
+  },
+  {
+   "name": "item_hlvr_clip_shotgun_single",
+   "day": "2018-09-13",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "2a4a9b803e",
+   "line": "item_hlvr_clip_shotgun_single"
+  },
+  {
+   "name": "item_hlvr_clip_shotgun_speedloader",
+   "day": "2018-09-13",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "2a4a9b803e",
+   "line": "item_hlvr_clip_shotgun_speedloader"
+  },
+  {
+   "name": "r_hlvr_old_tonemapping_curve",
+   "day": "2018-11-19",
+   "repo": "artifact",
+   "path": "game/bin/linuxsteamrt64/librenderingpipelines_strings.txt",
+   "sha": "742c8ba",
+   "line": "r_hlvr_old_tonemapping_curve"
+  },
+  {
+   "name": "item_hlvr_grenade_stun_rapidfire",
+   "day": "2018-12-07",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "e84ca322b0",
+   "line": "item_hlvr_grenade_stun_rapidfire"
+  },
+  {
+   "name": "item_hlvr_grenade_xen",
+   "day": "2018-12-07",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "e84ca322b0",
+   "line": "item_hlvr_grenade_xen"
+  },
+  {
+   "name": "hlvr_weapon_shotgun_prototype",
+   "day": "2019-03-05",
+   "repo": "dota2",
+   "path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "d4011a5722",
+   "line": "hlvr_weapon_shotgun_prototype"
+  },
+  {
+   "name": "hlvr_weapon_crowbar",
+   "day": "2019-04-26",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libserver_strings.txt",
+   "sha": "8053bcd6",
+   "line": "hlvr_weapon_crowbar"
+  },
+  {
+   "name": "item_hlvr_crafting_currency_small",
+   "day": "2019-04-26",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libserver_strings.txt",
+   "sha": "8053bcd6",
+   "line": "item_hlvr_crafting_currency_small"
+  },
+  {
+   "name": "hlvr_combine_barrier_cell_spacing",
+   "day": "2019-06-13",
+   "repo": "underlords",
+   "path": "game/dac/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "b1ecfe2",
+   "line": "hlvr_combine_barrier_cell_spacing"
+  },
+  {
+   "name": "soundstacks_hlvr",
+   "day": "2020-03-04",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/pak01_dir.txt",
+   "sha": "80355549",
+   "line": "soundstacks/soundstacks_hlvr.vsndstck_c CRC:0055520a86 size:196287"
+  },
+  {
+   "name": "destinations_dismissed_hl_alyx",
+   "day": "2020-03-12",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "a16b464e",
+   "line": "destinations_dismissed_hl_alyx"
+  },
+  {
+   "name": "dismisshlalyxcallout",
+   "day": "2020-03-12",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "a16b464e",
+   "line": "DismissHLAlyxCallout"
+  },
+  {
+   "name": "hlalyxc17alleywayitem",
+   "day": "2020-03-12",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/pak02_dir/panorama/layout/vr_community_home.xml",
+   "sha": "a16b464e",
+   "line": "<Panel class=\"LargeEnvironmentItem\" id=\"HLAlyxC17AlleywayItem\" onload=\"UpdateSimpleUGCEnvironmentPanel( $('#HLAlyxC17AlleywayItem'), 2006662466 )\">"
+  },
+  {
+   "name": "hlalyxc17alleywaytitle",
+   "day": "2020-03-12",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/pak02_dir/panorama/layout/vr_community_home.xml",
+   "sha": "a16b464e",
+   "line": "<Label class=\"LargeEnvironmentItemTitle\" id=\"LargeEnvironmentItemTitle\" text=\"#HLAlyxC17AlleywayTitle\" />"
+  },
+  {
+   "name": "hlalyxpromodesc",
+   "day": "2020-03-12",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/pak02_dir/panorama/layout/vr_community_home.xml",
+   "sha": "a16b464e",
+   "line": "<Label class=\"AnnouncementDesc\" text=\"#HLAlyxPromoDesc\"/>"
+  },
+  {
+   "name": "hlalyxpromotitle",
+   "day": "2020-03-12",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/pak02_dir/panorama/layout/vr_community_home.xml",
+   "sha": "a16b464e",
+   "line": "<Label class=\"DialogTitle\" text=\"#HLAlyxPromoTitle\"/>"
+  },
+  {
+   "name": "hlalyxrussellslabitem",
+   "day": "2020-03-12",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/pak02_dir/panorama/layout/vr_community_home.xml",
+   "sha": "a16b464e",
+   "line": "<Panel class=\"LargeEnvironmentItem\" id=\"HLAlyxRussellsLabItem\" onload=\"UpdateSimpleUGCEnvironmentPanel( $('#HLAlyxRussellsLabItem'), 2006661698 )\">"
+  },
+  {
+   "name": "hlalyxrussellslabtitle",
+   "day": "2020-03-12",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/pak02_dir/panorama/layout/vr_community_home.xml",
+   "sha": "a16b464e",
+   "line": "<Label class=\"LargeEnvironmentItemTitle\" id=\"LargeEnvironmentItemTitle\" text=\"#HLAlyxRussellsLabTitle\"/>"
+  },
+  {
+   "name": "shouldshowhlalyxcallout",
+   "day": "2020-03-12",
+   "repo": "steamvr",
+   "path": "tools/steamvr_environments/game/steamtours/bin/linuxsteamrt64/libclient_strings.txt",
+   "sha": "a16b464e",
+   "line": "ShouldShowHLAlyxCallout"
+  }
+ ]
+}

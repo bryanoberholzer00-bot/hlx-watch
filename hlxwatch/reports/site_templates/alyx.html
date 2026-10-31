@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}HLX e Half-Life: Alyx a confronto - HLX Watch{% endblock %}
+{% block description %}Prima dell'annuncio, Half-Life: Alyx compariva nei file pubblici di Valve con il nome hlvr. Quanto tempo prima, con quanti nomi, e come si confronta con HLX oggi.{% endblock %}
+{% block content %}
+<style>
+ .confronto{display:grid;grid-template-columns:1fr 1fr;gap:1rem} @media(max-width:700px){.confronto{grid-template-columns:1fr}}
+ .confronto>div{border:1px solid var(--line);border-radius:8px;padding:.8rem 1rem}
+ .confronto h3{margin:0 0 .5rem;font-size:1rem} .confronto p{margin:.3rem 0}
+ .confronto .alyx{border-top:4px solid #3b82f6} .confronto .hlxbox{border-top:4px solid var(--accent)}
+ .grande{font-size:1.5rem;font-weight:700}
+ svg.alyxchart{width:100%;height:auto} svg.alyxchart text{fill:var(--muted);font-size:12px} @media(max-width:700px){svg.alyxchart text{font-size:18px}}
+ svg.alyxchart .griglia{stroke:var(--line)} .legenda{display:flex;gap:1rem;flex-wrap:wrap;font-size:.85rem;margin-top:.3rem}
+ .legenda span::before{content:"";display:inline-block;width:1.2rem;height:3px;vertical-align:middle;margin-right:.35rem;background:currentColor}
+ table.nomi td:first-child{white-space:nowrap}
+</style>
+<div class="breve">
+<h1>HLX e Half-Life: Alyx a confronto</h1>
+<p class="muted">Prima dell'annuncio, Half-Life: Alyx stava già nei file pubblici di Valve, con il nome in codice
+<code>hlvr</code> (Half-Life VR). Qui si mette la sua storia accanto a quella di HLX. Ultimo aggiornamento {{ generated }}.</p>
+
+{% if not c %}
+<section><p>I dati su Alyx non sono ancora stati raccolti.</p></section>
+{% else %}
+<section>
+ <h2>I due percorsi</h2>
+ <div class="confronto">
+  <div class="alyx">
+   <h3>Half-Life: Alyx (<code>hlvr</code>)</h3>
+   <p>Prima traccia: <b>{{ c.alyx.first_it }}</b>, in {{ c.alyx.first_game }}{% if c.alyx.at_archive_start %}
+    (c'era già quando quell'archivio è cominciato: la data vera è precedente){% endif %}.</p>
+   <p>Annuncio: <b>{{ c.alyx.announced_it }}</b>, dopo <span class="grande">{{ c.alyx.months_to_announce }}</span> mesi{% if c.alyx.at_archive_start %} almeno{% endif %}.</p>
+   <p>Uscita: <b>{{ c.alyx.released_it }}</b>, {{ c.alyx.months_to_release - c.alyx.months_to_announce }} mesi dopo l'annuncio.</p>
+   <p>Nomi <code>hlvr</code> diversi prima dell'annuncio: <b>{{ c.alyx.pre }}</b>.</p>
+  </div>
+  <div class="hlxbox">
+   <h3>HLX</h3>
+   <p>Prima traccia: <b>{{ c.hlx.first_it }}</b>{% if c.hlx.first_game %}, in {{ c.hlx.first_game }}{% endif %}.</p>
+   <p>Annuncio: <b>non ancora</b>, dopo <span class="grande">{{ c.hlx.months }}</span> mesi.</p>
+   <p>Uscita: nessuna data.</p>
+   <p>Tracce HLX diverse finora: <b>{{ c.hlx.total }}</b>.</p>
+  </div>
+ </div>
+</section>
+
+<section>
+ <h2>Quanti nomi, mese dopo mese</h2>
+ <p>Nomi diversi comparsi finora, contando dal mese della prima traccia. La linea di Alyx finisce all'uscita del gioco.</p>
+ {% set g = c.chart %}
+ <svg class="alyxchart" viewBox="0 0 {{ g.w }} {{ g.h }}" role="img" aria-label="Nomi comparsi nel tempo: Alyx e HLX">
+  {% for t in g.yticks %}<line class="griglia" x1="{{ g.left }}" x2="{{ g.right }}" y1="{{ t.y }}" y2="{{ t.y }}"/>
+  <text x="{{ g.left - 6 }}" y="{{ t.y + 4 }}" text-anchor="end">{{ t.v }}</text>{% endfor %}
+  {% for t in g.xticks %}<text x="{{ t.x }}" y="{{ g.plot_bottom + 18 }}" text-anchor="{{ 'start' if loop.first else 'middle' }}">{{ t.label }}</text>{% endfor %}
+  <line x1="{{ g.announce_x }}" x2="{{ g.announce_x }}" y1="{{ g.plot_top }}" y2="{{ g.plot_bottom }}" stroke="#3b82f6" stroke-dasharray="4 4"/>
+  <text x="{{ g.announce_x - 4 }}" y="{{ g.plot_top + 10 }}" text-anchor="end" style="fill:#3b82f6">annuncio di Alyx</text>
+  <path d="{{ g.alyx }}" fill="none" stroke="#3b82f6" stroke-width="2.5"/>
+  <path d="{{ g.hlx }}" fill="none" stroke="#e8743b" stroke-width="2.5"/>
+  {% if g.hlx_end %}<circle cx="{{ g.hlx_end.x }}" cy="{{ g.hlx_end.y }}" r="4" fill="#e8743b"/>
+  <text x="{{ g.hlx_end.x - 6 }}" y="{{ g.hlx_end.y - 8 }}" text-anchor="end" style="fill:#e8743b">HLX oggi</text>{% endif %}
+ </svg>
+ <div class="legenda"><span style="color:#3b82f6">Half-Life: Alyx</span><span style="color:#e8743b">HLX</span></div>
+</section>
+
+<section>
+ <h2>Cosa dice il confronto, e cosa no</h2>
+ <ul>
+  <li>Alyx è rimasto nei file per {% if c.alyx.at_archive_start %}almeno {% endif %}<b>{{ c.alyx.months_to_announce }} mesi</b>
+   prima dell'annuncio. HLX ci sta da <b>{{ c.hlx.months }} mesi</b>{% if c.hlx.months > c.alyx.months_to_announce %},
+   {{ c.hlx.months - c.alyx.months_to_announce }} in più{% endif %}.</li>
+  <li>Prima dell'annuncio di Alyx i nomi <code>hlvr</code> erano soprattutto armi, munizioni e oggetti: pezzi di gioco
+   già definiti. Le tracce HLX sono soprattutto impostazioni del motore (materiali, particelle, suoni); i pezzi di gioco,
+   come il thumper che fa scappare gli antlioni o i punti dove i nemici si riparano, compaiono solo dal 2025.</li>
+  <li>Un percorso più lungo non vuol dire che l'annuncio sia vicino, né che il progetto sia in difficoltà. Ogni gioco
+   Valve ha tempi suoi, e Valve ha anche cancellato progetti dopo anni di lavoro.</li>
+  <li>I nomi si contano allo stesso modo nei due casi (nomi diversi, alla prima comparsa), ma da archivi in parte diversi:
+   i nomi di Alyx erano in {% for w in c.alyx.where %}{{ w.game }} ({{ w.n }}){{ ", " if not loop.last }}{% endfor %};
+   quelli di HLX sono in CS2, Dota 2 e Deadlock.</li>
+ </ul>
+</section>
+
+{% if c.links %}
+<section>
+ <h2>Pezzi di Alyx passati a HLX</h2>
+ <p>Alcune tracce HLX sono nomi di Alyx con <code>hlx</code> al posto di <code>hlvr</code>: HLX è partito anche dal
+ lavoro fatto per Alyx.</p>
+ <table class="nomi">
+  <tr><th>In Alyx</th><th>In HLX</th></tr>
+  {% for l in c.links %}<tr><td>{% if l.alyx %}<code>{{ l.alyx }}</code><br><small class="muted">{{ l.alyx_it }}</small>{% else %}<span class="muted">cita entrambi</span>{% endif %}</td>
+   <td><code>{{ l.hlx }}</code><br><small class="muted">{{ l.hlx_it }}</small></td></tr>{% endfor %}
+ </table>
+</section>
+{% endif %}
+
+<section>
+ <h2>I nomi di Alyx comparsi prima dell'annuncio</h2>
+ <p>Dove c'è una spiegazione, è cosa erano quei nomi nel gioco uscito.</p>
+ {% for year, items in c.years.items() %}
+ <h3>{{ year }} ({{ items|length }})</h3>
+ <table class="nomi">
+  <tr><th>Data</th><th>Nome</th><th>Dove</th></tr>
+  {% for n in items %}<tr><td>{{ n.it }}</td><td><code>{{ n.name }}</code>{% if n.meaning %}<br><small class="muted">{{ n.meaning }}</small>{% endif %}</td>
+   <td>{{ n.game }}<br><small class="muted"><code>{{ n.path[-60:] }}</code></small></td></tr>{% endfor %}
+ </table>
+ {% endfor %}
+</section>
+
+<section>
+ <h2>Da dove vengono i dati</h2>
+ <p>Dagli archivi pubblici di SteamTracking su GitHub, gli stessi che HLX Watch legge ogni giorno. Si cerca
+ <code>hlvr</code> in tutta la storia, fino all'uscita di Alyx. Non si contano i nomi con "alyx" degli anni precedenti
+ (come <code>ACT_DI_ALYX_ZOMBIE_MELEE</code>): vengono da Half-Life 2 Episodio 2, il personaggio, non il gioco.</p>
+ <ul>{% for r in c.repos %}<li>{{ r.title }}: {% if r.error %}non letto{% else %}{{ r.names }} nomi (archivio iniziato il {{ r.start[8:10] }}/{{ r.start[5:7] }}/{{ r.start[:4] }}){% endif %}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+</div>
+{% endblock %}

@@ -61,6 +61,8 @@ def clean(token: str) -> str | None:
     if "cschema" in t or "centityinstance" in t:
         return None
     t = re.sub(r"^n?\d+", "", t).strip("_")
+    if sum(ch.isdigit() for ch in t) >= 4:      # dati casuali (immagini in base64 nei CSS di Steam), non nomi
+        return None
     return t if len(t) >= 4 else None
 
 
@@ -180,15 +182,27 @@ def compare(seed: dict[str, Any] | None, reg: dict[str, Any], today: str,
     hlx_curve = _curve([t["first"] for t in traces], h_start, today) if h_start else []
     years: dict[str, list[dict[str, Any]]] = {}
     titles = {k: r.get("title", k) for k, r in seed.get("repos", {}).items()}
+    where = Counter(titles.get(n["repo"], n["repo"]) for n in pre)
     for n in pre:
         years.setdefault(n["day"][:4], []).append({**n, "it": _it(n["day"]), "game": titles.get(n["repo"], n["repo"]),
                                                    "meaning": MEANINGS.get(n["name"], "")})
+    # nomi di Alyx ripresi da HLX: lo stesso nome con hlx al posto di hlvr, o un percorso che li cita entrambi
+    by_name = {n["name"]: n for n in names}
+    links = []
+    for t in traces:
+        label = t["label"].strip().lower()
+        src = by_name.get(label.replace("hlx", "hlvr"))
+        if src or "hlvr" in label:
+            links.append({"hlx": t["label"].strip(), "hlx_it": _it(t["first"]), "alyx": src["name"] if src else "",
+                          "alyx_it": _it(src["day"]) if src else ""})
     return {
+        "links": links,
         "alyx": {"first": a_start, "first_it": _it(a_start), "first_game": titles.get(names[0]["repo"], ""),
                  "first_name": names[0]["name"],
                  "announced_it": _it(announced), "released_it": _it(released),
                  "months_to_announce": _months(a_start, announced), "months_to_release": _months(a_start, released),
                  "pre": len(pre), "total": len(names),
+                 "where": [{"game": g, "n": k} for g, k in where.most_common()],
                  "archive_start_it": _it(archive_start), "at_archive_start": near_start,
                  "curve": alyx_curve, "announce_month": _months(a_start, announced)},
         "hlx": {"first": h_start, "first_it": _it(h_start), "months": _months(h_start, today) if h_start else 0,
@@ -222,7 +236,8 @@ def chart(alyx: list[int], hlx: list[int], announce: int, w: int = 720, h: int =
         return "".join(pts)
 
     yticks = [{"v": v, "y": y(v)} for v in range(0, peak + 1, step)]
-    xticks = [{"label": f"{m // 12} anni" if m else "prima traccia", "x": x(m)} for m in range(0, months + 1, 12)]
+    xticks = [{"label": "prima traccia" if not m else "1 anno" if m == 12 else f"{m // 12} anni", "x": x(m)}
+              for m in range(0, months + 1, 12)]
     return {"w": w, "h": h, "alyx": path(alyx), "hlx": path(hlx), "yticks": yticks, "xticks": xticks,
             "announce_x": x(announce), "announce_y": y(alyx[announce]) if announce < len(alyx) else y(0),
             "alyx_end": {"x": x(len(alyx) - 1), "y": y(alyx[-1])} if alyx else None,
