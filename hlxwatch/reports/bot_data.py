@@ -13,6 +13,7 @@ from typing import Any
 from hlxwatch.config import Config
 from hlxwatch.analysis import DEFAULT_GENERIC, is_generic
 from hlxwatch.dashboard.app import _row
+from hlxwatch.fase import alert_kind
 from hlxwatch.sources.first_seen import line_hash
 from hlxwatch.repos import followed_repos
 from hlxwatch.storage import Database
@@ -40,6 +41,8 @@ def _item(cfg: Config, db: Database, r: dict[str, Any]) -> dict[str, Any]:
         "d": day, "n": int(r.get("dup_count") or 1), "u": r.get("build_url") or "", "ul": link_label(r.get("build_url")),
         # possibile annuncio di Valve: l'app lo mostra subito, anche nell'orario di silenzio
         **({"a": 1} if "possible_announcement" in (r.get("keywords") or []) else {}),
+        # tipo di traccia HLX per la notifica dell'app: gioco, motore o eredità di Alyx
+        **({"y": kind} if (kind := alert_kind(r.get("token"), r.get("text"), r.get("keywords"))) else {}),
     }
 
 

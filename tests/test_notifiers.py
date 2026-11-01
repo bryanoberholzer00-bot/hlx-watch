@@ -52,7 +52,7 @@ def test_webpush_message_and_pages(monkeypatch):
     hlx = Finding(game="deadlock", source="github", file_path="a.h", change_type="added", text="x hlx", score=100,
                   keywords=["hlx"], token="hlx_thumper")
     one = WebPushNotifier.message([AlertGroup("deadlock", "Deadlock", [hlx], 100, 1)], site)
-    assert one["title"] == "HLX Watch: novità in Deadlock" and one["url"] == site + "search.html?q=hlx_thumper"
+    assert one["title"] == "HLX Watch: pezzo di gioco in Deadlock" and one["url"] == site + "search.html?q=hlx_thumper"
     others = [Finding(game="cs2", source="github", file_path="b", change_type="added", text=f"t{i}", score=55,
                       keywords=["hlx"], token=f"t{i}") for i in range(5)]
     many = WebPushNotifier.message([AlertGroup("deadlock", "Deadlock", [hlx], 100, 1),

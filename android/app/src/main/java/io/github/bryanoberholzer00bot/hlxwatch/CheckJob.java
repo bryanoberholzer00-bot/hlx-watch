@@ -213,7 +213,7 @@ public class CheckJob extends JobService {
             int s = it.optInt("s");
             String label = it.optString("k").isEmpty() ? it.optString("x") : it.optString("k");
             if (label.length() > 70) label = label.substring(0, 70);
-            body.append(s >= 100 ? "🔴 " : "🟠 ").append("[").append(s).append("] ")
+            body.append(s >= 100 ? "🔴 " : "🟠 ").append(kindIcon(it.optString("y"))).append("[").append(s).append("] ")
                     .append(it.optString("g")).append(": ").append(label).append("\n");
             shown++;
         }
@@ -234,7 +234,7 @@ public class CheckJob extends JobService {
             title = "HLX Watch: POSSIBILE ANNUNCIO di Valve";
             url = MainActivity.HOME + "search.html?min=200";
         } else if (fresh.size() == 1) {
-            title = "HLX Watch: novità in " + top.optString("g");
+            title = "HLX Watch: " + kindName(top.optString("y")) + " in " + top.optString("g");
             String q = top.optString("k").isEmpty() ? top.optString("x") : top.optString("k");
             url = MainActivity.HOME + "search.html?q=" + Uri.encode(q.length() > 60 ? q.substring(0, 60) : q);
         } else {
@@ -248,6 +248,25 @@ public class CheckJob extends JobService {
             alarm(context, (int) (now / 1000), title, body.toString().trim(), url);
         } else {
             show(context, (int) (now / 1000), title, body.toString().trim(), url);
+        }
+    }
+
+    /** Tipo di traccia HLX (campo "y" di ultime.json): pezzo di gioco, di motore o eredità di Alyx. */
+    private static String kindIcon(String y) {
+        switch (y) {
+            case "gioco": return "🎮 ";
+            case "motore": return "⚙️ ";
+            case "alyx": return "🔁 ";
+            default: return "";
+        }
+    }
+
+    private static String kindName(String y) {
+        switch (y) {
+            case "gioco": return "pezzo di gioco";
+            case "motore": return "pezzo di motore";
+            case "alyx": return "eredità di Alyx";
+            default: return "novità";
         }
     }
 

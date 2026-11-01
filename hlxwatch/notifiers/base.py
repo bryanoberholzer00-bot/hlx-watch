@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from hlxwatch.evidence import area_of, evidence_of
+from hlxwatch.fase import alert_kind, alert_tag
 from hlxwatch.links import duplicates_label, link_label
 from hlxwatch.config import Config
 from hlxwatch.models import Finding
@@ -71,6 +72,10 @@ def finding_line(finding: Finding, style: str) -> str:
         where += " " + duplicates_label(finding.file_path, finding.siblings, short=True)
     url = finding.build.url if finding.build and finding.build.url else None
     icon = SEVERITY_ICON[finding.severity]
+    # tipo di traccia HLX (pezzo di gioco, di motore, eredità di Alyx): si capisce subito se vale la pena guardare
+    tag = alert_tag(alert_kind(finding.token, finding.text, finding.keywords))
+    if tag:
+        icon += f" {tag}"
     # tipo di prova, in breve: chi legge la notifica sa se è un dato di gioco o "solo stringhe"
     short = evidence_of(area_of(finding.file_path, finding.change_type))[2]
     if short:

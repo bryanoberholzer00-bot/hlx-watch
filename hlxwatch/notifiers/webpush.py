@@ -14,6 +14,7 @@ from urllib.parse import quote
 
 import requests
 
+from hlxwatch.fase import TAGS, alert_kind, alert_tag
 from hlxwatch.notifiers.base import SEVERITY_ICON, AlertGroup, Notifier
 
 log = logging.getLogger(__name__)
@@ -37,13 +38,17 @@ class WebPushNotifier(Notifier):
         items = sorted((f for g in groups for f in g.findings), key=lambda f: f.score, reverse=True)
         titles = {g.game: g.title for g in groups}
         total = sum(g.total for g in groups)
-        lines = [f"{SEVERITY_ICON[f.severity]} [{f.score}] {titles.get(f.game, f.game)}: {(f.token or f.text)[:70]}"
+        kinds = {id(f): alert_kind(f.token, f.text, f.keywords) for f in items}
+        lines = [f"{SEVERITY_ICON[f.severity]}{(' ' + alert_tag(kinds[id(f)], False)) if kinds[id(f)] else ''} "
+                 f"[{f.score}] {titles.get(f.game, f.game)}: {(f.token or f.text)[:70]}"
                  for f in items[:MAX_LINES]]
         if total > MAX_LINES:
             lines.append(f"… e altre {total - MAX_LINES}")
         top = items[0]
         if total == 1:
-            title = f"HLX Watch: novità in {titles.get(top.game, top.game)}"
+            kind = kinds[id(top)]
+            what = TAGS[kind][1] if kind else "novità"
+            title = f"HLX Watch: {what} in {titles.get(top.game, top.game)}"
             url = f"{site_url}search.html?q={quote((top.token or top.text)[:60])}"
         else:
             title = f"HLX Watch: {total} novità (max {top.score})"

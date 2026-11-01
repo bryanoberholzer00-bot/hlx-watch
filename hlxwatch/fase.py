@@ -77,6 +77,45 @@ def summary(reg: dict[str, Any], alyx_seed: dict[str, Any] | None) -> dict[str, 
             "first_game": first_game, "labels": LABELS}
 
 
+# --- negli avvisi: il tipo di una traccia HLX appena trovata, in una parola e un simbolo ---------------------------
+
+HLX_KEYWORDS = {"hlx", "hlx_prefix", "hlx_class", "hlx_fused", "hlx_path"}
+TAGS = {"gioco": ("🎮", "pezzo di gioco"), "motore": ("⚙️", "pezzo di motore"), "alyx": ("🔁", "eredità di Alyx")}
+_alyx_names: set[str] | None = None
+
+
+def alyx_names() -> set[str]:
+    """I nomi hlvr di Alyx (alyx_seed.json), letti una volta sola."""
+    global _alyx_names
+    if _alyx_names is None:
+        from hlxwatch.alyx import load_seed
+        _alyx_names = {n["name"] for n in (load_seed() or {}).get("names", [])}
+    return _alyx_names
+
+
+def alert_kind(token: str | None, text: str | None, keywords: list[str] | None) -> str | None:
+    """'alyx' se è un vecchio nome di Alyx con hlx al posto di hlvr, altrimenti 'gioco' o 'motore'.
+    Solo per le tracce HLX; None se non è HLX o se il tipo non è chiaro (meglio niente che un'etichetta sbagliata)."""
+    if not HLX_KEYWORDS.intersection(keywords or []):
+        return None
+    label = (token or text or "").strip().lower()
+    names = alyx_names()
+    for cand in (label.replace("hlx", "hlvr"), piece_key(label).replace("hlx", "hlvr")):
+        if "hlvr" in cand and cand in names:
+            return "alyx"
+    kind = classify(token or "")
+    if kind == "dubbio" and text:
+        kind = classify(text)
+    return kind if kind in ("gioco", "motore") else None
+
+
+def alert_tag(kind: str | None, with_label: bool = True) -> str:
+    if kind not in TAGS:
+        return ""
+    icon, label = TAGS[kind]
+    return f"{icon} {label}" if with_label else icon
+
+
 def share(row: dict[str, Any], kind: str) -> int:
     """Percentuale arrotondata di un tipo sul totale della riga."""
     return round(100 * row.get(kind, 0) / row["total"]) if row.get("total") else 0
