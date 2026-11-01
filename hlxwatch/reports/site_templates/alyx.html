@@ -12,6 +12,12 @@
  svg.alyxchart .griglia{stroke:var(--line)} .legenda{display:flex;gap:1rem;flex-wrap:wrap;font-size:.85rem;margin-top:.3rem}
  .legenda span::before{content:"";display:inline-block;width:1.2rem;height:3px;vertical-align:middle;margin-right:.35rem;background:currentColor}
  table.nomi td:first-child{white-space:nowrap} table.nomi td:first-child small{white-space:normal;display:inline-block;min-width:12rem} tr.hlxriga td{border-top:2px solid var(--accent)}
+ .fasebar{display:flex;height:.9rem;border-radius:3px;overflow:hidden;min-width:4rem;background:var(--code)}
+ .fasebar i{display:block;height:100%} .fasebar .gioco{background:#2e9d4f} .fasebar .motore{background:#3b82f6}
+ .fasebar .strumenti{background:#9aa3b2} .fasebar .dubbio{background:#6b7280}
+ .t-gioco{color:#2e9d4f;font-weight:600} .t-motore{color:#3b82f6}
+ table.fase td.fasecol{width:40%} tr.alyxriga td{border-top:2px solid #3b82f6}
+ #fase details summary{cursor:pointer;color:#3b82f6;margin-top:.6rem}
  .barre{display:flex;flex-direction:column;gap:.45rem;margin:.6rem 0 1rem}
  .barra{display:grid;grid-template-columns:13rem 1fr;gap:.6rem;align-items:center;font-size:.9rem}
  .barra .riga{display:flex;align-items:center;gap:.5rem} .barra i{display:block;height:.9rem;border-radius:3px;background:#3b82f6;min-width:2px}
@@ -73,6 +79,43 @@
  <p class="muted"><small>"&ge;" vuol dire che il nome c'era già quando l'archivio è cominciato: il tempo vero è più lungo.
  Gli archivi pubblici partono dal 2013 (client di Steam) o dal 2016 (giochi Source 2). I nomi trovati non si possono
  confrontare tra progetti: un motore grafico (Counter-Strike 2) lascia molti più nomi di un visore (Steam Frame).</small></p>
+</section>
+{% endif %}
+
+{% if fase %}
+{% macro barra(r) %}<span class="fasebar" title="{{ r.gioco }} gioco, {{ r.motore }} motore, {{ r.strumenti }} strumenti, {{ r.dubbio }} da capire">
+ {%- for k in ["gioco", "motore", "strumenti", "dubbio"] %}{% if r[k] %}<i class="{{ k }}" style="width:{{ (100 * r[k] / r.total)|round(1) }}%"></i>{% endif %}{% endfor -%}
+</span>{% endmacro %}
+<section id="fase">
+ <h2>Motore o gioco?</h2>
+ <p>Quasi ogni pezzo trovato nei file è di uno di due tipi: <b class="t-gioco">gioco</b> (armi, oggetti, nemici e il loro
+ comportamento) o <b class="t-motore">motore</b> (grafica, suono, fisica). I pezzi di motore dicono che qualcuno ci lavora;
+ i pezzi di gioco dicono che il gioco sta prendendo forma.</p>
+ {% if fase.alyx %}<p>Half-Life: Alyx, prima dell'annuncio: <b>{{ fase.alyx.gioco }} pezzi di gioco su {{ fase.alyx.total }}</b>
+ ({{ (100 * fase.alyx.gioco / fase.alyx.total)|round|int }}%). HLX, finora: <b>{{ fase.total.gioco }} su {{ fase.n }}</b>
+ ({{ (100 * fase.total.gioco / fase.n)|round|int }}%).
+ {% set ultimo = fase.rows[-1] %}{% if ultimo.gioco %}Nel {{ ultimo.year }}: {{ ultimo.gioco }} su {{ ultimo.total }}{% if ultimo.gioco == fase.rows|map(attribute="gioco")|max %},
+ l'anno con più pezzi di gioco{% endif %}.{% endif %}</p>
+ <p class="muted"><small>Alyx è un esempio solo: un gioco diverso può lasciare nei file pezzi diversi. È un modo per capire
+ che tipo di lavoro si vede, non per prevedere l'annuncio.</small></p>{% endif %}
+ <table class="nomi fase">
+  <tr><th>Anno</th><th>Pezzi</th><th>Gioco</th><th>Motore</th><th>Altro</th><th class="fasecol"></th></tr>
+  {% for r in fase.rows %}<tr><td>{{ r.year }}</td><td>{{ r.total }}</td><td>{{ r.gioco }}</td><td>{{ r.motore }}</td>
+   <td>{{ r.strumenti + r.dubbio }}</td><td class="fasecol">{{ barra(r) }}</td></tr>{% endfor %}
+  {% if fase.alyx %}<tr class="alyxriga"><td>Alyx</td><td>{{ fase.alyx.total }}</td><td>{{ fase.alyx.gioco }}</td><td>{{ fase.alyx.motore }}</td>
+   <td>{{ fase.alyx.strumenti + fase.alyx.dubbio }}</td><td class="fasecol">{{ barra(fase.alyx) }}</td></tr>{% endif %}
+ </table>
+ <p class="muted"><small>"Altro": strumenti di lavoro di Valve (come il configuratore dei bug, dove HLX compare come
+ prodotto) e nomi che non si capisce a cosa servano. Lo stesso pezzo scritto in modi diversi conta una volta. La riga di
+ Alyx conta i nomi <code>hlvr</code> comparsi prima dell'annuncio, dal 2016 al 2019.</small></p>
+ <details>
+  <summary>Tutti i pezzi di HLX e il loro tipo</summary>
+  <table class="nomi">
+   <tr><th>Data</th><th>Pezzo</th><th>Tipo</th></tr>
+   {% for it in fase["items"]|reverse %}<tr><td>{{ it.first[8:10] }}/{{ it.first[5:7] }}/{{ it.first[:4] }}</td>
+    <td><code>{{ it.label[:90] }}</code></td><td class="t-{{ it.kind }}">{{ fase.labels[it.kind] }}</td></tr>{% endfor %}
+  </table>
+ </details>
 </section>
 {% endif %}
 
