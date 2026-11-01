@@ -51,6 +51,28 @@ def apply_first_seen(item: dict[str, Any], days: dict[tuple[str, str, str], tupl
     return item
 
 
+def timeline_rows(db: Database, days: int, first_days: dict[tuple[str, str, str], tuple[str, bool]]) -> list[dict[str, Any]]:
+    """Le righe del grafico giorno per giorno, con la stessa data delle voci in elenco (prima comparsa corretta)."""
+    since = (utcnow() - timedelta(days=days)).date().isoformat()
+    rows = db.conn.execute(
+        "SELECT f.game, f.file_path, f.text, f.source, f.change_type, f.score, f.is_new, f.created_at, "
+        "b.date AS build_date FROM findings f LEFT JOIN builds b ON b.id = f.build_id "
+        "WHERE COALESCE(b.date, f.created_at) >= ? AND f.change_type NOT IN ('present', 'baseline')", (since,)).fetchall()
+    agg: dict[str, dict[str, Any]] = {}
+    for r in rows:
+        item = apply_first_seen({**dict(r), "day": local_day(r["build_date"] or r["created_at"])}, first_days)
+        if item["day"] < since:
+            continue
+        d = agg.setdefault(item["day"], {"day": item["day"], "n": 0, "n_new": 0, "n_high": 0, "n_mid": 0, "max_score": 0})
+        score = int(item["score"] or 0)
+        d["n"] += 1
+        d["n_new"] += int(item["is_new"] or 0)
+        d["n_high"] += score >= 100
+        d["n_mid"] += 50 <= score < 100
+        d["max_score"] = max(d["max_score"], score)
+    return sorted(agg.values(), key=lambda d: d["day"])
+
+
 def with_summaries(db: Database, builds: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Aggiunge a ogni commit il riassunto automatico di SteamTracking, se c'è (titolo e link)."""
     for b in builds:
@@ -248,7 +270,8 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     status = source_status(cfg, db, fast_status(cfg))
     index_html = env.get_template("index.html").render(
         stats=stats, high=bundle_rows(high), recent=bundle_rows(recent)[:40], glance=glance(termo_current, status),
-        chart=timeline_svg(db.timeline(days=timeline_days), timeline_days, link="search.html?since={day}&until={day}"),
+        chart=timeline_svg(timeline_rows(db, timeline_days, days), timeline_days, link="search.html?since={day}&until={day}",
+                          today=now_local().date()),
         timeline_days=timeline_days, tokens=[dict(r) for r in db.top_tokens(25)],
         builds=with_summaries(db, [dict(r) for r in db.recent_builds(15)]), apps=[dict(r) for r in db.flagged_apps(20)],
         steam_builds=[dict(r) for r in db.steam_builds(12)], present=present_groups(db),

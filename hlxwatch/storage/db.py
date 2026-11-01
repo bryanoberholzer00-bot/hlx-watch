@@ -358,9 +358,12 @@ class Database:
         with self._lock:
             rows = self.conn.execute(
                 "SELECT substr(COALESCE(b.date, f.created_at), 1, 10) AS day, f.game, COUNT(*) AS n, "
-                "MAX(f.score) AS max_score, SUM(f.is_new) AS n_new "
+                "MAX(f.score) AS max_score, SUM(f.is_new) AS n_new, "
+                "SUM(f.score >= 100) AS n_high, SUM(f.score >= 50 AND f.score < 100) AS n_mid "
                 "FROM findings f LEFT JOIN builds b ON b.id = f.build_id "
+                # il contenuto già presente (scansione completa) non è una scoperta di quel giorno
                 "WHERE COALESCE(b.date, f.created_at) >= ? AND f.score >= ? "
+                "AND f.change_type NOT IN ('present', 'baseline') "
                 "GROUP BY day, f.game ORDER BY day",
                 (iso(since), min_score),
             ).fetchall()

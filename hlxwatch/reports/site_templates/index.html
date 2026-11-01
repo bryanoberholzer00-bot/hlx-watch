@@ -39,9 +39,28 @@
 </div>
 
 <section>
- <h2>Timeline delle scoperte (ultimi {{ timeline_days }} giorni)</h2>
+ <h2>Scoperte giorno per giorno (ultimi {{ timeline_days }} giorni)</h2>
  {{ chart|safe }}
- <p class="muted">Rosso: giorno con almeno una voce &ge;100 &middot; arancio: &ge;50 &middot; grigio: solo voci a bassa rilevanza.</p>
+ <p id="tl-info" class="tl-info">Passa sopra un giorno, o toccalo, per vedere quante voci ci sono.</p>
+ <p class="muted"><small>Altezza: voci importanti del giorno, <span style="color:#e53935">rosse &ge;100</span> e
+ <span style="color:#fb8c00">arancioni 50-99</span>. Fascia grigia sotto la linea: voci a bassa rilevanza (in scala ridotta,
+ perché sono spesso migliaia). Una freccia &#8593; indica un giorno fuori scala, con il numero vero. Non contano i contenuti
+ già presenti, che hanno la loro sezione più in basso.</small></p>
+ <script>
+ (function(){
+  var s=document.querySelector('svg.timeline'),p=document.getElementById('tl-info'),sel=null;
+  if(!s||!p)return;
+  s.querySelectorAll('a[data-info]').forEach(function(a){
+   a.addEventListener('mouseenter',function(){p.textContent=a.getAttribute('data-info');});
+   a.addEventListener('click',function(e){   // sul telefono: il primo tocco mostra i numeri, il secondo apre le voci
+    if(window.matchMedia('(hover: none)').matches&&sel!==a){
+     e.preventDefault(); if(sel)sel.classList.remove('sel'); sel=a; a.classList.add('sel');
+     p.textContent=a.getAttribute('data-info')+' · tocca di nuovo per aprire le voci';
+    }
+   });
+  });
+ })();
+ </script>
 </section>
 
 <section>

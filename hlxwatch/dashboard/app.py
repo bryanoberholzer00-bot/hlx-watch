@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import html
 import json
+import math
 from collections import defaultdict
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +18,7 @@ from hlxwatch.config import Config
 from hlxwatch.links import duplicates_label
 from hlxwatch.reports import collect_report_data, period_for, render_html
 from hlxwatch.storage import Database
+from hlxwatch.storage.db import utcnow
 from hlxwatch.timeutil import local_day, local_day_bounds_utc, register_filters
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -60,35 +63,81 @@ def group_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
+MESI = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"]
+
+
+def _scale_top(values: list[int]) -> int:
+    """Il massimo della scala: se un giorno stacca tutti gli altri, esce dal grafico invece di schiacciarli."""
+    vals = sorted(v for v in values if v > 0)
+    if not vals:
+        return 1
+    if len(vals) >= 2 and vals[-1] > 2 * vals[-2]:
+        return max(3, round(vals[-2] * 1.3))
+    return vals[-1]
+
+
 def timeline_svg(timeline: list[dict[str, Any]], days: int = 90,
-                 link: str = "/findings?since={day}&until={day}") -> str:
-    """Grafico a barre inline: voci per giorno, colore in base al punteggio massimo.
-    `link` è il modello dell'URL di ogni barra (diverso tra dashboard locale e sito statico)."""
-    per_day: dict[str, dict[str, int]] = defaultdict(lambda: {"n": 0, "max": 0, "new": 0})
+                 link: str = "/findings?since={day}&until={day}", today: date | None = None) -> str:
+    """Grafico a barre inline, un giorno per colonna (anche i giorni vuoti).
+    Altezza: voci importanti del giorno (rosso >=100, arancio 50-99). Sotto l'asse, una fascia grigia sottile per le
+    voci a bassa rilevanza, in scala logaritmica: si vede che ci sono, ma non coprono il resto.
+    `link` è il modello dell'URL di ogni giorno (diverso tra dashboard locale e sito statico)."""
+    per_day: dict[str, dict[str, int]] = defaultdict(lambda: {"n": 0, "high": 0, "mid": 0, "new": 0})
     for row in timeline:
         d = per_day[row["day"]]
         d["n"] += int(row["n"] or 0)
         d["new"] += int(row["n_new"] or 0)
-        d["max"] = max(d["max"], int(row["max_score"] or 0))
+        d["high"] += int(row.get("n_high") or 0)
+        d["mid"] += int(row.get("n_mid") or 0)
     if not per_day:
         return '<p class="muted">Nessun dato ancora: lancia una scansione o il backfill.</p>'
-    days_sorted = sorted(per_day)
-    width, height, pad = 1000, 180, 24
-    bar_w = max(2.0, (width - 2 * pad) / max(len(days_sorted), 1))
-    max_n = max(d["n"] for d in per_day.values()) or 1
-    parts = [f'<svg viewBox="0 0 {width} {height}" class="timeline" role="img" aria-label="timeline">']
-    for i, day in enumerate(days_sorted):
-        d = per_day[day]
-        h = max(2, (height - 2 * pad) * d["n"] / max_n)
-        x = pad + i * bar_w
-        y = height - pad - h
-        color = "#e53935" if d["max"] >= 100 else "#fb8c00" if d["max"] >= 50 else "#90a4ae"
-        title = html.escape(f"{day}: {d['n']} voci ({d['new']} nuove), punteggio max {d['max']}")
-        parts.append(f'<a href="{link.format(day=day)}"><rect x="{x:.1f}" y="{y:.1f}" width="{max(1.0, bar_w - 1):.1f}" '
-                     f'height="{h:.1f}" fill="{color}"><title>{title}</title></rect></a>')
-        if len(days_sorted) <= 31 or i % max(1, len(days_sorted) // 12) == 0:
-            parts.append(f'<text x="{x + bar_w / 2:.1f}" y="{height - 6}" font-size="10" text-anchor="middle">{day[5:]}</text>')
-    parts.append(f'<text x="{pad}" y="14" font-size="11">max {max_n} voci/giorno (ultimi {days} giorni)</text>')
+    end = today or max(date.fromisoformat(max(per_day)), utcnow().date())
+    all_days = [(end - timedelta(days=days - 1 - i)).isoformat() for i in range(days)]
+    width, height, left, right, top = 1000, 200, 30, 10, 22
+    axis = height - 44                       # sopra: voci importanti; sotto: fascia del rumore e mesi
+    noise_h = 12
+    col = (width - left - right) / days
+    top_n = _scale_top([per_day[d]["high"] + per_day[d]["mid"] for d in all_days if d in per_day])
+    max_low = max([per_day[d]["n"] - per_day[d]["high"] - per_day[d]["mid"] for d in all_days if d in per_day] + [1])
+    parts = [f'<svg viewBox="0 0 {width} {height}" class="timeline" role="img" '
+             f'aria-label="Voci importanti per giorno negli ultimi {days} giorni">']
+    for v in sorted({0, top_n // 2, top_n}):
+        y = axis - (axis - top) * v / top_n
+        parts.append(f'<line x1="{left}" x2="{width - right}" y1="{y:.1f}" y2="{y:.1f}" stroke="currentColor" '
+                     f'stroke-opacity=".15"/><text x="{left - 5}" y="{y + 4:.1f}" font-size="10" text-anchor="end">{v}</text>')
+    for i, day in enumerate(all_days):
+        x = left + i * col
+        d = per_day.get(day, {"n": 0, "high": 0, "mid": 0, "new": 0})
+        low = d["n"] - d["high"] - d["mid"]
+        def pl(n: int, one: str, many: str) -> str:
+            return f"{n} {one if n == 1 else many}"
+        info = (f"{day[8:10]}/{day[5:7]}/{day[:4]}: {pl(d['high'], 'importante', 'importanti')} (≥100), "
+                f"{pl(d['mid'], 'media', 'medie')} (50-99), {low} a bassa rilevanza"
+                + (f", {pl(d['new'], 'mai vista prima', 'mai viste prima')}" if d["new"] else ""))
+        cell = [f'<rect x="{x:.1f}" y="{top}" width="{col:.2f}" height="{height - top - 16}" fill="transparent"/>']
+        y, total = axis, d["high"] + d["mid"]
+        full = (axis - top) * min(total, top_n) / top_n          # altezza della barra intera, tagliata in cima
+        for n, color in ((d["high"], "#e53935"), (d["mid"], "#fb8c00")):
+            if n:
+                h = max(2.0, full * n / total)
+                y -= h
+                cell.append(f'<rect x="{x + .5:.1f}" y="{y:.1f}" width="{max(1.0, col - 1):.2f}" height="{h:.1f}" fill="{color}"/>')
+        if d["high"] + d["mid"] > top_n:                     # fuori scala: il numero vero sopra la barra
+            cell.append(f'<text x="{x + col / 2:.1f}" y="{top - 6}" font-size="10" text-anchor="middle">'
+                        f'{d["high"] + d["mid"]}&#8593;</text>')
+        if low:
+            h = max(1.5, noise_h * math.log10(1 + low) / math.log10(1 + max_low))
+            cell.append(f'<rect x="{x + .5:.1f}" y="{axis + 2}" width="{max(1.0, col - 1):.2f}" height="{h:.1f}" '
+                        f'fill="#90a4ae" fill-opacity=".7"/>')
+        parts.append(f'<a href="{link.format(day=day)}" data-info="{html.escape(info)}"><title>{html.escape(info)}</title>'
+                     + "".join(cell) + "</a>")
+        if day[8:10] == "01":
+            near_end = x > width - right - 40                 # vicino al bordo destro: scritta a sinistra della tacca
+            parts.append(f'<line x1="{x:.1f}" x2="{x:.1f}" y1="{axis}" y2="{axis + noise_h + 8}" stroke="currentColor" '
+                         f'stroke-opacity=".35"/><text x="{x - 3 if near_end else x + 3:.1f}" y="{height - 6}" '
+                         f'font-size="11"{" text-anchor=\"end\"" if near_end else ""}>'
+                         f'{int(day[8:10])} {MESI[int(day[5:7]) - 1]}</text>')
+    parts.append(f'<line x1="{left}" x2="{width - right}" y1="{axis}" y2="{axis}" stroke="currentColor" stroke-opacity=".4"/>')
     parts.append("</svg>")
     return "".join(parts)
 

@@ -60,7 +60,10 @@
  form.filters label{display:flex;flex-direction:column;font-size:.8rem;color:var(--muted)}
  input,select{padding:.35rem .5rem;border:1px solid var(--line);border-radius:5px;font-size:.9rem;background:var(--card);color:var(--text)}
  button{background:var(--accent);color:#fff;border:0;padding:.45rem .9rem;border-radius:5px;cursor:pointer}
- svg.timeline{width:100%;height:auto;background:var(--card)}
+ svg.timeline{width:100%;height:auto;background:var(--card);color:var(--text)}
+ svg.timeline a:hover>rect:first-of-type,svg.timeline a.sel>rect:first-of-type{fill:currentColor;fill-opacity:.08}
+ .tl-info{font-size:.88rem;margin:.3rem 0 .2rem;min-height:1.3em}
+ @media(max-width:700px){svg.timeline text{font-size:22px}}
  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem} @media(max-width:900px){.grid2{grid-template-columns:1fr}}
  footer{color:var(--muted);font-size:.8rem;text-align:center;margin:2rem 0}
  .pushbtn{background:transparent;border:1px solid #4b5366;color:#fff;padding:.25rem .6rem;font-size:.8rem;white-space:nowrap}
