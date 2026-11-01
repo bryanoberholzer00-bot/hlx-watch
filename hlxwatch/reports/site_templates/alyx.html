@@ -11,7 +11,7 @@
  svg.alyxchart{width:100%;height:auto} svg.alyxchart text{fill:var(--muted);font-size:12px} @media(max-width:700px){svg.alyxchart text{font-size:18px}}
  svg.alyxchart .griglia{stroke:var(--line)} .legenda{display:flex;gap:1rem;flex-wrap:wrap;font-size:.85rem;margin-top:.3rem}
  .legenda span::before{content:"";display:inline-block;width:1.2rem;height:3px;vertical-align:middle;margin-right:.35rem;background:currentColor}
- table.nomi td:first-child{white-space:nowrap}
+ table.nomi td:first-child{white-space:nowrap} table.nomi td:first-child small{white-space:normal;display:inline-block;min-width:12rem} tr.hlxriga td{border-top:2px solid var(--accent)}
  .barre{display:flex;flex-direction:column;gap:.45rem;margin:.6rem 0 1rem}
  .barra{display:grid;grid-template-columns:13rem 1fr;gap:.6rem;align-items:center;font-size:.9rem}
  .barra .riga{display:flex;align-items:center;gap:.5rem} .barra i{display:block;height:.9rem;border-radius:3px;background:#3b82f6;min-width:2px}
@@ -73,6 +73,31 @@
  <p class="muted"><small>"&ge;" vuol dire che il nome c'era già quando l'archivio è cominciato: il tempo vero è più lungo.
  Gli archivi pubblici partono dal 2013 (client di Steam) o dal 2016 (giochi Source 2). I nomi trovati non si possono
  confrontare tra progetti: un motore grafico (Counter-Strike 2) lascia molti più nomi di un visore (Steam Frame).</small></p>
+</section>
+{% endif %}
+
+{% if prima %}
+<section id="prima">
+ <h2>Cosa succede nei file prima di un annuncio?</h2>
+ <p>Niente di costante. Qui sotto, i nomi nuovi comparsi negli ultimi mesi prima di ogni annuncio: alcuni progetti
+ hanno accelerato, altri erano fermi. {{ prima.quiet }} su {{ prima.rows|length }} non avevano nessun nome nuovo negli
+ ultimi tre mesi.</p>
+ <table class="nomi">
+  <tr><th>Progetto</th><th>Ultimi 6 mesi</th><th>Ultimi 3 mesi</th><th>Ultimo nome nuovo</th></tr>
+  {% for r in prima.rows %}<tr><td>{{ r.title }}{% if r.note %}<br><small class="muted">{{ r.note }}</small>{% endif %}</td>
+   <td>{{ r.last6 }}</td><td>{{ r.last3 }}</td>
+   <td>{% if r.last_it %}{{ r.last_it }}<br><small class="muted">{% if r.last_months %}{{ r.last_months }} mesi prima dell'annuncio{% else %}il mese dell'annuncio{% endif %}</small>{% endif %}</td></tr>{% endfor %}
+  <tr class="hlxriga"><td><b>HLX, fino a oggi</b></td><td><b>{{ prima.hlx.last6 }}</b></td><td><b>{{ prima.hlx.last3 }}</b></td>
+   <td>{% if prima.hlx.last_it %}{{ prima.hlx.last_it }}{% endif %}</td></tr>
+ </table>
+ <ul>
+  <li>Il silenzio nei file non vuol dire che un progetto sia fermo: Alyx, Deadlock e Steam Frame sono stati annunciati
+   dopo mesi senza nomi nuovi.</li>
+  <li>Allo stesso modo, un aumento di nomi nuovi non vuol dire che l'annuncio sia vicino: per HLX è successo più volte
+   senza annunci.</li>
+  <li>Il segnale che conta è l'annuncio stesso: HLX Watch controlla ogni 10 minuti le notizie ufficiali di Steam e le
+   app di Valve con HLX o Half-Life nel nome.</li>
+ </ul>
 </section>
 {% endif %}
 

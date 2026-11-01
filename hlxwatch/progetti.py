@@ -136,6 +136,42 @@ def counted(proj: dict[str, Any], names: list[dict[str, Any]]) -> list[dict[str,
             and not any(s.search(n["name"]) for s in skip)]
 
 
+# cosa si vedeva negli ultimi mesi, scritto a mano dopo aver letto i nomi (ottobre 2026)
+BEFORE_NOTES = {
+    "cs2": "strumenti per casse, adesivi e workshop",
+    "deck": "i testi \"SteamPal Games\" nel client, due mesi prima",
+}
+
+
+def _recent(days: list[str], end: str) -> dict[str, Any]:
+    """Nomi nuovi negli ultimi 6 e 3 mesi prima di `end`, e l'ultimo nome nuovo."""
+    before = sorted(d for d in days if d < end)
+    last = before[-1] if before else None
+    return {"last6": sum(1 for d in before if _months(d, end) <= 6), "last3": sum(1 for d in before if _months(d, end) <= 3),
+            "last_it": _it(last), "last_months": _months(last, end) if last else None}
+
+
+def before_announce(seed: dict[str, Any] | None, alyx_seed: dict[str, Any] | None, reg: dict[str, Any],
+                    today: str) -> dict[str, Any] | None:
+    """Gli ultimi mesi prima di ogni annuncio, accanto agli ultimi mesi di HLX fino a oggi."""
+    rows = []
+    for key, proj in PROJECTS.items():
+        data = ((seed or {}).get("projects") or {}).get(key)
+        if data:
+            names = counted(proj, data["names"])
+            if names:
+                rows.append({"title": proj["title"], "note": BEFORE_NOTES.get(key, ""),
+                             **_recent([n["day"] for n in names], proj["announced"])})
+    if alyx_seed and alyx_seed.get("names"):
+        rows.append({"title": "Half-Life: Alyx", "note": "",
+                     **_recent([n["day"] for n in alyx_seed["names"]], alyx_seed.get("announced", "2019-11-21"))})
+    if not rows:
+        return None
+    rows.sort(key=lambda r: -r["last6"])
+    hlx = _recent([t["first"] for t in reg.get("traces") or []], today + "~")    # "~" dopo le date: oggi incluso
+    return {"rows": rows, "hlx": hlx, "quiet": sum(1 for r in rows if r["last3"] == 0)}
+
+
 def summary(seed: dict[str, Any] | None, today: str) -> list[dict[str, Any]]:
     """Per ogni progetto: prima traccia, mesi fino all'annuncio, nomi contati (senza i falsi positivi)."""
     if not seed:

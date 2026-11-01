@@ -35,6 +35,20 @@ def test_summary_applies_keep_and_skip():
     assert progetti.summary(None, "2026-10-31") == []
 
 
+def test_before_announce_counts_last_months():
+    alyx_seed = {"announced": "2019-11-21", "names": [n("hlvr_a", "2017-06-04"), n("hlvr_b", "2019-06-13"),
+                                                      n("hlalyxpromo", "2020-03-12")]}
+    reg = {"traces": [{"first": "2021-03-04"}, {"first": "2026-09-23"}, {"first": "2026-09-23"}, {"first": "2026-06-25"}]}
+    out = progetti.before_announce(SEED, alyx_seed, reg, "2026-11-01")
+    rows = {r["title"]: r for r in out["rows"]}
+    assert rows["Half-Life: Alyx"]["last6"] == 1 and rows["Half-Life: Alyx"]["last3"] == 0
+    assert rows["Half-Life: Alyx"]["last_it"] == "13/06/2019" and rows["Half-Life: Alyx"]["last_months"] == 5
+    assert rows["Counter-Strike 2"]["last_months"] == 45 and rows["Steam Deck"]["note"]
+    assert out["hlx"]["last6"] == 3 and out["hlx"]["last3"] == 2 and out["hlx"]["last_it"] == "23/09/2026"
+    assert out["quiet"] == len(out["rows"])                     # nei dati di prova nessuno ha nomi negli ultimi 3 mesi
+    assert progetti.before_announce(None, None, reg, "2026-11-01") is None
+
+
 def test_real_seed_is_readable():
     rows = progetti.summary(progetti.load_seed(), "2026-10-31")
     assert {r["key"] for r in rows} == {"deadlock", "cs2", "deck", "frame"}
