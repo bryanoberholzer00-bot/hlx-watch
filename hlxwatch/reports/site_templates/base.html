@@ -51,7 +51,16 @@
   header.aperto nav{display:flex} nav a{padding:.6rem .5rem;border-bottom:1px solid #2c3342}
   .more-btn{display:none} .more .menu{display:flex;flex-direction:column;position:static;background:none;border:0;box-shadow:none;padding:0;margin:0} .cards{grid-template-columns:repeat(2,1fr)} .card b{font-size:1.2rem}
   td small{font-size:.72rem}
+  /* nomi del codice e percorsi lunghi nei testi: vanno a capo dove serve */
+  li,p{overflow-wrap:anywhere} td{overflow-wrap:break-word}
  }
+ /* tabelle troppo larghe per il telefono: lo script le trasforma in schede (una per riga, nome della colonna davanti) */
+ table.schede,table.schede>tbody,table.schede>tbody>tr,table.schede>tbody>tr>td{display:block;width:auto}
+ table.schede>thead,table.schede tr.intesta{display:none}
+ table.schede>tbody>tr{border:1px solid var(--line);border-radius:8px;margin:.5rem 0;padding:.35rem .5rem}
+ table.schede>tbody>tr>td{border:0;padding:.12rem 0;white-space:normal;overflow-wrap:anywhere}
+ table.schede>tbody>tr>td[data-l]:not([data-l=":"])::before{content:attr(data-l) " ";color:var(--muted);font-size:.72rem}
+ table.schede td small{min-width:0}
  .high{border-left:4px solid #e53935} .medium{border-left:4px solid #fb8c00} .low{border-left:4px solid #b0bec5}
  .badge{display:inline-block;min-width:2.6rem;text-align:center;padding:.1rem .4rem;border-radius:4px;color:#fff;font-weight:600;font-size:.8rem}
  .badge.high{background:#e53935} .badge.medium{background:#fb8c00} .badge.low{background:#90a4ae}
@@ -159,6 +168,26 @@
 })();
 </script>
 <main>{% block content %}{% endblock %}</main>
+<script>
+// sul telefono, le tabelle più larghe dello schermo diventano schede (la Ricerca ha le sue, fatte dal suo script)
+(function(){
+ if(!window.matchMedia('(max-width:700px)').matches)return;
+ function check(t){
+  var box=t.parentElement; if(t.classList.contains('schede')||!box||!box.clientWidth||t.scrollWidth<=box.clientWidth+2)return;
+  var head=t.tHead?t.tHead.rows[0]:t.rows[0]; if(!head||!head.querySelector('th'))return;
+  var names=[].map.call(head.cells,function(c){return c.textContent.trim();});
+  [].forEach.call(t.rows,function(r){
+   if([].every.call(r.cells,function(c){return c.tagName==='TH';})){r.classList.add('intesta');return;}
+   [].forEach.call(r.cells,function(c,i){if(!c.hasAttribute('data-l'))c.setAttribute('data-l',(names[i]||'')+':');});
+  });
+  t.classList.add('schede');
+ }
+ function all(root){[].forEach.call(root.querySelectorAll('table:not(#results)'),check);}
+ all(document.querySelector('main'));
+ // le tabelle dentro un riquadro chiuso si misurano quando lo si apre
+ document.querySelectorAll('main details').forEach(function(d){d.addEventListener('toggle',function(){if(d.open)all(d);});});
+})();
+</script>
 <footer>HLX Watch v{{ version }} &middot; dati pubblici da SteamTracking/GameTracking-* e Steam PICS &middot; non affiliato con Valve &middot; <a href="https://github.com/bryanoberholzer00-bot/hlx-watch/releases/download/android-latest/hlx-watch.apk">app Android (APK)</a></footer>
 {% if push_url %}
 <script>

@@ -15,8 +15,14 @@ from hlxwatch.timeutil import local, local_day, local_day_bounds_utc, now_local,
 
 HTML_TEMPLATE = """<!doctype html>
 <html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HLX Watch - report {{ data.label }}</title>
 <style>
+ @media(max-width:700px){body{margin:1rem auto;padding:0 .5rem} table{font-size:.85rem} li,p{overflow-wrap:anywhere}}
+ /* sul telefono le tabelle troppo larghe diventano schede (lo script in fondo alla pagina) */
+ table.schede,table.schede tbody,table.schede tr,table.schede td{display:block;width:auto} table.schede tr.intesta,table.schede thead{display:none}
+ table.schede tr{border:1px solid #ddd;border-radius:6px;margin:.5rem 0;padding:.3rem .5rem} table.schede td{border:0;padding:.1rem 0;overflow-wrap:anywhere}
+ table.schede td[data-l]::before{content:attr(data-l) " ";color:#666;font-size:.75rem}
  body{font-family:system-ui,Segoe UI,Roboto,sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem;color:#222;background:#fafafa}
  h1{border-bottom:3px solid #e8743b} h2{margin-top:2.2rem;border-bottom:1px solid #ddd}
  table{border-collapse:collapse;width:100%;font-size:.92rem} th,td{border:1px solid #ddd;padding:.35rem .5rem;text-align:left;vertical-align:top}
@@ -57,6 +63,21 @@ HTML_TEMPLATE = """<!doctype html>
 {% if game.n_hidden %}<tr><td colspan="6"><em>&hellip; e altre {{ game.n_hidden }} righe a punteggio pi&ugrave; basso (vedi dashboard)</em></td></tr>{% endif %}
 </table>{% endif %}
 {% endfor %}
+<script>
+(function(){
+ if(!window.matchMedia('(max-width:700px)').matches)return;
+ [].forEach.call(document.querySelectorAll('table'),function(t){
+  var box=t.parentElement; if(!box||t.scrollWidth<=box.clientWidth+2)return;
+  var head=t.tHead?t.tHead.rows[0]:t.rows[0]; if(!head||!head.querySelector('th'))return;
+  var names=[].map.call(head.cells,function(c){return c.textContent.trim();});
+  [].forEach.call(t.rows,function(r){
+   if([].every.call(r.cells,function(c){return c.tagName==='TH';})){r.classList.add('intesta');return;}
+   [].forEach.call(r.cells,function(c,i){c.setAttribute('data-l',(names[i]||'')+':');});
+  });
+  t.classList.add('schede');
+ });
+})();
+</script>
 </body></html>
 """
 

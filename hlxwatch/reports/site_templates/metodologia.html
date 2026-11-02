@@ -267,6 +267,33 @@
  HLX fino al suo esito: ancora presente, rinominata (e dove è finita), sparita.</p>
 </section>
 
+<section id="confronti">
+ <h2>Confronti, tipi di traccia e grafici</h2>
+ <p><b>Confronto con Alyx e con gli altri progetti Valve</b> (pagina <a href="alyx.html">HLX e Alyx a confronto</a>).
+ Una volta sola, un workflow su GitHub ha clonato gli archivi SteamTracking dal 2013 e dal 2016 e ha cercato con
+ <code>git log -G</code> la prima comparsa di ogni nome con un nome in codice: <code>hlvr</code> (Half-Life: Alyx) fino alla
+ sua uscita, <code>citadel</code> (Deadlock), <code>csgo</code> nel motore Source 2 (Counter-Strike 2), <code>neptune</code> e
+ <code>steampal</code> (Steam Deck), <code>deckard</code> (Steam Frame), ognuno fino al giorno dell'annuncio. È storia chiusa:
+ i risultati sono salvati nel repository (<code>alyx_seed.json</code>, <code>progetti_seed.json</code>) e non si ricalcolano.
+ I falsi positivi sono stati tolti controllando i nomi a mano, con regole scritte nel codice e riportate nella pagina
+ (per esempio i nomi con "alyx" di Half-Life 2 Episodio 2, o le mappe <code>d3_citadel</code> di Half-Life 2).
+ Si contano solo nomi diversi, alla prima comparsa; una data che coincide con l'inizio dell'archivio vale "almeno".</p>
+ <p><b>Motore o gioco.</b> Ogni traccia HLX viene classificata in base a parole chiave del suo nome: <i>gioco</i> (armi,
+ munizioni, oggetti, nemici e il loro comportamento, elementi come il thumper o le barriere dei Combine), <i>motore</i>
+ (materiali, particelle, suono, fisica, impostazioni degli shader come <code>mod != hlx</code>), <i>strumenti di lavoro</i>
+ (il configuratore dei bug) o <i>da capire</i>. Lo stesso pezzo scritto in modi diversi conta una volta: per questo le
+ tracce dell'archivio sono più dei pezzi contati. Le regole sono state controllate a mano su tutte le tracce di HLX e
+ sui nomi di Alyx; una traccia che non corrisponde a nessuna regola resta "da capire", senza indovinare.</p>
+ <p><b>Negli avvisi</b> le tracce HLX portano lo stesso tipo: 🎮 pezzo di gioco, ⚙️ pezzo di motore, 🔁 eredità di Alyx
+ (un nome <code>hlvr</code> di Alyx ricomparso con <code>hlx</code>). Se il tipo non è chiaro l'avviso non ne mostra nessuno.</p>
+ <p><b>Il grafico giorno per giorno</b> della pagina iniziale ha una colonna per ogni giorno. L'altezza conta le voci da
+ 50 punti in su; le altre stanno in una fascia grigia sotto la linea, in scala ridotta. I contenuti già presenti non
+ contano, e le voci trovate dalla scansione completa prendono la data della loro prima comparsa, come nell'elenco. Un
+ giorno che stacca tutti gli altri esce dal grafico con il suo numero, invece di schiacciarli.</p>
+ <p class="muted">Nessuno di questi confronti prevede un annuncio: tra i progetti Valve passati non c'è un segnale che si
+ ripeta prima dell'annuncio, e la pagina di confronto lo mostra.</p>
+</section>
+
 <section id="prova">
  <h2>Prova generale dell'annuncio</h2>
  <p>Un avviso che serve una volta sola va provato prima. La prova generale manda un finto "possibile annuncio", con
@@ -350,7 +377,8 @@
   <li><b>Cronologia HLX</b>: la pagina <a href="cronologia.html">Cronologia</a> raccoglie gli indizi ad alta rilevanza in
    ordine di data di prima comparsa, con una spiegazione scritta da {{ ai_model }} una volta per indizio.</li>
   <li><b>Riepilogo settimanale</b>: ogni lunedì su Telegram la settimana precedente in breve, con i numeri per
-   gioco e una sintesi scritta da {{ ai_model }}.</li>
+   gioco e una sintesi scritta da {{ ai_model }}. Prima del testo arriva un'immagine: il termometro, gli ultimi 30
+   giorni e le tracce HLX trovate nella settimana con il loro tipo (se Valve le aveva aggiunte prima, dice quando).</li>
   <li><b>Notifiche di sistema dal sito</b>: il pulsante <i>Attiva notifiche</i> nell'intestazione (Chrome, Edge e
    Firefox su PC e Android; su iPhone solo dopo aver aggiunto il sito alla schermata Home). Dalle 23 alle 8 vengono trattenute
    e arrivano in un solo riassunto al mattino. Arrivano le stesse novità
