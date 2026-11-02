@@ -171,7 +171,7 @@ def cmd_weekly(args: argparse.Namespace) -> int:
     from hlxwatch.notifiers import load_notifiers
     from hlxwatch.weekly import last_week, maybe_weekly, weekly_title
     report_time = str(cfg.get("general.daily_report_time", "09:00"))
-    text = maybe_weekly(cfg, db, load_notifiers(cfg), report_time, force=True, send=args.send)
+    text = maybe_weekly(cfg, db, load_notifiers(cfg), report_time, force=True, send=args.send, image_path=args.immagine)
     print(weekly_title(*last_week()))
     print()
     print(text or "")
@@ -409,6 +409,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("weekly", help="riepilogo della settimana precedente (anteprima; --send per Telegram)")
     p.add_argument("--send", action="store_true", help="invia il riepilogo su Telegram")
+    p.add_argument("--immagine", help="salva anche l'immagine della settimana in questo file (anteprima)")
     p.set_defaults(func=cmd_weekly)
 
     p = sub.add_parser("fullscan", help="cerca le parole chiave in tutto il contenuto attuale dei repository")

@@ -57,6 +57,21 @@ class TelegramNotifier(Notifier):
             ok &= self._send_chunk(chunk, markup)
         return ok
 
+    def send_photo(self, path, caption: str = "") -> bool:
+        """Un'immagine con una didascalia breve (Telegram: al massimo 1024 caratteri)."""
+        url = self.url.rsplit("/", 1)[0] + "/sendPhoto"
+        try:
+            with open(path, "rb") as fh:
+                response = requests.post(url, data={"chat_id": self.chat_id, "caption": caption[:1024],
+                                                    "parse_mode": "HTML"}, files={"photo": fh}, timeout=60)
+        except (OSError, requests.RequestException) as exc:
+            log.error("Immagine non inviata a Telegram: %s", exc)
+            return False
+        if response.status_code >= 400:
+            log.error("Telegram (immagine) ha risposto %s: %s", response.status_code, response.text[:300])
+            return False
+        return True
+
     def send_text(self, title: str, text: str) -> bool:
         return self._send([f"<b>{html.escape(title)}</b>"] + [html.escape(ln) for ln in text.splitlines()])
 

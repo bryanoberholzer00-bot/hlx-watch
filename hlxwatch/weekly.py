@@ -9,7 +9,9 @@ from __future__ import annotations
 import json
 import logging
 import re
+import tempfile
 from datetime import date, datetime, timedelta
+from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
@@ -143,8 +145,25 @@ def weekly_title(monday: date, sunday: date) -> str:
     return f"HLX Watch: riepilogo della settimana {week_label(monday, sunday)}"
 
 
+def send_week_image(cfg: Config, db: Database, notifiers: list, data: dict[str, Any], monday: date, sunday: date,
+                    week_id: str) -> None:
+    """Prima del testo, l'immagine della settimana a chi la sa ricevere (Telegram). Una volta sola per settimana:
+    se poi il testo non parte e si ritenta al giro dopo, l'immagine non si ripete."""
+    photo = [n for n in notifiers if hasattr(n, "send_photo")]
+    if not photo or db.get_state("weekly:image") == week_id:
+        return
+    from hlxwatch.reports.weekly_image import weekly_image
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "settimana.png"
+        if not weekly_image(cfg, db, data, monday, sunday, path, week_label(monday, sunday)):
+            return
+        caption = f"<b>{weekly_title(monday, sunday)}</b>"
+        if all(n.send_photo(path, caption) for n in photo):
+            db.set_state("weekly:image", week_id)
+
+
 def maybe_weekly(cfg: Config, db: Database, notifiers: list, report_time: str, *, force: bool = False,
-                 send: bool = True, client: Any = None) -> str | None:
+                 send: bool = True, client: Any = None, image_path: str | None = None) -> str | None:
     """Una volta per settimana, alla prima occasione da lunedì dopo `report_time`: restituisce il testo inviato."""
     if not (cfg.get("weekly", {}) or {}).get("enabled", True) and not force:
         return None
@@ -159,13 +178,18 @@ def maybe_weekly(cfg: Config, db: Database, notifiers: list, report_time: str, *
     data = collect_week(db, cfg, monday, sunday)
     ai = ai_summary(cfg, db, data, client) if data["voci_rilevanti"] else None
     text = weekly_text(data, ai, monday, sunday, str(cfg.get("general.site_url", SITE_URL)))
+    if image_path is not None:
+        from hlxwatch.reports.weekly_image import weekly_image
+        weekly_image(cfg, db, data, monday, sunday, Path(image_path), week_label(monday, sunday))
     if send:
         from hlxwatch.notifiers import notify_text
         label = week_label(monday, sunday)
         if not notifiers:
             db.set_state("weekly:last", week_id)       # nessuno a cui inviarlo: inutile ritentare a ogni giro
             log.info("Riepilogo settimanale (%s): nessun notificatore configurato", label)
-        elif notify_text(notifiers, weekly_title(monday, sunday), text):
+            return text
+        send_week_image(cfg, db, notifiers, data, monday, sunday, week_id)
+        if notify_text(notifiers, weekly_title(monday, sunday), text):
             db.set_state("weekly:last", week_id)       # segnato come inviato solo se l'invio è riuscito
             log.info("Riepilogo settimanale inviato (%s)", label)
         else:
