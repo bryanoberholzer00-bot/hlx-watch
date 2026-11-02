@@ -156,6 +156,13 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.send_report == 'true'
         run: python -m hlxwatch report --hours 24 --send
 
+      - name: Genera la dashboard statica
+        run: python -m hlxwatch site --out site
+
+      - name: "Controlla il sito: file, dati dell'app, link e numeri (i problemi gravi fermano la pubblicazione)"
+        id: sitecheck
+        run: python -m hlxwatch controlla-sito --site site
+
       - name: Controlla l'archivio prima di salvarlo
         id: guard
         if: always() && hashFiles('data/hlxwatch.sqlite') != ''
@@ -184,9 +191,6 @@ jobs:
             data/reports/
           retention-days: 14
           if-no-files-found: ignore
-
-      - name: Genera la dashboard statica
-        run: python -m hlxwatch site --out site
 
       - name: "Salva l'archivio nel ramo data (copia permanente, tiene attivo il workflow)"
         if: always() && hashFiles('data/hlxwatch.sqlite') != '' && steps.guard.outputs.ok != 'false'
@@ -219,11 +223,16 @@ jobs:
           fi
 
       - uses: actions/upload-pages-artifact@v5
+        if: steps.sitecheck.outputs.pubblica != 'false'
         with:
           path: site
 
+    outputs:
+      pubblica: ${{ steps.sitecheck.outputs.pubblica }}
+
   deploy:
     needs: watch
+    if: needs.watch.outputs.pubblica != 'false'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

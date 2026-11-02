@@ -132,6 +132,9 @@ def glance(termo: dict[str, Any], status: dict[str, Any]) -> dict[str, Any]:
     restore = status.get("restore") or {}
     if restore and not restore.get("ok", True):
         problems.append("prova di ripristino non riuscita")
+    site_check = status.get("site_check") or {}
+    if site_check and not site_check.get("ok", True):
+        problems.append("problemi nel sito")
     hours = None
     if status.get("last_scan"):
         last = parse_iso(status["last_scan"])

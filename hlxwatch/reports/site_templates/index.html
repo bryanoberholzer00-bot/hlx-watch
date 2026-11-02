@@ -112,6 +112,7 @@
  invece di sembrare "nessuna novità". Ultimo controllo {{ status.last_scan|local if status.last_scan else 'mai' }};
  ultima scansione completa {{ status.last_fullscan|local if status.last_fullscan else 'mai' }};
  ultima prova di ripristino della copia settimanale: {% if status.restore %}{{ status.restore.at|local }}{% if status.restore.ok %} (riuscita){% else %} (<b>NON riuscita</b>: {{ status.restore.problemi|join('; ') }}){% endif %}{% else %}mai{% endif %};
+ ultimo <a href="metodologia.html#controllo-sito">controllo automatico del sito</a>: {% if status.site_check %}{{ status.site_check.at|local }}{% if status.site_check.ok %} (tutto a posto){% else %} (<b>{{ status.site_check.problemi|length }} problem{{ 'a' if status.site_check.problemi|length == 1 else 'i' }}</b>: {{ status.site_check.problemi|join('; ') }}){% endif %}{% else %}mai{% endif %};
  ultima <a href="metodologia.html#prova">prova generale dell'annuncio</a>: {% if status.drill %}{{ status.drill.at|local }}{% if not status.drill.ok %} (invio non riuscito){% endif %}{% else %}mai{% endif %}.</small></p>
  <table>
   <tr><th>Repository</th><th>Ultimo commit</th><th>Ultimo riassunto AI</th></tr>

@@ -327,6 +327,28 @@ def cmd_guard(args: argparse.Namespace) -> int:
     return 0                         # il run continua: decide il workflow con l'output ok
 
 
+def cmd_site_check(args: argparse.Namespace) -> int:
+    """Controllo del sito generato: dice al workflow se pubblicarlo (pubblica=true/false in GITHUB_OUTPUT)."""
+    import os
+    cfg, db = _open(args)
+    from hlxwatch.notifiers import load_notifiers
+    from hlxwatch.site_check import run_site_check
+    try:
+        result = run_site_check(db, Path(args.site), load_notifiers(cfg) if not args.no_notify else [])
+        publish = not result["grave"]
+    except Exception:                        # un errore del controllo stesso non ferma la pubblicazione
+        log.exception("Controllo del sito non eseguito")
+        result, publish = None, True
+    out = os.environ.get("GITHUB_OUTPUT")
+    if out:
+        with open(out, "a", encoding="utf-8") as fh:
+            fh.write("pubblica=true\n" if publish else "pubblica=false\n")
+    if result is not None:
+        print("sito a posto" if result["ok"] else "problemi nel sito:\n- " + "\n- ".join(result["problemi"]))
+    print("sito da pubblicare" if publish else "sito NON pubblicato: resta online la versione precedente")
+    return 0                                 # il run continua: decide il workflow con l'output pubblica
+
+
 def cmd_restore_check(args: argparse.Namespace) -> int:
     """Prova di ripristino dell'ultima copia settimanale (una volta a settimana, salvo --forza)."""
     cfg, db = _open(args)
@@ -454,6 +476,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--accetta", action="store_true", help="accetta un calo voluto (dopo una modifica al config)")
     p.add_argument("--no-notify", action="store_true", help="non inviare l'avviso")
     p.set_defaults(func=cmd_guard)
+
+    p = sub.add_parser("controlla-sito", help="dopo la generazione: link, file, dati dell'app e numeri del sito")
+    p.add_argument("--site", default="site", help="cartella del sito generato")
+    p.add_argument("--no-notify", action="store_true", help="non inviare l'avviso")
+    p.set_defaults(func=cmd_site_check)
 
     p = sub.add_parser("prova-ripristino", help="scarica l'ultima copia settimanale dell'archivio e verifica che si apra")
     p.add_argument("--forza", action="store_true", help="anche se non è passata una settimana dall'ultima prova")

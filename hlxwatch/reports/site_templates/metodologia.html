@@ -156,6 +156,13 @@
   Telegram, nelle notifiche del sito e nell'app Android; il run completo su GitHub poi lo archivia con i dettagli.
   Se il controllo veloce non riesce da più di 2 ore, il proprietario riceve un avviso; l'ora dell'ultimo giro riuscito è
   nello stato delle fonti, in pagina iniziale.</li>
+  <li id="controllo-sito"><b>Controllo automatico del sito.</b> Dopo ogni aggiornamento, prima di pubblicarlo, il sito
+  generato viene controllato: i file che servono ci sono, i dati dell'app Android si leggono, ogni pagina è completa e
+  senza valori mancanti, i link interni portano a pagine e sezioni che esistono, e il termometro ha lo stesso valore
+  sulle pagine e nel widget. Se manca un file o una pagina è tagliata, il sito non viene pubblicato e resta online la
+  versione precedente; gli altri problemi vengono solo segnalati. Il proprietario riceve un avviso su Telegram quando
+  compare un problema nuovo e quando tutto torna a posto. L'esito dell'ultimo controllo è nello stato delle fonti, in
+  pagina iniziale.</li>
   <li><b>Riassunti di SteamTracking.</b> Dal 4 ottobre 2026 SteamTracking fa leggere ogni aggiornamento a una squadra di
   agenti Claude e pubblica un riassunto come commento sul commit. La pagina iniziale lo mostra accanto alla build; una
   riga che parla di HLX, o che sta nella sezione sugli altri giochi e progetti non annunciati, diventa una voce con avviso.</li>
