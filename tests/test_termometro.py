@@ -64,3 +64,24 @@ def test_site_writes_termometro_for_the_widget(tmp_path):
     assert {"indice", "livello", "etichetta", "colore", "ultima_traccia", "ultima_voce", "aggiornato"} <= set(data)
     assert data["colore"].startswith("#")
     db.close()
+
+
+def test_fullscan_lines_count_at_their_real_date(tmp_path):
+    """Una riga vecchia trovata oggi dalla scansione completa non deve scaldare il termometro."""
+    from hlxwatch.sources.first_seen import line_hash
+    from hlxwatch.storage.db import iso
+    cfg, db = make(tmp_path)
+    build = db.upsert_build(BuildInfo(game="cs2", source="fullscan", ref="scan", date=utcnow()))
+    for i in range(8):
+        db.add_finding(Finding(game="cs2", source="fullscan", file_path="game/bin/win64/tools/hammer_strings.txt",
+                               change_type="added", text=f"CHLXHelper{i}", score=115, keywords=["hlx_class"]), build)
+    assert compute(cfg, db)["indice"] > 40                       # senza la data vera sembrerebbero di oggi
+    for i in range(8):
+        db.conn.execute("INSERT INTO first_seen(game, file_path, line_hash, text, commit_date, checked_at) "
+                        "VALUES(?,?,?,?,?,?)", ("cs2", "game/bin/win64/tools/hammer_strings.txt",
+                                                line_hash(f"CHLXHelper{i}"), f"CHLXHelper{i}",
+                                                iso(utcnow() - timedelta(days=45)), iso(utcnow())))
+    db.conn.commit()
+    t = compute(cfg, db)
+    assert t["indice"] < 5 and t["ultima_traccia"]["giorni"] == 45
+    db.close()

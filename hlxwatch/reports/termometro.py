@@ -5,8 +5,9 @@ Conta le tracce HLX forti (parole chiave della famiglia HLX stretta, punteggio a
 Valve, non per data di registrazione: l'archivio è stato riempito tutto insieme a ottobre 2026. Ogni riga distinta pesa
 punteggio/100 e il peso dimezza ogni settimana (HALF_LIFE_DAYS); l'indice è 100 * (1 - e^(-punti/SCALE)), quindi cresce
 in fretta con le prime tracce e non arriva mai a 100 da solo. 100 è riservato a un possibile annuncio (ultimi 3 giorni)
-o alla prova generale in corso. Sui dati reali: 0 a settembre 2026, 65 il giorno dopo le tracce del 29 ottobre in CS2
-e Dota 2, 38 una settimana dopo, 12 dopo tre settimane.
+o alla prova generale in corso. Con una decina di tracce forti nello stesso giorno l'indice arriva intorno a 50-60,
+poi si dimezza circa ogni settimana. Le righe trovate tardi dalla scansione completa contano alla data in cui Valve le
+ha aggiunte (prima comparsa), non al giorno in cui sono state trovate.
 """
 from __future__ import annotations
 
@@ -51,18 +52,39 @@ def _strong(keywords: str | None) -> bool:
         return False
 
 
+def _first_seen(db: Database) -> dict[tuple[str, str, str], datetime]:
+    """(gioco, file, hash della riga) -> data del commit in cui Valve ha aggiunto la riga."""
+    out = {}
+    for r in db.conn.execute("SELECT game, file_path, line_hash, commit_date FROM first_seen "
+                             "WHERE commit_date IS NOT NULL").fetchall():
+        at = parse_iso(r[3])
+        if at is not None:
+            out[(r[0], r[1], r[2])] = at
+    return out
+
+
 def traces(db: Database) -> list[dict[str, Any]]:
-    """Le tracce HLX forti con la data del commit, dalla più vecchia."""
+    """Le tracce HLX forti con la data del commit di Valve, dalla più vecchia.
+    Le righe trovate dalla scansione completa portano la data della scansione: se si sa quando Valve le ha aggiunte
+    (tabella first_seen), conta quella, come nell'elenco e nel grafico del sito. Altrimenti una riga vecchia di
+    settimane, trovata oggi, farebbe salire il termometro come se fosse nuova."""
+    from hlxwatch.sources.first_seen import line_hash
     rows = db.conn.execute(
-        "SELECT f.game, f.score, f.keywords, f.token, f.text, f.dedup_hash, COALESCE(b.date, f.created_at) AS d "
+        "SELECT f.game, f.score, f.keywords, f.token, f.text, f.dedup_hash, f.source, f.change_type, f.file_path, "
+        "COALESCE(b.date, f.created_at) AS d "
         "FROM findings f LEFT JOIN builds b ON b.id = f.build_id "
         "WHERE f.change_type NOT IN ('baseline', 'present') AND f.score >= ? AND f.game != 'hlxwatch'",
         (MIN_SCORE,)).fetchall()
+    first = _first_seen(db)
     out = []
     for r in rows:
         at = parse_iso(r["d"])
         if at is None or not _strong(r["keywords"]):
             continue
+        if r["source"] == "fullscan" and r["change_type"] == "added":
+            real = first.get((r["game"], r["file_path"], line_hash(r["text"] or "")))
+            if real is not None and real < at:
+                at = real
         out.append({"at": at, "hash": r["dedup_hash"], "score": min(int(r["score"]), 250), "game": r["game"],
                     "label": ((r["token"] or r["text"] or "").strip())[:60]})
     return sorted(out, key=lambda t: t["at"])
