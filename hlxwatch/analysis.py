@@ -356,7 +356,7 @@ def _cited(content: dict[str, Any]) -> set[str]:
 def telegram_text(content: dict[str, Any]) -> str:
     lines = [content.get("sintesi", "")]
     for h in (content.get("ipotesi") or [])[:4]:
-        lines.append(f"- [{h.get('fiducia', '?')}] {h.get('titolo', '')}")
+        lines.append(f"- [fiducia {h.get('fiducia', '?')}] {h.get('titolo', '')}")
     lines.append("")
     lines.append(f"Analisi completa: {SITE_URL}analisi.html")
     return "\n".join(lines)

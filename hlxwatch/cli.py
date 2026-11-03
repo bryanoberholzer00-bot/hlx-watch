@@ -161,7 +161,7 @@ def cmd_analyze(args: argparse.Namespace) -> int:
         return 1
     print(f"{content.get('titolo')}\n\n{content.get('sintesi')}")
     for h in content.get("ipotesi", []):
-        print(f"- [{h.get('fiducia')}] {h.get('titolo')}")
+        print(f"- [fiducia {h.get('fiducia')}] {h.get('titolo')}")
     return 0
 
 

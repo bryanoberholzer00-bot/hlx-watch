@@ -14,10 +14,12 @@
  <p>{{ a.content.sintesi }}</p>
  {% if a.content.ipotesi %}
  <h3>Ipotesi</h3>
+ <p class="muted" style="margin:.1rem 0 .5rem"><small>La fiducia dice quanto l'AI è sicura dell'ipotesi, non quanto la notizia è importante.</small></p>
  <table>
   {% for h in a.content.ipotesi %}
-  <tr class="{{ {'alta': 'high', 'media': 'medium'}.get(h.fiducia, 'low') }}">
-   <td style="width:6.5rem"><span class="badge {{ {'alta': 'high', 'media': 'medium'}.get(h.fiducia, 'low') }}">{{ h.fiducia }}</span></td>
+  {% set f = h.fiducia if h.fiducia in ('alta', 'media', 'bassa') else 'bassa' %}
+  <tr class="ipotesi fid-{{ f }}">
+   <td style="width:8.5rem"><span class="badge fid fid-{{ f }}" title="quanto l'AI è sicura dell'ipotesi">fiducia {{ h.fiducia or '?' }}</span></td>
    <td><b>{{ h.titolo }}</b><br>{{ h.spiegazione }}<br><small class="muted">prove: {{ prove(h.prove, a) }}</small></td>
   </tr>
   {% endfor %}
