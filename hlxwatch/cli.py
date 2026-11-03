@@ -185,7 +185,7 @@ def cmd_archeologia(args: argparse.Namespace) -> int:
     summary = run_archaeology(cfg, db, names=args.repo, workdir=args.workdir, keep=args.keep)
     for name, st in summary.items():
         print(f"{name}: {st['commit_con_righe']} commit con voci, {st['voci']} voci "
-              f"({st['nuove']} stringhe mai viste), {st['commit_gia_noti']} già noti, {st['secondi']} s"
+              f"({st['nuove']} stringhe mai viste), {st['commit_gia_noti']} già noti riletti, {st['secondi']} s"
               + (f" | ERRORE: {st['errore']}" if st.get("errore") else ""))
     return 1 if summary and all(st.get("errore") for st in summary.values()) else 0
 

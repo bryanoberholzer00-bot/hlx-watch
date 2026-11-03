@@ -128,13 +128,40 @@ def test_archaeology_rereads_truncated_commits_without_duplicates(tmp_path):
     subprocess.run(["git", "clone", "-q", "--bare", origin.as_uri(), str(bare)], check=True, capture_output=True)
     stats = {"commit_gia_noti": 0}
     items = gather_repo(cfg, db, repo_cfg, bare, stats)
-    assert sha in [c["sha"] for _, c in items]                           # tagliato: si rilegge
+    assert sha in [c["sha"] for _, c in items] and stats["commit_gia_noti"] == 1      # già noto: si rilegge
     per_repo = {"cs2": {"nuove": 0, "voci": 0, "commit_con_righe": 0}}
     insert_commits(cfg, db, items, per_repo)
     rows = db.conn.execute("SELECT text FROM findings WHERE build_id = ? AND change_type = 'added'", (bid,)).fetchall()
     texts = [r[0] for r in rows]
     assert texts.count("hlx_new_convar_0") == 1 and "hlx_new_convar_10" in texts                # niente doppioni
     assert db.build_row("cs2", "github", sha)["message"] == "2000913 | 13 files"                # messaggio intatto
-    db.conn.execute("UPDATE builds SET files_changed = 13 WHERE id = ?", (bid,))
-    assert sha not in [c["sha"] for _, c in gather_repo(cfg, db, repo_cfg, bare, stats)]        # letto per intero: si salta
+    before = db.conn.execute("SELECT COUNT(*) FROM findings").fetchone()[0]
+    insert_commits(cfg, db, gather_repo(cfg, db, repo_cfg, bare, stats), per_repo)             # di nuovo: niente doppioni
+    assert db.conn.execute("SELECT COUNT(*) FROM findings").fetchone()[0] == before
+    db.close()
+
+
+def test_archaeology_rereads_known_commits_for_new_keywords(tmp_path):
+    """Un commit già nell'archivio per altre righe: una parola chiave arrivata dopo vi trova una riga tolta
+    (come CHLXUserCmdPB in Dota 2, tolto il 6 marzo 2023) e l'archeologia la aggiunge, senza doppioni
+    anche rispetto alle righe "changed" del monitoraggio dei commit."""
+    cfg = make_cfg(tmp_path, tmp_path)
+    db = Database(cfg.db_path)
+    repo_cfg = cfg.github_repos[0]
+    b = BuildInfo(game="cs2", source="github", ref="abc123", date=__import__("datetime").datetime(2023, 3, 6),
+                  url="https://github.com/x/commit/abc123", message="5630 | 235 files", files_changed=235)
+    bid = db.upsert_build(b)
+    db.add_finding(Finding(game="cs2", source="github", file_path="p/base.proto", change_type="changed",
+                           text="hlx_new_field", old_text="hlx_old_field", score=110, keywords=["hlx"]), bid)
+    commit = {"sha": "abc123", "date": "2023-03-06T23:12:54+00:00", "subject": "5630 | 235 files", "changes": [
+        {"path": "p/base.proto", "sign": "+", "text": "hlx_new_field"},           # già registrata come "changed"
+        {"path": "p/base.proto", "sign": "-", "text": "hlx_old_field"},
+        {"path": "p/usercmd.proto", "sign": "-", "text": "message CHLXUserCmdPB {"}]}
+    per_repo = {"cs2": {"nuove": 0, "voci": 0, "commit_con_righe": 0}}
+    insert_commits(cfg, db, [(repo_cfg, commit)], per_repo)
+    rows = db.conn.execute("SELECT file_path, change_type, text FROM findings WHERE build_id = ? ORDER BY id", (bid,)).fetchall()
+    assert [tuple(r) for r in rows][1:] == [("p/usercmd.proto", "removed", "message CHLXUserCmdPB {")]
+    assert db.build_row("cs2", "github", "abc123")["message"] == "5630 | 235 files"
+    insert_commits(cfg, db, [(repo_cfg, commit)], per_repo)
+    assert db.conn.execute("SELECT COUNT(*) FROM findings").fetchone()[0] == 2
     db.close()

@@ -381,7 +381,9 @@ prende le classi col prefisso del progetto, come Valve le chiama (`CHLXPlayerPaw
 la storia (CS2 e Dota 2 dal 2016) e con `git log -G` trova ogni riga HLX mai aggiunta o tolta, anche se oggi
 non c'è più. Le righe passano dagli stessi filtri della scansione normale; le voci prendono la data del
 loro commit, quindi non finiscono tra le ultime scoperte né nelle notifiche, ma nella ricerca per data e
-nella Cronologia. I commit già nell'archivio si saltano: si può rilanciare senza doppioni.
+nella Cronologia. Si rileggono anche i commit già nell'archivio, aggiungendo solo le righe che
+mancano: dopo una parola chiave nuova un nuovo giro ripesca anche le righe dei commit già noti, e si può
+rilanciare senza doppioni.
 
 ### Cronologia HLX
 
@@ -466,8 +468,7 @@ di file giganteschi, `general.notify_min_score` regola quante notifiche ricevi.
   i dump (fra settembre e ottobre 2026 cinque commit da 4.700 a 8.000 file) gli altri file si leggono con git
   (`github.read_truncated_commits`, attivo): sul commit di Dota 2 del 7 ottobre, 4.114 file in circa un minuto.
   Se git non riesce, il commit resta con `files_changed` = 3000, l'errore va al controllo di salute e
-  l'archeologia lo rilegge: salta i commit già nell'archivio tranne quelli tagliati, e aggiunge solo le righe
-  che mancano.
+  l'archeologia lo rilegge per intero, aggiungendo solo le righe che mancano.
 - **Domini appena registrati**: ogni giro controlla al massimo `domains.max_new_checks` nomi (40); gli altri
   restano in coda (stato `domains:nrd_pending`) e si controllano nei giri successivi, prima quelli con
   Half-Life o HLX e poi i `play*.com`.
