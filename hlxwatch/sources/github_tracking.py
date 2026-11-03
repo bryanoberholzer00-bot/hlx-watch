@@ -21,6 +21,7 @@ from hlxwatch import __version__
 from hlxwatch.analyzers import KeywordMatcher, analyze_line_sets, analyze_patch
 from hlxwatch.analyzers.codenames import CodenameTracker
 from hlxwatch.analyzers.localization import LocalizationTracker
+from hlxwatch.sources.bigcommit import LocalDiff
 from hlxwatch.analyzers.renames import find_renames
 from hlxwatch.analyzers.pulse import PulseTracker
 from hlxwatch.analyzers.diff_analyzer import parse_patch
@@ -173,6 +174,7 @@ class GitHubClient:
         """Dettaglio del commit con TUTTI i file (GitHub li pagina a 300 per pagina, massimo 3000)."""
         first: dict[str, Any] | None = None
         files: list[dict[str, Any]] = []
+        truncated = False
         for page in range(1, max_pages + 1):
             data = self.get_json(f"/repos/{repo}/commits/{sha}", {"per_page": FILES_PER_PAGE, "page": page})
             if data is None:
@@ -184,10 +186,12 @@ class GitHubClient:
             if len(batch) < FILES_PER_PAGE:
                 break
             if page == max_pages:
-                log.warning("%s %s: più di %d file, i rimanenti non sono esposti dall'API",
+                log.warning("%s %s: più di %d file, i rimanenti non sono esposti dall'API: li leggo con git",
                             repo, sha[:10], max_pages * FILES_PER_PAGE)
+                truncated = True
         if first is not None:
             first["files"] = files
+            first["truncated"] = truncated
         return first
 
     def raw_file(self, repo: str, sha: str, path: str, max_bytes: int) -> str | None:
@@ -241,6 +245,9 @@ class GitHubTrackingSource:
         self.max_findings = int(cfg.get("general.max_findings_per_file", 400))
         self.fallback_max = int(cfg.get("github.fallback_max_bytes", 25 * 1024 * 1024))
         self.max_pages = int(cfg.get("github.max_file_pages", 10))
+        # commit con più file di quelli esposti dall'API: il resto si legge con git (sources/bigcommit.py)
+        self.local_diff = LocalDiff(cfg.data_dir / "bigcommits", max_patch_bytes=self.fallback_max)
+        self.read_truncated = bool(cfg.get("github.read_truncated_commits", True))
         if not cfg.github_token:
             log.warning("GITHUB_TOKEN assente: limite di 60 richieste/ora (metti un token in .env per 5000/ora)")
 
@@ -301,13 +308,14 @@ class GitHubTrackingSource:
                 continue
             message = ((detail.get("commit") or {}).get("message") or "").strip()
             m = BUILDID_RE.search(message)
+            commit_findings = self._analyze_commit(repo_cfg, detail, matcher)
+            # la build si salva dopo l'analisi: se l'analisi si interrompe, il commit si riprende al run dopo
             build = BuildInfo(
                 game=name, source="github", ref=sha, date=date, url=detail.get("html_url"),
                 message=message[:500], steam_buildid=m.group(1) if m else None,
-                files_changed=len(detail.get("files") or []),
+                files_changed=int(detail.get("files_total") or len(detail.get("files") or [])),
             )
             build_id = self.db.upsert_build(build)
-            commit_findings = self._analyze_commit(repo_cfg, detail, matcher)
             for finding in commit_findings:
                 finding.build = build
                 self.db.add_finding(finding, build_id)
@@ -338,47 +346,87 @@ class GitHubTrackingSource:
         findings: list[Finding] = []
         fallback_entries: list[dict[str, Any]] = []
         for entry in detail.get("files") or []:
-            path = entry.get("filename") or ""
-            status = entry.get("status", "modified")
-            if not path or self._ignored(path):
-                continue
-
-            # 0) un nodo Pulse mai visto (file nuovo in DumpSource2/schemas)
-            if status == "added":
-                pulse = self.pulse.check_added(name, path)
-                if pulse:
-                    findings.append(pulse)
-
-            # 1) il percorso stesso (file nuovi/rimossi/rinominati con "hlx" nel nome)
-            if status in ("added", "removed", "renamed"):
-                change_type = f"file_{status}"
-                res = matcher.analyze_line(path, file_path=path, change_type=change_type)
-                if res:
-                    previous = entry.get("previous_filename")
-                    findings.append(Finding(
-                        game=name, source="github", file_path=path, change_type=change_type, text=path,
-                        score=res.score, keywords=res.keywords, token=res.token,
-                        context=f"prima: {previous}" if previous else "",
-                    ))
-
-            # 2) il contenuto
-            patch = entry.get("patch")
-            if patch:
-                lines = [(dl.op, dl.text) for hunk in parse_patch(patch) for dl in hunk if dl.op in "+-"]
-                findings += self._extra_findings(name, path, lines, matcher, status=status)
-            if patch and repo_cfg.get("build_from_steam_inf") and path.endswith("steam.inf"):
-                info = steam_inf_build(patch)
-                if info:
-                    findings.append(self._steam_inf_finding(repo_cfg, path, info))
-            if patch:
-                findings += analyze_patch(patch, game=name, source="github", file_path=path, matcher=matcher,
-                                          context_lines=self.context_lines, max_findings=self.max_findings)
-            elif self._is_text(path) and (entry.get("additions") or entry.get("deletions")
-                                          or status in ("added", "removed")):
-                fallback_entries.append(entry)
+            findings += self._entry_findings(repo_cfg, entry, matcher, fallback_entries)
+        if detail.get("truncated") and self.read_truncated:
+            findings += self._truncated_findings(repo_cfg, detail, parent_sha, matcher)
 
         # I file senza patch richiedono due download ciascuno: nei commit da migliaia di file
         # farli in sequenza costava minuti, quindi vanno in parallelo.
+        findings += self._fallback_findings(name, repo, sha, parent_sha, fallback_entries, matcher)
+        return findings
+
+    def _truncated_findings(self, repo_cfg: dict[str, Any], detail: dict[str, Any], parent_sha: str | None,
+                            matcher: KeywordMatcher) -> list[Finding]:
+        """I file del commit oltre il limite dell'API (3000), letti con git. Se git non riesce, il commit resta
+        segnato come tagliato (files_changed = 3000) e l'archeologia lo potrà rileggere."""
+        name, repo, sha = repo_cfg["name"], repo_cfg["repo"], detail["sha"]
+        if not parent_sha:
+            return []
+        seen = {str(e.get("filename") or "") for e in detail.get("files") or []}
+        out: list[Finding] = []
+        started, n = time.time(), 0
+        try:
+            for entry in self.local_diff.entries(repo, sha, parent_sha, seen, clone_url=repo_cfg.get("clone_url")):
+                n += 1
+                out += self._entry_findings(repo_cfg, entry, matcher, None)
+            detail["files_total"] = self.local_diff.files_total
+        except Exception as exc:
+            log.exception("[%s] %s: lettura con git dei file oltre il limite dell'API non riuscita", name, sha[:10])
+            getattr(self, "errors", []).append(f"{repo} {sha[:10]}: file oltre i 3000 non letti ({exc})")
+            return out
+        log.info("[%s] %s: %d file oltre il limite dell'API letti con git in %.0fs, %d voci", name, sha[:10], n,
+                 time.time() - started, len(out))
+        return out
+
+    def _entry_findings(self, repo_cfg: dict[str, Any], entry: dict[str, Any], matcher: KeywordMatcher,
+                        fallback_entries: list[dict[str, Any]] | None) -> list[Finding]:
+        """Le voci di un file del commit (dall'API o letto con git). I file senza patch finiscono in
+        `fallback_entries` per il diff manuale; per quelli letti con git (None) la patch c'è sempre, salvo i binari."""
+        name = repo_cfg["name"]
+        findings: list[Finding] = []
+        path = entry.get("filename") or ""
+        status = entry.get("status", "modified")
+        if not path or self._ignored(path):
+            return findings
+
+        # 0) un nodo Pulse mai visto (file nuovo in DumpSource2/schemas)
+        if status == "added":
+            pulse = self.pulse.check_added(name, path)
+            if pulse:
+                findings.append(pulse)
+
+        # 1) il percorso stesso (file nuovi/rimossi/rinominati con "hlx" nel nome)
+        if status in ("added", "removed", "renamed"):
+            change_type = f"file_{status}"
+            res = matcher.analyze_line(path, file_path=path, change_type=change_type)
+            if res:
+                previous = entry.get("previous_filename")
+                findings.append(Finding(
+                    game=name, source="github", file_path=path, change_type=change_type, text=path,
+                    score=res.score, keywords=res.keywords, token=res.token,
+                    context=f"prima: {previous}" if previous else "",
+                ))
+
+        # 2) il contenuto
+        patch = entry.get("patch")
+        if patch:
+            lines = [(dl.op, dl.text) for hunk in parse_patch(patch) for dl in hunk if dl.op in "+-"]
+            findings += self._extra_findings(name, path, lines, matcher, status=status)
+        if patch and repo_cfg.get("build_from_steam_inf") and path.endswith("steam.inf"):
+            info = steam_inf_build(patch)
+            if info:
+                findings.append(self._steam_inf_finding(repo_cfg, path, info))
+        if patch:
+            findings += analyze_patch(patch, game=name, source="github", file_path=path, matcher=matcher,
+                                      context_lines=self.context_lines, max_findings=self.max_findings)
+        elif fallback_entries is not None and self._is_text(path) and (
+                entry.get("additions") or entry.get("deletions") or status in ("added", "removed")):
+            fallback_entries.append(entry)
+        return findings
+
+    def _fallback_findings(self, name: str, repo: str, sha: str, parent_sha: str | None,
+                           fallback_entries: list[dict[str, Any]], matcher: KeywordMatcher) -> list[Finding]:
+        findings: list[Finding] = []
         if fallback_entries:
             started = time.time()
             if len(fallback_entries) > 20:
@@ -402,7 +450,8 @@ class GitHubTrackingSource:
         e ogni riga cambiata nei file sorvegliati."""
         out: list[Finding] = self.localization.check_file(
             name, path, (t for op, t in lines if op == "+"), file_added=(status == "added"),
-            score_override=(self._repo_by_name.get(name) or {}).get("loc_prefix_score"))
+            score_override=(self._repo_by_name.get(name) or {}).get("loc_prefix_score"),
+            file_score_override=(self._repo_by_name.get(name) or {}).get("loc_file_score"))
         if self.renames_enabled and not path.endswith(".stringsignore"):
             out += self._rename_findings(name, path, lines)
         watched = next(((title, score, ignore) for regex, title, score, ignore in self.watched if regex.search(path)), None)

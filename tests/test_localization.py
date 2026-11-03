@@ -79,7 +79,12 @@ def test_github_extra_findings_uses_status_and_repo_score(tmp_path):
     assert [f.token for f in out] == ["locprefix:deadlock:kelvin"] and out[0].score == 45   # loc_prefix_score del repo
     out = src._extra_findings("deadlock", "game/citadel/resource/localization/zeta/zeta_english.txt",
                               [("+", ln) for ln in tokens("Zeta", 30)], matcher, status="added")
-    assert [f.keywords[0] for f in out] == ["loc_file_new", "loc_prefix_new"] and out[0].score == 100
+    assert [f.keywords[0] for f in out] == ["loc_file_new", "loc_prefix_new"]
+    assert out[0].score == 45                       # loc_file_score: eventi e stagioni di Deadlock, senza notifica
+    LocalizationTracker(cfg, db).learn("cs2", {"csgo": 10})
+    out = src._extra_findings("cs2", "game/csgo/resource/zeta_english.txt",
+                              [("+", ln) for ln in tokens("Zeta", 30)], matcher, status="added")
+    assert out[0].keywords == ["loc_file_new"] and out[0].score == 100          # negli altri giochi resta alto
     db.close()
 
 

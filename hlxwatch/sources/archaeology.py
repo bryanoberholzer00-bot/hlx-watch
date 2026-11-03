@@ -26,6 +26,7 @@ from hlxwatch.analyzers import KeywordMatcher
 from hlxwatch.config import Config
 from hlxwatch.models import BuildInfo, Finding
 from hlxwatch.repos import tracked_repos
+from hlxwatch.sources.bigcommit import API_FILE_CAP
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import parse_iso
 
@@ -80,7 +81,10 @@ def gather_repo(cfg: Config, db: Database, repo_cfg: dict[str, Any], git_dir: Pa
                        check=True)
     out: list[tuple[dict[str, Any], dict[str, Any]]] = []
     for commit in parse_history(git_log_lines(git_dir, repo_cfg.get("branch", "master"))):
-        if db.build_exists(name, "github", commit["sha"]):
+        row = db.build_row(name, "github", commit["sha"])
+        # un commit già noto si salta, salvo quelli tagliati dall'API (3000 file): lì la parte oltre il limite
+        # non è mai stata letta, e insert_commits aggiunge solo le righe che mancano
+        if row is not None and row["files_changed"] != API_FILE_CAP:
             stats["commit_gia_noti"] += 1
             continue
         out.append((repo_cfg, commit))
@@ -112,10 +116,20 @@ def insert_commits(cfg: Config, db: Database, items: list[tuple[dict[str, Any], 
                 ))
         if not findings:
             continue
-        build = BuildInfo(game=name, source="github", ref=commit["sha"], date=date,
-                          url=f"https://github.com/{repo}/commit/{commit['sha']}",
-                          message=f"[archeologia] {commit['subject']}"[:500], files_changed=None)
-        build_id = db.upsert_build(build)
+        existing = db.build_row(name, "github", commit["sha"])
+        if existing is not None:
+            # commit tagliato dall'API e già nell'archivio: si tengono messaggio e data, si aggiungono solo le righe nuove
+            build_id = int(existing["id"])
+            have = {(r[0], r[1], r[2]) for r in db.conn.execute(
+                "SELECT file_path, text, change_type FROM findings WHERE build_id = ?", (build_id,))}
+            findings = [f for f in findings if (f.file_path, f.text, f.change_type) not in have]
+            if not findings:
+                continue
+        else:
+            build = BuildInfo(game=name, source="github", ref=commit["sha"], date=date,
+                              url=f"https://github.com/{repo}/commit/{commit['sha']}",
+                              message=f"[archeologia] {commit['subject']}"[:500], files_changed=None)
+            build_id = db.upsert_build(build)
         st = stats[name]
         for f in findings:
             db.add_finding(f, build_id, created_at=date)

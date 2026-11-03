@@ -41,6 +41,8 @@ BOOTSTRAP = "https://data.iana.org/rdap/dns.json"     # elenco ufficiale: domini
 NRD = "https://www.whoisds.com//whois-database/newly-registered-domains/{key}/nrd"
 LAST_KEY = "domains:last_run"
 NRD_KEY = "domains:nrd_last_day"
+PENDING_KEY = "domains:nrd_pending"     # nomi trovati nelle liste ma non ancora controllati (limite per giro)
+MAX_PENDING = 1000
 DEFAULT_WATCH = ["half-life3.com", "halflife3.com", "half-life-3.com", "halflife-3.com", "hl3.com", "hlx.com",
                  "halflifex.com", "half-lifex.com", "halflife.com"]
 DEFAULT_NS = ["a1-194.akam.net", "a2-64.akam.net"]
@@ -129,9 +131,24 @@ class DomainsSource:
         return any(r in str(info.get("registrar") or "").lower() for r in self.valve_registrars)
 
     # ------------------------------------------------------------------ run
+    def pending(self) -> list[str]:
+        try:
+            return [str(n) for n in json.loads(self.db.get_state(PENDING_KEY) or "[]")]
+        except ValueError:
+            return []
+
     def run(self, force: bool = False) -> list[Finding]:
         self.errors = []
-        if not self.enabled or (not force and not self.due()):
+        if not self.enabled:
+            return []
+        if not force and not self.due():
+            # fuori dal giro giornaliero si smaltisce solo la coda dei domini nuovi rimasti da controllare
+            if self.nrd_enabled and self.pending():
+                try:
+                    return self.check_queue()
+                except Exception as exc:
+                    log.warning("Coda dei domini nuovi non smaltita: %s", exc)
+                    self.errors.append(f"domini nuovi: {exc}")
             return []
         findings = self.check_watch()
         if self.nrd_enabled:
@@ -193,46 +210,62 @@ class DomainsSource:
                     for n in z.read(name).decode("utf-8", "replace").split() if n.strip()]
 
     def check_new(self) -> list[Finding]:
-        """Le liste dei giorni non ancora letti (al massimo gli ultimi 3, quella di oggi esce domani)."""
+        """Le liste dei giorni non ancora letti (al massimo gli ultimi 3, quella di oggi esce domani).
+        I nomi interessanti vanno in una coda salvata nello stato: ogni giro ne controlla al massimo
+        `max_new_checks`, il resto si riprende al giro dopo (prima i nomi con Half-Life o HLX)."""
         today = utcnow().date()
         last = self.db.get_state(NRD_KEY)
         # la prima volta solo la lista di ieri; poi i giorni non ancora letti (al massimo gli ultimi 3)
         days = [today - timedelta(days=d) for d in ((3, 2, 1) if last else (1,))]
         days = [d for d in days if not last or d.isoformat() > last]
-        findings: list[Finding] = []
-        checks = 0
-        stopped = False
+        queue = self.pending()
         for day in days:
             names = self.nrd_names(day.isoformat())
-            # prima i nomi con Half-Life o HLX, poi i play*.com (lo schema dei siti dei giochi: playdeadlock.com)
-            hits = sorted((n for n in names if self.pattern.search(n)), key=lambda n: n.startswith("play"))
+            hits = [n for n in names if self.pattern.search(n)]
             log.info("Domini registrati il %s: %d nella lista, %d con nomi da controllare", day, len(names), len(hits))
-            for domain in hits:
-                if checks >= self.max_checks:
-                    log.info("Domini nuovi: raggiunto il limite di %d controlli RDAP", self.max_checks)
-                    break
-                checks += 1
-                try:
-                    info = self.rdap(domain)
-                except RateLimited:
-                    log.info("RDAP: il registro chiede di rallentare, la lista del %s si riprende al prossimo giro", day)
-                    stopped = True
-                    break
-                except Exception as exc:
-                    log.info("RDAP: %s non letto: %s", domain, exc)
-                    continue
-                if not info.get("registrato"):
-                    continue
-                if self.valve_dns(info):
-                    findings.append(self._finding(domain, info, f"dominio nuovo {domain} con i server DNS di Valve", 150))
-                elif self.valve_registrar(info):
-                    findings.append(self._finding(domain, info,
-                                                  f"dominio nuovo {domain} presso {info.get('registrar')}, "
-                                                  "un registrar usato da Valve", 60))
-            if stopped:
-                break
+            queue += [n for n in hits if n not in queue]
             if names:
+                self._save_queue(queue)               # i nomi sono al sicuro nella coda: il giorno è letto
                 self.db.set_state(NRD_KEY, day.isoformat())
+        return self.check_queue()
+
+    def _save_queue(self, queue: list[str]) -> None:
+        # prima i nomi con Half-Life o HLX, poi i play*.com (lo schema dei siti dei giochi: playdeadlock.com)
+        queue = sorted(dict.fromkeys(queue), key=lambda n: n.startswith("play"))
+        if len(queue) > MAX_PENDING:
+            log.warning("Domini nuovi: coda oltre %d nomi, scarto i %d meno interessanti", MAX_PENDING,
+                        len(queue) - MAX_PENDING)
+            queue = queue[:MAX_PENDING]
+        self.db.set_state(PENDING_KEY, json.dumps(queue))
+
+    def check_queue(self) -> list[Finding]:
+        """Controlla i primi `max_new_checks` nomi della coda; quelli non controllati restano per il giro dopo."""
+        queue = sorted(dict.fromkeys(self.pending()), key=lambda n: n.startswith("play"))
+        findings: list[Finding] = []
+        done = 0
+        for domain in queue:
+            if done >= self.max_checks:
+                log.info("Domini nuovi: %d controlli fatti, %d nomi restano in coda per il prossimo giro",
+                         done, len(queue) - done)
+                break
+            try:
+                info = self.rdap(domain)
+            except RateLimited:
+                log.info("RDAP: il registro chiede di rallentare, %d nomi restano in coda", len(queue) - done)
+                break
+            except Exception as exc:
+                log.info("RDAP: %s non letto: %s", domain, exc)
+                info = None
+            done += 1
+            if not info or not info.get("registrato"):
+                continue
+            if self.valve_dns(info):
+                findings.append(self._finding(domain, info, f"dominio nuovo {domain} con i server DNS di Valve", 150))
+            elif self.valve_registrar(info):
+                findings.append(self._finding(domain, info,
+                                              f"dominio nuovo {domain} presso {info.get('registrar')}, "
+                                              "un registrar usato da Valve", 60))
+        self._save_queue(queue[done:])
         return findings
 
     # ------------------------------------------------------------------ voce

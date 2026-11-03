@@ -21,6 +21,7 @@ github:
   initial_days: 7                        # alla prima scansione (senza backfill) guarda indietro di N giorni
   max_commits_per_run: 50                # protezione: commit massimi per repo per scansione
   max_file_pages: 10                     # GitHub espone al massimo 3000 file per commit (10 pagine da 300)
+  read_truncated_commits: true           # oltre i 3000 file: gli altri si leggono con git (sources/bigcommit.py)
   fallback_max_bytes: 26214400           # 25 MB: file più grandi non vengono scaricati per il diff manuale
   fallback_workers: 8                    # download paralleli per i file senza patch (commit da migliaia di file)
   # estensioni considerate "testo" per il diff manuale quando GitHub non fornisce la patch
@@ -52,6 +53,7 @@ github:
       appid: 1422450
       gamedir: citadel
       loc_prefix_score: 45               # ogni eroe nuovo porta ~1900 testi col suo nome: sul sito, senza notifica
+      loc_file_score: 45                 # file di traduzione nuovi (eventi, stagioni): sul sito, senza notifica
     - name: alyx
       title: "Half-Life: Alyx"
       repo: SteamTracking/GameTracking-HalfLifeAlyx

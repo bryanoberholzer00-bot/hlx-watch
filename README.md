@@ -53,6 +53,8 @@ hlx-watch/
 
 1. **GitHub**: per ogni repo legge i commit nuovi dopo il cursore salvato (o dopo una data per il backfill),
    scarica il dettaglio con tutti i file (pagine da 300, massimo 3000 per commit), analizza le patch.
+   Se il commit ha più di 3000 file, quelli che l'API non mostra si leggono con git
+   (`hlxwatch/sources/bigcommit.py`: commit e genitore senza contenuti, poi `git diff` dei soli file mancanti).
    Se GitHub non fornisce la patch (file enorme, es. `pak01_dir.txt` con 137.000 righe) scarica le due
    versioni da `raw.githubusercontent.com` e confronta le righe localmente; i download vanno in parallelo
    (`github.fallback_workers`, default 8): un commit con 1300 file senza patch richiede circa un minuto.
@@ -67,7 +69,7 @@ hlx-watch/
 5. **Scansione completa** (una volta al giorno, `full_scan` in config, comando `fullscan`): clone
    superficiale senza storia di ogni repository (circa 600 MB e un minuto per tutti) e `git grep` delle
    parole ad alto valore in tutti i file, compresi quelli che la ricerca di GitHub non indicizza e quelli
-   tagliati dai commit con più di 3000 file. Il primo giro registra le occorrenze come "present" (c'erano
+   cambiati nei commit enormi. Il primo giro registra le occorrenze come "present" (c'erano
    già, nessun avviso, sezione dedicata sul sito); i giri successivi segnalano quelle nuove o sparite che
    il monitoraggio dei commit non aveva già visto.
 6. Ogni riga interessante diventa un **finding** con punteggio, keyword, token, contesto e tipo di modifica
@@ -460,10 +462,15 @@ di file giganteschi, `general.notify_min_score` regola quante notifiche ricevi.
   (un'app esistente ma con id superiore alla frontiera può essere segnalata come nuova la prima volta
   che cambia; il punteggio filtra comunque quelle non Valve). Su GitHub Actions la chiave è nei Secrets,
   quindi si usa la lista completa.
-- **Commit enormi**: l'API di GitHub espone al massimo 3000 file per commit; oltre, i file restanti non
-  vengono analizzati nel diff (viene loggato un avviso). Per i commit di GameTracking è un caso raro, e
-  la scansione completa giornaliera (`full_scan`) legge comunque tutti i file: al massimo una voce arriva
-  con fino a 24 ore di ritardo.
+- **Commit enormi**: l'API di GitHub espone al massimo 3000 file per commit. Quando SteamTracking riformatta
+  i dump (fra settembre e ottobre 2026 cinque commit da 4.700 a 8.000 file) gli altri file si leggono con git
+  (`github.read_truncated_commits`, attivo): sul commit di Dota 2 del 7 ottobre, 4.114 file in circa un minuto.
+  Se git non riesce, il commit resta con `files_changed` = 3000, l'errore va al controllo di salute e
+  l'archeologia lo rilegge: salta i commit già nell'archivio tranne quelli tagliati, e aggiunge solo le righe
+  che mancano.
+- **Domini appena registrati**: ogni giro controlla al massimo `domains.max_new_checks` nomi (40); gli altri
+  restano in coda (stato `domains:nrd_pending`) e si controllano nei giri successivi, prima quelli con
+  Half-Life o HLX e poi i `play*.com`.
 - **Libreria `steam`**: usa gevent; per questo gira in un sottoprocesso con timeout. Se l'installazione
   fallisce, il resto funziona e la sorgente Steam viene saltata con un errore nel log; il controllo di
   salute (`health`) avvisa su Telegram dopo 3 run di fila con errori e quando torna a funzionare.

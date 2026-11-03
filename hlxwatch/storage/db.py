@@ -192,6 +192,11 @@ class Database:
             self.conn.commit()
 
     # ----------------------------------------------------------------- builds
+    def build_row(self, game: str, source: str, ref: str) -> sqlite3.Row | None:
+        with self._lock:
+            return self.conn.execute(
+                "SELECT * FROM builds WHERE game = ? AND source = ? AND ref = ?", (game, source, ref)).fetchone()
+
     def build_exists(self, game: str, source: str, ref: str) -> bool:
         with self._lock:
             row = self.conn.execute(

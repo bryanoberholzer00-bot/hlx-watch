@@ -87,11 +87,10 @@
  <ol>
   <li><b>Monitoraggio dei commit.</b> Per ogni commit nuovo lo strumento legge la patch di ogni file; se GitHub
   non la fornisce (file troppo grandi) scarica le due versioni e le confronta. Le righe aggiunte, rimosse o
-  modificate che contengono una parola chiave diventano voci. Limite: l'API di GitHub espone al massimo 3000
-  file per commit.</li>
+  modificate che contengono una parola chiave diventano voci. L'API di GitHub espone al massimo 3000 file per
+  commit: nei commit più grandi gli altri file si leggono direttamente con git.</li>
   <li><b>Scansione completa</b> (ogni {{ full_scan.interval_hours }} ore). L'ultima versione di ogni repository viene
-  scaricata senza storia e cercata per intero, compresi i file che la ricerca di GitHub non indicizza e quelli
-  tagliati dal limite dei 3000 file. Prefiltro: <code>{{ full_scan.prefilter }}</code>; soglia {{ full_scan.min_score }} punti.
+  scaricata senza storia e cercata per intero, compresi i file che la ricerca di GitHub non indicizza. Prefiltro: <code>{{ full_scan.prefilter }}</code>; soglia {{ full_scan.min_score }} punti.
   Una riga che cambia solo punteggio, per una modifica alle parole chiave, non conta né come aggiunta né come tolta:
   conta solo ciò che cambia nei file.</li>
   <li><b>Prima comparsa.</b> Per le voci trovate dalla scansione completa, lo strumento ripercorre la storia del

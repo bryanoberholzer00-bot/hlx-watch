@@ -114,9 +114,27 @@ def test_rate_limited_registry_keeps_the_day_for_later(tmp_path):
     web.limited = {"half-life-beta.com"}
     src = DomainsSource(cfg, db, session=web)
     assert src.run() == []                                     # il registro chiede di rallentare: ci si ferma
-    assert db.get_state("domains:nrd_last_day") is None
+    assert src.pending() == ["half-life-beta.com", "playnewvalvegame.com"]     # i nomi restano in coda
     web.limited = set()
     assert [f.file_path for f in src.run(force=True)] == ["playnewvalvegame.com"]
+    assert src.pending() == []
+    db.close()
+
+
+def test_names_over_the_limit_wait_for_the_next_run(tmp_path):
+    """Oltre il limite di controlli per giro i nomi non si perdono: il giro dopo (anche fuori dall'orario
+    giornaliero) riprende la coda, prima i nomi con Half-Life o HLX."""
+    cfg, db = make(tmp_path, domains={"watch": [], "newly_registered": True, "pause_seconds": 0, "max_new_checks": 2})
+    web = FakeWeb()
+    day = (utcnow().date().fromordinal(utcnow().date().toordinal() - 1)).isoformat()
+    web.nrd[day] = ["playaaa.com", "playbbb.com", "playnewvalvegame.com", "half-life-gamma.com", "cats.com"]
+    web.domains["playnewvalvegame.com"] = rdap("SafeNames Ltd.", VALVE_NS, registered=day)
+    src = DomainsSource(cfg, db, session=web)
+    assert src.run() == []                                      # half-life-gamma.com e playaaa.com: liberi
+    assert src.pending() == ["playbbb.com", "playnewvalvegame.com"]
+    assert db.get_state("domains:nrd_last_day") == day          # il giorno è letto, i nomi sono in coda
+    assert [f.file_path for f in src.run()] == ["playnewvalvegame.com"]      # fuori orario: solo la coda
+    assert src.pending() == [] and src.run() == []
     db.close()
 
 

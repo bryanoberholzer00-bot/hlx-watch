@@ -95,7 +95,7 @@ class LocalizationTracker:
 
     # -------------------------------------------------------------- commit
     def check_file(self, game: str, path: str, added_lines: Iterable[str], *, file_added: bool = False,
-                   score_override: int | None = None) -> list[Finding]:
+                   score_override: int | None = None, file_score_override: int | None = None) -> list[Finding]:
         """Righe aggiunte a un file *_english.txt in un commit: file nuovo e famiglie mai viste."""
         if not self.enabled or not is_loc_file(path):
             return []
@@ -110,7 +110,8 @@ class LocalizationTracker:
             out.append(Finding(
                 game=game, source="github", file_path=path, change_type="localization",
                 text=f"nuovo file di localizzazione {base}: famiglie di token {top}",
-                score=self.score_new_file, keywords=["loc_file_new"], token=f"locfile:{game}:{path.lower()}",
+                score=int(file_score_override) if file_score_override is not None else self.score_new_file,
+                keywords=["loc_file_new"], token=f"locfile:{game}:{path.lower()}",
                 context=f"{sum(counts.values())} token in tutto",
             ))
         merged = dict(known)
