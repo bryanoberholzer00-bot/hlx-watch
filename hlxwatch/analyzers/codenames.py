@@ -42,14 +42,19 @@ PLACES: list[tuple[str, re.Pattern[str], str, re.Pattern[str] | None]] = [
      "ramo di compilazione nei percorsi della macchina di build (buildworker)", None),
     # tipo di dispositivo nei profili dei driver di SteamVR: ogni visore o controller dichiara qui il suo nome
     # (deckard, frame_hmd, frame_controller, knuckles_ev1...). Il gruppo di Brad Lynch ha scoperto così l'hardware Valve
+    # il messaggio di rete con i comandi del giocatore, uno per gioco: CDota2UserCmdPB, CCitadelUserCmdPB (Deadlock),
+    # CSGOUserCmdPB e, in Dota 2 dal 9 giugno 2022 al 6 marzo 2023, CHLXUserCmdPB. Nei .proto e nei dump dei binari.
+    ("usercmd", re.compile(r"(?<![a-z0-9_])C(?P<name>[A-Z][A-Za-z0-9]*?)UserCmdPB(?![A-Za-z0-9])"),
+     "messaggio di rete con i comandi del giocatore (UserCmdPB)", None),
     ("vr_device", re.compile(r'"controller_type"\s*:\s*"(?P<name>[A-Za-z0-9_]+)"'),
      "tipo di dispositivo di SteamVR (controller_type)", None),
 ]
+C_IN_NAME = {"csgo"}          # nomi in cui la C iniziale è del gioco (CSGOUserCmdPB), non il prefisso delle classi
 # parole che compaiono in quei posti ma non sono nomi di progetto
-GENERIC = {"other", "unassigned", "default", "bugreporter", "none", "core", "tools", "---", "version", "owner",
+GENERIC = {"base", "other", "unassigned", "default", "bugreporter", "none", "core", "tools", "---", "version", "owner",
            "severity", "priority", "category", "product", "component", "main", "bin", "sdk", "build", "src"}
 # regex estesa per `git grep -i -E` della scansione completa: seleziona le righe dei tre posti
-PREFILTER = r'mod *[!=]=|"(product|component|mod)"|source2[\\/]main[\\/](content|game)[\\/]|buildworker[\\/]|"controller_type"'
+PREFILTER = r'mod *[!=]=|"(product|component|mod)"|source2[\\/]main[\\/](content|game)[\\/]|buildworker[\\/]|"controller_type"|UserCmdPB'
 STATE_SEEN = "codenames:seen"
 STATE_LEARNED = "codenames:learned"
 STATE_LEARNED_PLACES = "codenames:learned_places"
@@ -70,6 +75,8 @@ def detect(text: str, file_path: str = "") -> list[tuple[str, str, str]]:
             continue
         for m in regex.finditer(text):
             name = normalize(m.group("name"))
+            if place == "usercmd" and ("c" + name) in C_IN_NAME:
+                name = "c" + name                 # CSGOUserCmdPB: la C è del nome del gioco, non delle classi
             if len(name) < 2 or name.isdigit() or name in GENERIC:
                 continue
             if (place, name) not in [(p, n) for p, n, _ in out]:

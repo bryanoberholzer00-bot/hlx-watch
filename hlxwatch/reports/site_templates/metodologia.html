@@ -190,7 +190,9 @@
  <p>Le parole chiave trovano solo nomi già noti. Per accorgersi di un progetto con un nome diverso, HLX Watch guarda i
  <b>posti</b> in cui Valve scrive i nomi in codice: le espressioni <code>mod != nome</code> degli strumenti, prodotti e
  componenti del bug reporter, le cartelle <code>source2/main/content/nome</code> e i rami di compilazione che restano nei
- binari (<code>C:\buildworker\csgo_rel_win64\...</code>: il ramo che ha prodotto la DLL). Un nome che non è tra quelli noti diventa
+ binari (<code>C:\buildworker\csgo_rel_win64\...</code>: il ramo che ha prodotto la DLL), e il messaggio di rete con i comandi
+ del giocatore che ogni gioco definisce (<code>CDota2UserCmdPB</code>, <code>CCitadelUserCmdPB</code> per Deadlock; in Dota 2
+ dal giugno 2022 al marzo 2023 c'era <code>CHLXUserCmdPB</code>). Un nome che non è tra quelli noti diventa
  una voce "codename" da {{ codename_score }} punti. Nomi noti finora: {{ project_names|join(", ") }}.</p>
  <p>File sorvegliati, dove ogni riga cambiata diventa una voce anche senza parole chiave:
  {% for w in watched_files %}<code>{{ w.pattern }}</code> ({{ w.title }}, {{ w.score }} punti){% if not loop.last %}; {% endif %}{% endfor %}.</p>

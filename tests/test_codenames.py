@@ -25,6 +25,15 @@ def test_detect_places():
     assert detect('\t\t"component"\t\t"other"', br) == []           # parola generica
     assert [n for _, n, _ in detect('\t\t"mod"\t"hl3"', "game/core/pak01_dir/source1import_txtmap.txt")] == ["hl3"]
     assert [n for _, n, _ in detect('"mod"\t"left4dead2_source2"')] == ["left4dead2_source2"]
+    # messaggio di rete dei comandi del giocatore: nei .proto e nei dump dei binari
+    assert [n for p, n, _ in detect("message CHLXUserCmdPB {") if p == "usercmd"] == ["hlx"]
+    assert [n for p, n, _ in detect("message CCitadelUserCmdPB {") if p == "usercmd"] == ["citadel"]
+    assert [n for p, n, _ in detect("message CDota2UserCmdPB {") if p == "usercmd"] == ["dota2"]
+    assert [n for p, n, _ in detect("message CSGOUserCmdPB {") if p == "usercmd"] == ["csgo"]
+    assert [n for p, n, _ in detect(".?AVCCitadelUserCmdPB@@") if p == "usercmd"] == ["citadel"]
+    assert [n for p, n, _ in detect("CZetaUserCmdPB::ByteSizeLong") if p == "usercmd"] == ["zeta"]
+    assert [p for p, n, _ in detect("message CBaseUserCmdPB {")] == []          # quello comune a tutti i giochi
+    assert [p for p, n, _ in detect("message CUserCmdBasePB { message CDemoUserCmd")] == []
     # rami di compilazione nei dump delle DLL: il nome dopo buildworker\ (anche con / e maiuscole)
     bw = detect(r"C:\buildworker\csgo_rel_win64\build\src\engine2\x.cpp", "game/bin/win64/engine2_strings.txt")
     assert bw == [("buildworker", "csgo_rel_win64", "ramo di compilazione nei percorsi della macchina di build (buildworker)")]

@@ -307,7 +307,9 @@ client Steam, di SteamVR e della documentazione (`ignore_keywords`).
 
 `hlxwatch/analyzers/codenames.py` guarda i posti in cui Valve scrive i nomi in codice (`mod != nome`,
 prodotti/componenti/sezioni del bug reporter, cartelle `source2/main/content/<nome>`, rami di compilazione
-`C:\buildworker\<ramo>` rimasti nei dump delle DLL, come `csgo_rel_win64`): un nome che non è in
+`C:\buildworker\<ramo>` rimasti nei dump delle DLL, come `csgo_rel_win64`, e il messaggio di rete con i comandi
+del giocatore che ogni gioco definisce, `C<nome>UserCmdPB`: `CDota2UserCmdPB`, `CCitadelUserCmdPB`, e in Dota 2
+dal 9 giugno 2022 al 6 marzo 2023 `CHLXUserCmdPB`): un nome che non è in
 `codenames.known` né tra quelli imparati (stato `codenames:seen`) diventa una voce `codename` da 120 punti,
 quindi avviso immediato e indizio in cronologia. Alla prima scansione completa i nomi presenti vengono solo
 imparati (stato `codenames:learned`). `watched_files` elenca i file in cui ogni riga aggiunta o tolta è una
