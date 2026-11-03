@@ -6,6 +6,9 @@ from hlxwatch.models import BuildInfo, Finding
 from hlxwatch.sources.first_seen import FirstSeenResolver, line_hash
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import utcnow
+from datetime import timedelta
+
+from hlxwatch.timeutil import local_day
 
 LINE = '"- Thumper (HLX): causes antlions to run away briefly<br>"'
 
@@ -56,6 +59,24 @@ def test_bisection_finds_first_commit(tmp_path):
     present = data["gia_presenti_nel_contenuto_attuale"][0]
     assert present["prima_comparsa"] == "2025-01-14"
     assert present["commit_prima_comparsa"].endswith("/commit/sha13")
+    db.close()
+
+
+def test_late_fullscan_lines_carry_valves_date(tmp_path):
+    """Una riga 'added' della scansione completa (regola nuova, riga vecchia di settimane): all'AI arriva la data
+    del primo commit in cui compare, non il giorno della scansione."""
+    cfg, db = make(tmp_path)
+    build = db.recent_builds(1)[0]
+    db.add_finding(Finding(game="dota2", source="fullscan", file_path="game/bin/win64/tools/hammer_strings.txt",
+                           change_type="added", text="CHLXBaseProjectileEmitterHelper", score=115,
+                           keywords=["hlx_class"], token="CHLXBaseProjectileEmitterHelper"), build["id"])
+    db.set_first_seen("dota2", "game/bin/win64/tools/hammer_strings.txt", line_hash("CHLXBaseProjectileEmitterHelper"),
+                      "CHLXBaseProjectileEmitterHelper", "2151a803a0", "2026-10-07T00:26:01+00:00", False)
+    data, ids = collect_input(db, utcnow() - timedelta(days=1))
+    item = next(v for v in ids.values() if v.get("token") == "CHLXBaseProjectileEmitterHelper")
+    assert item["prima_comparsa"] == "2026-10-07" and item["data_modifica"] is None
+    assert item["trovata_da_hlxwatch"] == local_day(utcnow())             # il giorno della scansione resta, a parte
+    assert item["commit_prima_comparsa"].endswith("/commit/2151a803a0")
     db.close()
 
 
