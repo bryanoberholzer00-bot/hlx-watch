@@ -57,6 +57,23 @@ class LocalizationTracker:
         self.score_new_file = int(lcfg.get("score_new_file", 100))
         self.score_new_prefix = int(lcfg.get("score_new_prefix", 60))
 
+    def rescore_existing(self) -> int:
+        """Riporta file e famiglie nuove già nell'archivio al punteggio attuale (loc_file_score / loc_prefix_score
+        del repository): la regola di Deadlock a 45 vale anche per le voci registrate prima."""
+        from hlxwatch.repos import tracked_repos
+        repos = {r["name"]: r for r in tracked_repos(self.cfg, self.db)}
+        changed = 0
+        for kw, key, default in (("loc_file_new", "loc_file_score", self.score_new_file),
+                                 ("loc_prefix_new", "loc_prefix_score", self.score_new_prefix)):
+            for r in self.db.conn.execute("SELECT id, game, score FROM findings WHERE change_type = 'localization' "
+                                          "AND keywords = ?", (json.dumps([kw]),)).fetchall():
+                override = (repos.get(r["game"]) or {}).get(key)
+                want = int(override) if override is not None else default
+                if r["score"] != want:
+                    self.db.conn.execute("UPDATE findings SET score = ? WHERE id = ?", (want, r["id"]))
+                    changed += 1
+        return changed
+
     # ------------------------------------------------------------- stato
     def known(self, game: str) -> dict[str, int] | None:
         """famiglie imparate per il gioco; None finché la prima scansione completa non le ha lette."""

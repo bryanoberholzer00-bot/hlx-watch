@@ -33,21 +33,27 @@ log = logging.getLogger(__name__)
 TEMPLATES = Path(__file__).parent / "site_templates"
 
 
-def first_seen_days(db: Database) -> dict[tuple[str, str, str], tuple[str, bool]]:
-    """(gioco, file, hash della riga) -> (giorno della prima comparsa, 'almeno dal'), letti una volta sola."""
-    rows = db.conn.execute("SELECT game, file_path, line_hash, commit_date, at_least FROM first_seen "
+def first_seen_days(db: Database) -> dict[tuple[str, str, str], tuple[str, bool, str]]:
+    """(gioco, file, hash della riga) -> (giorno della prima comparsa, 'almeno dal', commit), letti una volta sola."""
+    rows = db.conn.execute("SELECT game, file_path, line_hash, commit_date, at_least, commit_sha FROM first_seen "
                            "WHERE commit_date IS NOT NULL").fetchall()
-    return {(r[0], r[1], r[2]): (local_day(r[3]), bool(r[4])) for r in rows}
+    return {(r[0], r[1], r[2]): (local_day(r[3]), bool(r[4]), r[5] or "") for r in rows}
 
 
 def apply_first_seen(item: dict[str, Any], days: dict[tuple[str, str, str], tuple[str, bool]]) -> dict[str, Any]:
     """Le voci della scansione completa portano la data della scansione, non quella di Valve: se la prima
-    comparsa è nota la usano come data della modifica (le classi CHLX di Hammer: 23 settembre, non 29 ottobre)."""
+    comparsa è nota la usano come data della modifica (le classi CHLX di Hammer: 23 settembre, non 29 ottobre)
+    e il link porta al commit in cui la riga compare, non all'intero repository al giorno della scansione."""
     if item.get("source") == "fullscan" and item.get("change_type") in ("added", "present"):
         from hlxwatch.sources.first_seen import line_hash
         hit = days.get((item["game"], item["file_path"], line_hash(item["text"] or "")))
         if hit:
-            item["day"], item["day_at_least"] = hit
+            item["day"], item["day_at_least"] = hit[0], hit[1]
+            url = item.get("build_url") or ""
+            sha = hit[2] if len(hit) > 2 else ""
+            if sha and not hit[1] and "/tree/" in url:
+                item["build_url"] = f"{url.split('/tree/')[0]}/commit/{sha}"
+                item["build_ref"] = sha
     return item
 
 

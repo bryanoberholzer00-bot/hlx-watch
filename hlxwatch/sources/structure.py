@@ -40,11 +40,16 @@ DEFAULT_PLACES: list[dict[str, Any]] = [
     # e ne hanno estratto i modelli 3D. Oggi ci sono già deckard, frame_hmd e frame_controller
     {"path": "drivers", "kind": "dirs", "title": "driver di SteamVR (hardware)", "repos": ["steamvr"]},
     {"path": "resources/rendermodels", "kind": "dirs", "title": "modello 3D di un dispositivo SteamVR", "repos": ["steamvr"]},
-    {"path": "resources/input", "kind": "files", "title": "profilo dei controlli di SteamVR", "repos": ["steamvr"]},
+    # i profili dei comandi arrivano a decine con ogni gioco che supporta un controller: 60 (sito, senza alta
+    # rilevanza); un nome con una parola chiave (hlx_bindings_...) sale comunque sopra 100
+    {"path": "resources/input", "kind": "files", "title": "profilo dei controlli di SteamVR", "repos": ["steamvr"],
+     "score": 60},
     {"path": "drivers/frame_controller/resources/rendermodels", "kind": "dirs", "title": "modello 3D dei controller Steam Frame", "repos": ["steamvr"]},
     {"path": "drivers/deckard/resources/rendermodels", "kind": "dirs", "title": "modello 3D del visore Deckard", "repos": ["steamvr"]},
     # un file di comandi per un gioco che non c'era: un gioco nuovo (o non annunciato) che supporta Steam Frame
-    {"path": "drivers/frame_controller/resources/input", "kind": "files", "title": "gioco con i comandi per i controller Steam Frame", "repos": ["steamvr"]},
+    # (anche quelli di giochi già usciti, come DOOM VFR il 2 novembre 2026: 60, e di più con una parola chiave nel nome)
+    {"path": "drivers/frame_controller/resources/input", "kind": "files", "title": "gioco con i comandi per i controller Steam Frame", "repos": ["steamvr"],
+     "score": 60},
 ]
 
 
@@ -111,6 +116,22 @@ class StructureWatch:
             findings += self.check(repo_cfg, place)
         return findings
 
+    def rescore_existing(self) -> int:
+        """Riporta le voci già nell'archivio al punteggio attuale del loro posto (quelle senza parole chiave nel nome)."""
+        changed = 0
+        for repo_cfg, place in self.targets():
+            path = str(place.get("path") or "").strip("/")
+            want = int(place.get("score", self.score))
+            rows = self.db.conn.execute(
+                "SELECT id, file_path, score FROM findings WHERE change_type = 'structure' AND game = ? AND keywords = ?",
+                (repo_cfg["name"], json.dumps(["structure_new"]))).fetchall()
+            for r in rows:
+                folder = r["file_path"].rsplit("/", 1)[0] if "/" in r["file_path"] else ""
+                if folder == path and r["score"] != want:
+                    self.db.conn.execute("UPDATE findings SET score = ? WHERE id = ?", (want, r["id"]))
+                    changed += 1
+        return changed
+
     def check(self, repo_cfg: dict[str, Any], place: dict[str, Any]) -> list[Finding]:
         name, path = repo_cfg["name"], str(place.get("path") or "").strip("/")
         key = f"{STATE_PREFIX}{name}:{path or '/'}"
@@ -138,7 +159,7 @@ class StructureWatch:
         build_id = self.db.upsert_build(build)
         out: list[Finding] = []
         for entry in added:
-            score, keywords = self.score, ["structure_new"]
+            score, keywords = int(place.get("score", self.score)), ["structure_new"]
             # il nome stesso può contenere una parola chiave: una cartella "hlx" vale più di una qualsiasi
             res = self.matcher.analyze_line(f"{entry.replace('_', ' ')} {entry}", file_path=f"{path}/{entry}",
                                             change_type="added")

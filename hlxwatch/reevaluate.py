@@ -71,8 +71,13 @@ def reevaluate(cfg: Config, db: Database) -> dict[str, int]:
     db.conn.execute("UPDATE builds SET url = replace(url, 'https://store.steampowered.com/app/', "
                     "'https://steamdb.info/app/') || 'history/' "
                     "WHERE source = 'steam' AND ref LIKE 'pics:%' AND url LIKE 'https://store.steampowered.com/app/%'")
+    # voci senza parole chiave con un punteggio deciso dal config (posto della struttura, file di traduzione):
+    # dopo una modifica al config valgono anche per quelle già registrate
+    from hlxwatch.analyzers.localization import LocalizationTracker
+    from hlxwatch.sources.structure import StructureWatch
+    rules = StructureWatch(cfg, db, None).rescore_existing() + LocalizationTracker(cfg, db).rescore_existing()
     db.conn.commit()
-    stats = {"esaminate": len(rows), "eliminate": len(drop), "aggiornate": rescored, "private": len(private),
+    stats = {"esaminate": len(rows), "eliminate": len(drop), "aggiornate": rescored + rules, "private": len(private),
              "tolte_false": len(contradictions)}
     log.info("Rivalutazione: %d voci esaminate, %d eliminate, %d con punteggio aggiornato, %d app private rimosse, "
              "%d righe tolte per sbaglio", stats["esaminate"], stats["eliminate"], stats["aggiornate"], stats["private"],
