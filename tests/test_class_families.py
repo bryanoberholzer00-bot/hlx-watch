@@ -119,3 +119,31 @@ def test_common_word_is_not_a_project(tmp_path):
     t.collect(REPO, grep_git([], ["CDotaHero", "CDotaAbility", "CParseEXRHeader", *words]))
     assert t.finish() == []                                    # 6 nomi con Parse: parola comune, in attesa
     db.close()
+
+
+def test_reported_family_that_grows_gets_a_higher_alert(tmp_path):
+    cfg, db = make(tmp_path)
+    base = ["CDotaHero", "CDotaAbility"]
+    t = ClassFamilyTracker(cfg, db)
+    t.collect(REPO, grep_git([], base))
+    t.finish()                                                 # impara
+    t = ClassFamilyTracker(cfg, db)
+    t.collect(REPO, grep_git([], base + ["CCitadelPawn", "CCitadelAbility"]))
+    first = t.finish()
+    assert [f.score for f in first] == [55]
+    # cresce poco (da 2 a 4): niente
+    t = ClassFamilyTracker(cfg, db)
+    t.collect(REPO, grep_git([], base + [f"CCitadel{w}Thing" for w in ("Pawn", "Ability", "Hero", "Item")]))
+    assert t.finish() == []
+    # cresce davvero (da 2 a 8): avviso nuovo, 25 punti in più, con i nomi nuovi
+    many = [f"CCitadel{w}Thing" for w in ("Pawn", "Ability", "Hero", "Item", "Shop", "Lane", "Zip", "Soul")]
+    t = ClassFamilyTracker(cfg, db)
+    t.collect(REPO, grep_git([], base + many))
+    grown = t.finish()
+    assert len(grown) == 1 and grown[0].score == 80 and grown[0].token == "classfam:ccitadel:crescita:8"
+    assert "da 2 a 8 nomi" in grown[0].text and "CCitadelSoulThing" in grown[0].text
+    # la volta dopo si riparte da 8: serve arrivare ad almeno 16
+    t = ClassFamilyTracker(cfg, db)
+    t.collect(REPO, grep_git([], base + many + ["CCitadelExtraOne", "CCitadelExtraTwo"]))
+    assert t.finish() == []
+    db.close()

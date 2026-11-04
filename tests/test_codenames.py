@@ -98,3 +98,21 @@ def test_hardware_place_scores(tmp_path):
     assert t.check("k_EControllerType_SteamControllerNeptune", "a.js", game="steamclient").score == 80
     assert t.check("k_EControllerType_ZotacZone", "a.js", game="steamclient").score == 60
     db.close()
+
+
+def test_many_new_names_in_one_file_become_one_alert():
+    from hlxwatch.analyzers.codenames import group_new_names
+    from hlxwatch.models import Finding
+
+    def name(n, score):
+        return Finding(game="steamclient", source="github", file_path="a.js", change_type="codename", text=f"x {n}",
+                       score=score, keywords=["codename_new"], token=f"codename:{n}")
+    many = [name("xbox360controller", 60), name("steamcontrollerneptune", 80), name("ps4controller", 60),
+            name("switchprocontroller", 60)]
+    other = Finding(game="steamclient", source="github", file_path="a.js", change_type="added", text="hlx", score=100)
+    out = group_new_names([*many, other], 4)
+    assert len(out) == 2 and out[1] is other
+    g = out[0]
+    assert g.score == 80 and "codename_group" in g.keywords and "steamcontrollerneptune" in g.text
+    assert "4 nomi mai visti" in g.text
+    assert group_new_names(many[:3], 4) == many[:3]            # tre nomi: restano separati

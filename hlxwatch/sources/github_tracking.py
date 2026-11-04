@@ -19,7 +19,7 @@ from requests.adapters import HTTPAdapter
 
 from hlxwatch import __version__
 from hlxwatch.analyzers import KeywordMatcher, analyze_line_sets, analyze_patch
-from hlxwatch.analyzers.codenames import CodenameTracker
+from hlxwatch.analyzers.codenames import CodenameTracker, group_new_names
 from hlxwatch.analyzers.localization import LocalizationTracker
 from hlxwatch.sources.bigcommit import LocalDiff
 from hlxwatch.analyzers.renames import find_renames
@@ -477,7 +477,7 @@ class GitHubTrackingSource:
                                    text=stripped[:500], score=watched[1], keywords=["watched_file"],
                                    context=f"file sorvegliato: {watched[0]}"))
                 shown += 1
-        return out
+        return group_new_names(out, self.codenames.group_min)
 
     def backfill_renames(self, max_files: int = 200) -> int:
         """Una volta sola: cerca le rinomine nei commit già nell'archivio. Prima che esistesse il controllo una

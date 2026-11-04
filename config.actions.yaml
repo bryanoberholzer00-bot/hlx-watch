@@ -113,6 +113,7 @@ codenames:
   # hardware: avviso, non rilevanza alta. vr_device e controller_type anche di altre marche (60); valve_device
   # ("Valve Deckard" nei driver di SteamVR) e controller_type_valve (k_EControllerType_SteamControllerNeptune) 80
   place_scores: {vr_device: 60, controller_type: 60, valve_device: 80, controller_type_valve: 80}
+  group_min: 4                           # da 4 nomi nuovi nello stesso file: una voce sola con l'elenco
   known: [csgo, cs2, dota, dota2, dota_lv, hlx, hlvr, "half-life vr", hl3, left4dead3, left4dead2_source2,
           rpg, citadel, core, "source 2 tools", steamvr, steampal,
           # rami di compilazione presenti oggi nei dump delle DLL (CS2, Dota 2, Deadlock, Alyx, SteamVR, client Steam)
@@ -312,6 +313,9 @@ class_families:                          # famiglie di classi C++ nuove (CHLX...
   score_high: 80
   ignore: [CUDA, CURL, CLSID]            # famiglie di librerie esterne da non segnalare
   max_related_names: 5                   # classe sola: contano fino a 5 nomi con la stessa parola senza C (CitadelHudEvent)
+  growth_min: 5                          # famiglia già segnalata che raddoppia (e almeno +5 nomi): avviso nuovo
+  growth_step: 25                        # ...con 25 punti in più della volta prima
+  growth_max: 95                         # sotto 100: la crescita da sola non entra in alta rilevanza (le famiglie HLX partono già più in alto)
 
 full_scan:
   enabled: true

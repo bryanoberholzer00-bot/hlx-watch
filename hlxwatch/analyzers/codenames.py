@@ -105,6 +105,8 @@ class CodenameTracker:
         self.score = int(ccfg.get("score", 120))
         # punteggio per posto: un controller nuovo di un altro marchio non vale un progetto Valve nuovo
         self.place_scores = {str(k): int(v) for k, v in (ccfg.get("place_scores") or {}).items()}
+        # tanti nomi nuovi nello stesso file insieme = un elenco comparso per la prima volta: una voce sola
+        self.group_min = int(ccfg.get("group_min", 4))
         self.seen: dict[str, dict[str, Any]] = json.loads(db.get_state(STATE_SEEN) or "{}")
         self.known: set[str] = {normalize(str(n)) for n in (ccfg.get("known") or [])} | set(self.seen)
 
@@ -170,3 +172,39 @@ class CodenameTracker:
                 context=f"nome di progetto '{name}' mai visto: {desc}",
             )
         return None
+
+
+def group_new_names(findings: list[Finding], min_group: int) -> list[Finding]:
+    """Nomi nuovi dello stesso file: da `min_group` in su diventano una voce sola con l'elenco.
+
+    L'11 maggio 2021 il client di Steam ha ricevuto tutto l'elenco dei tipi di controller in un colpo: 25 avvisi, e
+    quello giusto (SteamControllerNeptune) si perdeva tra Xbox e PlayStation. Ora è un avviso solo, con il punteggio
+    del nome più alto e tutti i nomi nel testo; i nomi restano imparati uno per uno."""
+    if min_group < 2:
+        return findings
+    groups: dict[tuple[str, str], list[Finding]] = {}
+    for f in findings:
+        if f.change_type == "codename" and "codename_new" in (f.keywords or []):
+            groups.setdefault((f.game, f.file_path or ""), []).append(f)
+    out: list[Finding] = []
+    done: set[tuple[str, str]] = set()
+    for f in findings:
+        key = (f.game, f.file_path or "")
+        group = groups.get(key) if f.change_type == "codename" and "codename_new" in (f.keywords or []) else None
+        if group is None or len(group) < min_group:
+            out.append(f)
+            continue
+        if key in done:
+            continue
+        done.add(key)
+        group = sorted(group, key=lambda g: -g.score)
+        names = [str(g.token or "").split(":", 1)[-1] for g in group]
+        base = key[1].rsplit("/", 1)[-1] or "file"
+        out.append(Finding(
+            game=key[0], source=group[0].source, file_path=key[1], line_no=group[0].line_no, change_type="codename",
+            text=f"elenco nuovo in {base}: {len(names)} nomi mai visti: {', '.join(names)}"[:500],
+            score=group[0].score, keywords=["codename_new", "codename_group"],
+            token="codenames:" + ",".join(sorted(names))[:200],
+            context=f"il nome con il punteggio più alto: {group[0].text.strip()[:200]}",
+        ))
+    return out

@@ -113,3 +113,29 @@ def test_summary_labels():
     assert backtest.kind({"type": "codename"}) == "nome di progetto mai visto"
     rows = backtest.summary(backtest.load_seed())
     assert any(r["first"] and r["key"] == "deadlock_2022" for r in rows)
+
+
+def test_periodic_scans_see_a_family_grow(tmp_path, monkeypatch):
+    repo = tmp_path / "src"
+    (repo / "bin").mkdir(parents=True)
+    git(repo, "init", "-q", "-b", "master")
+    git(repo, "config", "uploadpack.allowAnySHA1InWant", "true")
+    dump = repo / "bin" / "client_strings.txt"
+    steps = [("2021-12-30", ["CDotaPlayerPawn", "CDotaAbilityBase"]),
+             ("2022-01-20", ["CCitadelPlayerPawn", "CCitadelAbilityBase"]),
+             ("2022-02-20", [f"CCitadel{w}Thing" for w in ("Hero", "Item", "Shop", "Lane", "Zip", "Soul")])]
+    commits = []
+    for day, names in steps:
+        dump.write_text((dump.read_text(encoding="utf-8") if dump.exists() else "") + "\n".join(names) + "\n",
+                        encoding="utf-8")
+        commits.append((commit(repo, day, f"{day}T10:00:00+00:00"), datetime.fromisoformat(f"{day}T10:00:00+00:00")))
+
+    def before(client, repo_name, branch, when):
+        ok = [c for c in commits if c[1] < when]
+        return ok[-1] if ok else None
+    monkeypatch.setattr(backtest, "commit_before", before)
+    test = {**TEST, "start": "2022-01-01", "end": "2022-03-15", "scan_every_days": 30}
+    r = backtest.run_scans_test(make_cfg(tmp_path, repo), "t", test, tmp_path / "work")
+    assert r["mode"] == "scansioni" and r["commits"] == 3
+    fam = [(a["day"], a["score"], a["token"]) for a in r["related"] if a["type"] == "class_family"]
+    assert fam == [("2022-01-20", 55, "classfam:ccitadel"), ("2022-02-20", 80, "classfam:ccitadel:crescita:8")]

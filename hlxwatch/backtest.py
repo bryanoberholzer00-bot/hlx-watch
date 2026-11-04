@@ -50,8 +50,8 @@ TESTS: dict[str, dict[str, Any]] = {
                    "codes": r"deckard",
                    "nota": "Il 31 marzo 2022 entra nel driver dei sensori di SteamVR l'elenco dei dispositivi Valve, con "
                            "'Valve Deckard'. Fino al 4 novembre 2026 nessun rilevatore guardava lì; ora è un posto dei nomi "
-                           "di progetto. Lo stesso giorno arrivano anche Index, VMinus1 e Unidentified: l'elenco compariva "
-                           "per la prima volta, e oggi sono nomi già noti."},
+                           "di progetto. L'elenco compariva per la prima volta, con Index, VMinus1 e Unidentified: arriva un "
+                           "avviso solo con tutti e quattro i nomi."},
     "frame_2025": {"title": "Steam Frame: i mesi prima dell'annuncio", "project": "Steam Frame",
                    "announced": "2025-11-12", "repo": "steamvr", "start": "2025-06-01", "end": "2025-11-12",
                    "codes": r"deckard|frame_(?:hmd|controller)|fremont|ibex|steam ?frame",
@@ -82,8 +82,15 @@ TESTS: dict[str, dict[str, Any]] = {
                   "codes": r"neptune|steampal",
                   "nota": "L'11 maggio 2021 compare nel client di Steam l'elenco dei tipi di controller, con "
                           "k_eControllerType_SteamControllerNeptune: il controller dello Steam Deck, due mesi prima "
-                          "dell'annuncio. Lo stesso giorno arrivano anche gli altri tipi (Xbox, PlayStation...), perché "
-                          "l'elenco compariva per la prima volta; oggi sono già noti."},
+                          "dell'annuncio. L'elenco compariva per la prima volta con 25 tipi (Xbox, PlayStation...): "
+                          "arriva un avviso solo con tutti i nomi, invece di 25."},
+    "deadlock_crescita": {"title": "Deadlock: da marzo 2021 all'annuncio, una scansione ogni 60 giorni",
+                          "project": "Deadlock", "announced": "2024-08-23", "repo": "dota2", "start": "2021-03-01",
+                          "end": "2024-08-22", "codes": r"citadel", "scan_every_days": 60,
+                          "nota": "Con una scansione ogni 60 giorni CCitadel arriva il 29 aprile 2021 e CCitadelUserCmdPB "
+                                  "il 23 giugno 2022. In Dota 2 la famiglia CCitadel non è mai cresciuta (il codice di "
+                                  "Deadlock era altrove), quindi l'avviso di crescita non scatta; scatta invece per parti "
+                                  "del motore come CPulse e CTerrain, 6 volte in tre anni e mezzo, al massimo a 95 punti."},
 }
 
 
@@ -259,7 +266,12 @@ def run_test(cfg: Config, key: str, test: dict[str, Any], workdir: Path) -> dict
         alerts.sort(key=lambda a: a["day"])
     finally:
         db.close()
+    return _result(key, test, alerts, len(commits), start_sha, end_sha, learned, started)
 
+
+def _result(key: str, test: dict[str, Any], alerts: list[dict[str, Any]], steps: int, start_sha: str, end_sha: str,
+            learned: list[str], started: float, mode: str = "commit") -> dict[str, Any]:
+    code_re = re.compile(test["codes"], re.IGNORECASE)
     announced = date.fromisoformat(test["announced"])
     related = [a for a in alerts if is_related(a, code_re)]
     for a in related:
@@ -268,7 +280,7 @@ def run_test(cfg: Config, key: str, test: dict[str, Any], workdir: Path) -> dict
     others = [a for a in alerts if not is_related(a, code_re)]
     return {
         "key": key, **{k: test[k] for k in ("title", "project", "announced", "repo", "start", "end", "codes")},
-        "commits": len(commits), "start_sha": start_sha, "end_sha": end_sha,
+        "commits": steps, "mode": mode, "start_sha": start_sha, "end_sha": end_sha,
         "learned_at_start": learned,
         "related": related[:50], "related_total": len(related),
         "first_related": related[0] if related else None,
@@ -280,6 +292,74 @@ def run_test(cfg: Config, key: str, test: dict[str, Any], workdir: Path) -> dict
     }
 
 
+def run_scans_test(cfg: Config, key: str, test: dict[str, Any], workdir: Path) -> dict[str, Any]:
+    """Solo la scansione completa, ogni `scan_every_days` giorni su un periodo lungo (anni): serve per le regole che
+    guardano come cambia il contenuto nel tempo, come la crescita delle famiglie di classi. Ogni voce prende la data
+    del commit scansionato, quindi l'anticipo è giusto a meno di `scan_every_days` giorni."""
+    repo_cfg = next((r for r in cfg.github_repos if r["name"] == test["repo"]), None)
+    if repo_cfg is None:
+        raise ValueError(f"repository {test['repo']} non nel config")
+    repo, branch = repo_cfg["repo"], repo_cfg.get("branch", "master")
+    url = repo_cfg.get("clone_url") or f"https://github.com/{repo}.git"
+    code_re = re.compile(test["codes"], re.IGNORECASE)
+    root = workdir / key
+    if root.exists():
+        _remove(root)
+    root.mkdir(parents=True)
+    tcfg = blind_config(cfg, root, test["codes"])
+    db = Database(tcfg.db_path)
+    started = time.time()
+    notify_min = int(cfg.get("general.notify_min_score", 50))
+    alerts: list[dict[str, Any]] = []
+    learned: list[str] = []
+    shas: list[str] = []
+    try:
+        client = GitHubClient(cfg.get("github.api_url", "https://api.github.com"),
+                              cfg.get("github.raw_url", "https://raw.githubusercontent.com"), cfg.github_token)
+        when, end = _day(test["start"]), _day(test["end"])
+        step = timedelta(days=int(test["scan_every_days"]))
+        while when <= end:
+            found_commit = commit_before(client, repo, branch, when)
+            when += step
+            if not found_commit or (shas and found_commit[0] == shas[-1]):
+                continue
+            sha, cdate = found_commit
+            gitdir = root / f"scan{len(shas)}.git"
+            _git("init", "-q", "--bare", str(gitdir))
+            _git("-C", str(gitdir), "fetch", "-q", "--depth", "1", url, sha)
+            _git("-C", str(gitdir), "update-ref", "HEAD", sha)
+            scan = _BaselineScan(tcfg, db, gitdir, sha)
+            found = scan.scan_repo(repo_cfg)
+            bid = db.upsert_build(BuildInfo(game=repo_cfg["name"], source="fullscan", ref=f"tree:{sha[:12]}",
+                                            date=cdate, url=f"https://github.com/{repo}/tree/{sha}"))
+            if not shas:                         # la prima: si impara in silenzio
+                for f in found:
+                    db.add_finding(f, bid, created_at=cdate)
+                scan.codenames.finish_learning()
+                scan.pulse.finish()
+                scan.families.finish()
+                seen = json.loads(db.get_state("codenames:seen") or "{}")
+                learned = sorted(n for n in seen if code_re.search(n))
+            else:
+                found += scan.families.finish() + scan.pulse.finish()
+                for f in found:
+                    if f.id is None:
+                        db.add_finding(f, bid, created_at=cdate)
+                    if f.is_new and f.score >= notify_min:
+                        alerts.append({"day": cdate.date().isoformat(), "sha": sha[:10], "score": f.score,
+                                       "type": f.change_type, "file_path": f.file_path,
+                                       "text": (f.text or "")[:300], "token": f.token,
+                                       "keywords": list(f.keywords or []), "context": (f.context or "")[:200]})
+            shas.append(sha)
+            log.info("[prova %s] scansione %d del %s: %d voci", key, len(shas), cdate.date(), len(found))
+            _remove(gitdir)
+    finally:
+        db.close()
+    if not shas:
+        raise RuntimeError("nessun commit nel periodo")
+    return _result(key, test, alerts, len(shas), shas[0], shas[-1], learned, started, mode="scansioni")
+
+
 def run(cfg: Config, keys: list[str] | None, workdir: Path, out: Path) -> dict[str, Any]:
     data: dict[str, Any] = json.loads(out.read_text(encoding="utf-8")) if out.exists() else {"tests": {}}
     for key, test in TESTS.items():
@@ -287,7 +367,8 @@ def run(cfg: Config, keys: list[str] | None, workdir: Path, out: Path) -> dict[s
             continue
         log.info("Prova sul passato %s: %s (%s, %s -> %s)", key, test["title"], test["repo"], test["start"], test["end"])
         try:
-            data["tests"][key] = run_test(cfg, key, test, workdir)
+            runner = run_scans_test if test.get("scan_every_days") else run_test
+            data["tests"][key] = runner(cfg, key, test, workdir)
         except Exception as exc:
             log.exception("Prova %s non riuscita", key)
             data["tests"][key] = {"key": key, "title": test["title"], "error": str(exc)[:500]}

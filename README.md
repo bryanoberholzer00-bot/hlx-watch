@@ -396,6 +396,14 @@ tolgono da nomi noti, parole chiave, esclusioni e file sorvegliati (sono stati s
 repository parte com'era il giorno prima della finestra e la scansione completa impara in silenzio quello che c'era.
 Tutto avviene in un archivio temporaneo separato, senza notifiche. Il risultato va in `hlxwatch/backtest_seed.json`
 e nella pagina Metodologia; `--prova deadlock_2022` limita a una prova. Le prove su Dota 2 richiedono 15-25 minuti.
+Le prove con `scan_every_days` (per esempio `deadlock_crescita`, da marzo 2021 ad agosto 2024) non leggono i commit:
+fanno solo la scansione completa a intervalli regolari, per le regole che guardano come cambia il contenuto nel tempo
+(la crescita delle famiglie di classi).
+
+Dalle prove sono venute alcune regole: i nomi senza C di una famiglia con una classe sola (CitadelHudEvent), i dispositivi
+"Valve <nome>" nei driver di SteamVR, i tipi di controller `k_EControllerType_` del client di Steam, un avviso solo per
+un elenco di nomi nuovi comparso tutto insieme (`codenames.group_min`) e un avviso nuovo, più alto, quando una famiglia
+già segnalata almeno raddoppia (`class_families.growth_*`).
 
 ### Cronologia HLX
 

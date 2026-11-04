@@ -34,6 +34,7 @@ from hlxwatch.storage.db import iso, utcnow
 log = logging.getLogger(__name__)
 
 STATE = "classfam:known"
+STATE_REPORTED = "classfam:reported"     # famiglie segnalate: quanti nomi avevano e con che punteggio
 GREP = r"\bC_?[A-Z][A-Za-z0-9_]{4,}"
 CLASS = re.compile(r"^C_?(?P<fam>[A-Z]{2,}(?=[A-Z][a-z]|_[A-Z])|[A-Z][a-z]{2,}[0-9]*)"
                    r"(?P<rest>(?:[A-Z][a-z]{2,}|[A-Z]{2,}(?=[A-Z][a-z]|_|$)|_|[0-9])[A-Za-z0-9_]*)$")
@@ -75,6 +76,11 @@ class ClassFamilyTracker:
         self.ignore = set(ccfg.get("ignore") or DEFAULT_IGNORE)
         self.max_related = int(ccfg.get("max_related_greps", 40))   # ricerche dei nomi senza C, per repository
         self.max_related_names = int(ccfg.get("max_related_names", 5))
+        # una famiglia già segnalata che cresce (almeno il doppio dei nomi e almeno growth_min in più) è un avviso nuovo,
+        # più alto di growth_step punti fino a growth_max: un progetto vero cresce, il rumore di solito no
+        self.growth_min = int(ccfg.get("growth_min", 5))
+        self.growth_step = int(ccfg.get("growth_step", 25))
+        self.growth_max = int(ccfg.get("growth_max", 95))
         self.matcher = KeywordMatcher(cfg.keywords)
         # famiglia -> {"names": set, "games": {gioco: repo_cfg}} in questa scansione completa
         self.seen_now: dict[str, dict[str, Any]] = {}
@@ -156,27 +162,80 @@ class ClassFamilyTracker:
             reported.add(fam)
         if reported:
             self.db.set_state(STATE, json.dumps(sorted(known | reported)))
+        out += self._growth(reported)
         return out
 
-    def _finding(self, fam: str, entry: dict[str, Any]) -> Finding:
+    # ---------------------------------------------------------------- crescita
+    def reported(self) -> dict[str, dict[str, Any]]:
+        """famiglia -> {"n": nomi, "score": punteggio, "names": [...]} delle famiglie segnalate. La prima volta si
+        ricostruisce dalle voci già nell'archivio (CHLX e le altre segnalate prima di questa regola)."""
+        raw = self.db.get_state(STATE_REPORTED)
+        if raw is not None:
+            return json.loads(raw)
+        out: dict[str, dict[str, Any]] = {}
+        for r in self.db.conn.execute("SELECT score, context FROM findings WHERE change_type = 'class_family' "
+                                      "ORDER BY id").fetchall():
+            try:
+                ctx = json.loads(r["context"] or "{}")
+            except ValueError:
+                continue
+            fam, names = ctx.get("famiglia"), ctx.get("nomi") or []
+            if fam:
+                out[fam] = {"n": int(ctx.get("n") or len(names)), "score": int(r["score"]), "names": names[:300]}
+        self.db.set_state(STATE_REPORTED, json.dumps(out, ensure_ascii=False))
+        return out
+
+    def _remember_report(self, fam: str, names: list[str], score: int) -> None:
+        rep = self.reported()
+        rep[fam] = {"n": len(names), "score": score, "names": names[:300]}
+        self.db.set_state(STATE_REPORTED, json.dumps(rep, ensure_ascii=False))
+
+    def _growth(self, just_reported: set[str]) -> list[Finding]:
+        out: list[Finding] = []
+        rep = self.reported()
+        for fam, entry in sorted(self.seen_now.items()):
+            old = rep.get(fam)
+            if old is None or fam in just_reported:
+                continue
+            n_old, n_now = int(old["n"]), len(entry["names"])
+            if n_now < max(2 * n_old, n_old + self.growth_min):
+                continue
+            score = max(int(old["score"]), min(int(old["score"]) + self.growth_step, self.growth_max))
+            out.append(self._finding(fam, entry, grown_from=n_old, score=score, old_names=set(old.get("names") or [])))
+        return out
+
+    def _finding(self, fam: str, entry: dict[str, Any], *, grown_from: int | None = None, score: int | None = None,
+                 old_names: set[str] | None = None) -> Finding:
         names = sorted(entry["names"])
         games = sorted(entry["games"])
-        score = self.score_high if len(names) >= self.names_high else self.score
         keywords = ["class_family"]
-        for name in names[:50]:
-            res = self.matcher.analyze_line(name, file_path="", change_type="added")
-            if res and res.score + 10 > score:
-                score, keywords = min(res.score + 10, 250), ["class_family", *res.keywords]
+        if score is None:
+            score = self.score_high if len(names) >= self.names_high else self.score
+            for name in names[:50]:
+                res = self.matcher.analyze_line(name, file_path="", change_type="added")
+                if res and res.score + 10 > score:
+                    score, keywords = min(res.score + 10, 250), ["class_family", *res.keywords]
         game = games[0]
         repo_cfg = entry["games"][game]
-        text = f"Famiglia di classi nuova: {fam} ({len(names)} nomi): {', '.join(names[:6])}"
+        if grown_from is None:
+            what, token = "nuova", f"classfam:{fam.lower()}"
+            text = f"Famiglia di classi nuova: {fam} ({len(names)} nomi): {', '.join(names[:6])}"
+        else:
+            what, token = "in crescita", f"classfam:{fam.lower()}:crescita:{len(names)}"
+            keywords.append("class_family_growth")
+            fresh = [n for n in names if n not in (old_names or set())] or names
+            text = (f"Famiglia di classi in crescita: {fam}, da {grown_from} a {len(names)} nomi. "
+                    f"Nuovi: {', '.join(fresh[:10])}")
         build = BuildInfo(game=game, source="fullscan", ref=f"classfam:{fam}:{iso(utcnow())[:10]}", date=utcnow(),
                           url=f"https://github.com/{repo_cfg['repo']}/search?q={fam}",
-                          message=f"famiglia di classi nuova {fam}")
+                          message=f"famiglia di classi {what} {fam}")
         f = Finding(game=game, source="fullscan", file_path=f"classi {fam}*", change_type="class_family",
-                    text=text[:500], score=score, keywords=keywords, token=f"classfam:{fam.lower()}",
-                    context=json.dumps({"famiglia": fam, "nomi": names[:100], "giochi": games}, ensure_ascii=False))
+                    text=text[:500], score=score, keywords=keywords, token=token,
+                    context=json.dumps({"famiglia": fam, "n": len(names), "nomi": names[:100], "giochi": games},
+                                       ensure_ascii=False))
         f.build = build
         self.db.add_finding(f, self.db.upsert_build(build))
-        log.warning("FAMIGLIA DI CLASSI NUOVA %s (%d nomi, %s): %s", fam, len(names), ", ".join(games), names[:4])
+        self._remember_report(fam, names, score)
+        log.warning("FAMIGLIA DI CLASSI %s %s (%d nomi, %s): %s", what.upper(), fam, len(names), ", ".join(games),
+                    names[:4])
         return f

@@ -23,7 +23,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
-from hlxwatch.analyzers.codenames import PREFILTER as CODENAME_PREFILTER, CodenameTracker
+from hlxwatch.analyzers.codenames import PREFILTER as CODENAME_PREFILTER, CodenameTracker, group_new_names
 from hlxwatch.analyzers.orphans import OrphanTracker
 from hlxwatch.analyzers.pulse import PulseTracker
 from hlxwatch.analyzers.localization import GREP_PATTERN as LOC_GREP, LocalizationTracker, prefix_counts
@@ -207,7 +207,7 @@ class FullScanSource:
         build = BuildInfo(game=name, source="fullscan", ref=f"tree:{sha[:12]}", date=utcnow(),
                           url=f"https://github.com/{repo}/tree/{sha}",
                           message=f"Scansione completa del contenuto ({len(new_keys)} occorrenze)")
-        findings: list[Finding] = [*codename_findings, *loc_findings]
+        findings: list[Finding] = [*group_new_names(codename_findings, self.codenames.group_min), *loc_findings]
 
         def make(file_path: str, line_no: int | None, text: str, res: Any, change_type: str) -> Finding:
             return Finding(game=name, source="fullscan", file_path=file_path, change_type=change_type, text=text,

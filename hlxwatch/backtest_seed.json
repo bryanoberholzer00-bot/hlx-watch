@@ -10,6 +10,7 @@
    "end": "2022-07-01",
    "codes": "deckard",
    "commits": 22,
+   "mode": "commit",
    "start_sha": "d6f33b911bdf6caffcda5843db7320d8265136c2",
    "end_sha": "a6d5c07698cceb8cb800612ec7f29d59cfa2700c",
    "learned_at_start": [],
@@ -20,12 +21,13 @@
      "score": 80,
      "type": "codename",
      "file_path": "drivers/lighthouse/bin/win32/driver_lighthouse_strings.txt",
-     "text": "Valve Deckard",
-     "token": "codename:deckard",
+     "text": "elenco nuovo in driver_lighthouse_strings.txt: 4 nomi mai visti: deckard, index, unidentified, vminus1",
+     "token": "codenames:deckard,index,unidentified,vminus1",
      "keywords": [
-      "codename_new"
+      "codename_new",
+      "codename_group"
      ],
-     "context": "nome di progetto 'deckard' mai visto: dispositivo Valve nei driver di SteamVR (Valve <nome>)",
+     "context": "il nome con il punteggio più alto: Valve Deckard",
      "anticipo_giorni": 1322
     }
    ],
@@ -36,71 +38,20 @@
     "score": 80,
     "type": "codename",
     "file_path": "drivers/lighthouse/bin/win32/driver_lighthouse_strings.txt",
-    "text": "Valve Deckard",
-    "token": "codename:deckard",
+    "text": "elenco nuovo in driver_lighthouse_strings.txt: 4 nomi mai visti: deckard, index, unidentified, vminus1",
+    "token": "codenames:deckard,index,unidentified,vminus1",
     "keywords": [
-     "codename_new"
+     "codename_new",
+     "codename_group"
     ],
-    "context": "nome di progetto 'deckard' mai visto: dispositivo Valve nei driver di SteamVR (Valve <nome>)",
+    "context": "il nome con il punteggio più alto: Valve Deckard",
     "anticipo_giorni": 1322
    },
-   "alerts_total": 11,
+   "alerts_total": 7,
    "alerts_high": 0,
-   "others_per_month": 2.5,
+   "others_per_month": 1.5,
    "others_high_per_month": 0.0,
    "others_sample": [
-    {
-     "day": "2022-03-31",
-     "sha": "bd9f53945a",
-     "score": 80,
-     "type": "codename",
-     "file_path": "drivers/gamepad/bin/win32/driver_gamepad_strings.txt",
-     "text": "Valve Corp.0",
-     "token": "codename:corp",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'corp' mai visto: dispositivo Valve nei driver di SteamVR (Valve <nome>)"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "bd9f53945a",
-     "score": 80,
-     "type": "codename",
-     "file_path": "drivers/lighthouse/bin/win32/driver_lighthouse_strings.txt",
-     "text": "Valve Index HMD",
-     "token": "codename:index",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'index' mai visto: dispositivo Valve nei driver di SteamVR (Valve <nome>)"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "bd9f53945a",
-     "score": 80,
-     "type": "codename",
-     "file_path": "drivers/lighthouse/bin/win32/driver_lighthouse_strings.txt",
-     "text": "Valve Unidentified",
-     "token": "codename:unidentified",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'unidentified' mai visto: dispositivo Valve nei driver di SteamVR (Valve <nome>)"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "bd9f53945a",
-     "score": 80,
-     "type": "codename",
-     "file_path": "drivers/lighthouse/bin/win32/driver_lighthouse_strings.txt",
-     "text": "Valve VMinus1",
-     "token": "codename:vminus1",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'vminus1' mai visto: dispositivo Valve nei driver di SteamVR (Valve <nome>)"
-    },
     {
      "day": "2022-03-31",
      "sha": "a6d5c07698",
@@ -112,7 +63,7 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CAXPAV\", \"nomi\": [\"CAXPAVIsolate\", \"CAXPAVValue\"], \"giochi\": [\"steamvr\"]}"
+     "context": "{\"famiglia\": \"CAXPAV\", \"n\": 2, \"nomi\": [\"CAXPAVIsolate\", \"CAXPAVValue\"], \"giochi\": [\"steamvr\"]}"
     },
     {
      "day": "2022-03-31",
@@ -125,7 +76,7 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CCallback\", \"nomi\": [\"CCallbackImpl\", \"CCallbackManual\"], \"giochi\": [\"steamvr\"]}"
+     "context": "{\"famiglia\": \"CCallback\", \"n\": 2, \"nomi\": [\"CCallbackImpl\", \"CCallbackManual\"], \"giochi\": [\"steamvr\"]}"
     },
     {
      "day": "2022-03-31",
@@ -138,7 +89,7 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CDef\", \"nomi\": [\"CDefEquals\", \"CDefHashKey\", \"CDefLess\", \"CDefRBTreeBalanceListener\"], \"giochi\": [\"steamvr\"]}"
+     "context": "{\"famiglia\": \"CDef\", \"n\": 4, \"nomi\": [\"CDefEquals\", \"CDefHashKey\", \"CDefLess\", \"CDefRBTreeBalanceListener\"], \"giochi\": [\"steamvr\"]}"
     },
     {
      "day": "2022-03-31",
@@ -151,7 +102,7 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CDesktop\", \"nomi\": [\"CDesktopManagerThread\", \"DesktopManagerThread\", \"DesktopView\", \"DesktopView_\"], \"giochi\": [\"steamvr\"]}"
+     "context": "{\"famiglia\": \"CDesktop\", \"n\": 4, \"nomi\": [\"CDesktopManagerThread\", \"DesktopManagerThread\", \"DesktopView\", \"DesktopView_\"], \"giochi\": [\"steamvr\"]}"
     },
     {
      "day": "2022-03-31",
@@ -164,7 +115,7 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CSV\", \"nomi\": [\"CSVFileWriter\", \"CSVWriting\"], \"giochi\": [\"steamvr\"]}"
+     "context": "{\"famiglia\": \"CSV\", \"n\": 2, \"nomi\": [\"CSVFileWriter\", \"CSVWriting\"], \"giochi\": [\"steamvr\"]}"
     },
     {
      "day": "2022-03-31",
@@ -177,10 +128,10 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CWin32\", \"nomi\": [\"CWin32EntropyPool\", \"Win32Event\", \"Win32Exception\", \"Win32Mutex\"], \"giochi\": [\"steamvr\"]}"
+     "context": "{\"famiglia\": \"CWin32\", \"n\": 4, \"nomi\": [\"CWin32EntropyPool\", \"Win32Event\", \"Win32Exception\", \"Win32Mutex\"], \"giochi\": [\"steamvr\"]}"
     }
    ],
-   "seconds": 2026
+   "seconds": 1680
   },
   "frame_2025": {
    "key": "frame_2025",
@@ -192,6 +143,7 @@
    "end": "2025-11-12",
    "codes": "deckard|frame_(?:hmd|controller)|fremont|ibex|steam ?frame",
    "commits": 10,
+   "mode": "commit",
    "start_sha": "06c9ce748561b74fb5806438563ac1f71cd23854",
    "end_sha": "573f14ddfee3d0efcad972a861c1d38253215d8a",
    "learned_at_start": [],
@@ -214,7 +166,7 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CNFG\", \"nomi\": [\"CNFGBlitImage\", \"CNFGChangeWindowTitle\", \"CNFGClassHint\", \"CNFGClearFrame\", \"CNFGColor\", \"CNFGDepth\", \"CNFGDialogColor\", \"CNFGDisplay\", \"CNFGDrawBox\", \"CNFGDrawText\", \"C"
+     "context": "{\"famiglia\": \"CNFG\", \"n\": 38, \"nomi\": [\"CNFGBlitImage\", \"CNFGChangeWindowTitle\", \"CNFGClassHint\", \"CNFGClearFrame\", \"CNFGColor\", \"CNFGDepth\", \"CNFGDialogColor\", \"CNFGDisplay\", \"CNFGDrawBox\", \"CNFGDraw"
     },
     {
      "day": "2025-06-03",
@@ -253,7 +205,7 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CPcap\", \"nomi\": [\"CPcapRadiotapWriter\", \"CPcapWriterBase\"], \"giochi\": [\"steamvr\"]}"
+     "context": "{\"famiglia\": \"CPcap\", \"n\": 2, \"nomi\": [\"CPcapRadiotapWriter\", \"CPcapWriterBase\"], \"giochi\": [\"steamvr\"]}"
     },
     {
      "day": "2025-06-03",
@@ -266,10 +218,10 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CWinsock\", \"nomi\": [\"CWinsockControlListener\", \"CWinsockImpl\"], \"giochi\": [\"steamvr\"]}"
+     "context": "{\"famiglia\": \"CWinsock\", \"n\": 2, \"nomi\": [\"CWinsockControlListener\", \"CWinsockImpl\"], \"giochi\": [\"steamvr\"]}"
     }
    ],
-   "seconds": 1159
+   "seconds": 994
   },
   "deadlock_2021": {
    "key": "deadlock_2021",
@@ -281,6 +233,7 @@
    "end": "2021-05-01",
    "codes": "citadel",
    "commits": 88,
+   "mode": "commit",
    "start_sha": "a91bd155efa77c74b21fbed7c74266f39da1d834",
    "end_sha": "563649b74fb55fd6d91267b20f02b8aa9f92011e",
    "learned_at_start": [],
@@ -296,7 +249,7 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CCitadel\", \"nomi\": [\"CCitadelModifierHandleTyped\", \"CitadelHudEvent\"], \"giochi\": [\"dota2\"]}",
+     "context": "{\"famiglia\": \"CCitadel\", \"n\": 2, \"nomi\": [\"CCitadelModifierHandleTyped\", \"CitadelHudEvent\"], \"giochi\": [\"dota2\"]}",
      "anticipo_giorni": 1247
     }
    ],
@@ -312,7 +265,7 @@
     "keywords": [
      "class_family"
     ],
-    "context": "{\"famiglia\": \"CCitadel\", \"nomi\": [\"CCitadelModifierHandleTyped\", \"CitadelHudEvent\"], \"giochi\": [\"dota2\"]}",
+    "context": "{\"famiglia\": \"CCitadel\", \"n\": 2, \"nomi\": [\"CCitadelModifierHandleTyped\", \"CitadelHudEvent\"], \"giochi\": [\"dota2\"]}",
     "anticipo_giorni": 1247
    },
    "alerts_total": 36,
@@ -747,7 +700,7 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CEmbedded\", \"nomi\": [\"CEmbeddedSubclass\", \"CEmbeddedSubclassGeneric\"], \"giochi\": [\"dota2\"]}"
+     "context": "{\"famiglia\": \"CEmbedded\", \"n\": 2, \"nomi\": [\"CEmbeddedSubclass\", \"CEmbeddedSubclassGeneric\"], \"giochi\": [\"dota2\"]}"
     },
     {
      "day": "2021-03-25",
@@ -760,7 +713,7 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CForce\", \"nomi\": [\"CForceFacingCondition\", \"CForceFacingConditionUpdater\"], \"giochi\": [\"dota2\"]}"
+     "context": "{\"famiglia\": \"CForce\", \"n\": 2, \"nomi\": [\"CForceFacingCondition\", \"CForceFacingConditionUpdater\"], \"giochi\": [\"dota2\"]}"
     },
     {
      "day": "2021-04-09",
@@ -776,7 +729,7 @@
      "context": "file sorvegliato: gameinfo.gi (definizione del gioco)"
     }
    ],
-   "seconds": 1459
+   "seconds": 1330
   },
   "deadlock_2022": {
    "key": "deadlock_2022",
@@ -788,6 +741,7 @@
    "end": "2022-07-01",
    "codes": "citadel",
    "commits": 61,
+   "mode": "commit",
    "start_sha": "464adaf20ec0c7db38760cb6a03c2a87a875e4fd",
    "end_sha": "85c261222ed97c7b6714b8770d27a4599600ad9d",
    "learned_at_start": [],
@@ -1046,7 +1000,7 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CCopyable\", \"nomi\": [\"CCopyableUtlMap\", \"CCopyableUtlOrderedMap\"], \"giochi\": [\"dota2\"]}"
+     "context": "{\"famiglia\": \"CCopyable\", \"n\": 2, \"nomi\": [\"CCopyableUtlMap\", \"CCopyableUtlOrderedMap\"], \"giochi\": [\"dota2\"]}"
     },
     {
      "day": "2022-06-09",
@@ -1059,7 +1013,7 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CVehicle\", \"nomi\": [\"CVehicleEntityIO\", \"VehiclePassengerInternalInfo_t\", \"VehiclePassengerState_t\"], \"giochi\": [\"dota2\"]}"
+     "context": "{\"famiglia\": \"CVehicle\", \"n\": 3, \"nomi\": [\"CVehicleEntityIO\", \"VehiclePassengerInternalInfo_t\", \"VehiclePassengerState_t\"], \"giochi\": [\"dota2\"]}"
     },
     {
      "day": "2022-06-09",
@@ -1072,7 +1026,7 @@
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CZero\", \"nomi\": [\"CZeroPoseAnimNode\", \"CZeroPoseUpdateNode\"], \"giochi\": [\"dota2\"]}"
+     "context": "{\"famiglia\": \"CZero\", \"n\": 2, \"nomi\": [\"CZeroPoseAnimNode\", \"CZeroPoseUpdateNode\"], \"giochi\": [\"dota2\"]}"
     },
     {
      "day": "2022-06-09",
@@ -1101,7 +1055,7 @@
      "context": "file sorvegliato: gameinfo.gi (definizione del gioco)"
     }
    ],
-   "seconds": 937
+   "seconds": 911
   },
   "deck_2019": {
    "key": "deck_2019",
@@ -1113,6 +1067,7 @@
    "end": "2020-01-01",
    "codes": "neptune|steampal",
    "commits": 133,
+   "mode": "commit",
    "start_sha": "20c7895cb58290e1e0828694982b49800905e953",
    "end_sha": "72664b54c9cdbd3171400ca0882c9d52513438a5",
    "learned_at_start": [],
@@ -1124,7 +1079,7 @@
    "others_per_month": 0.0,
    "others_high_per_month": 0.0,
    "others_sample": [],
-   "seconds": 383
+   "seconds": 345
   },
   "deck_2021": {
    "key": "deck_2021",
@@ -1136,6 +1091,7 @@
    "end": "2021-06-01",
    "codes": "neptune|steampal",
    "commits": 90,
+   "mode": "commit",
    "start_sha": "819900b23e8fdd2e310eae142771b7d3d339641f",
    "end_sha": "ea2030b03740fb4e9e48e44bb0e46f33ee1edbfe",
    "learned_at_start": [],
@@ -1146,12 +1102,13 @@
      "score": 80,
      "type": "codename",
      "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_SteamControllerNeptune = 4)] =",
-     "token": "codename:steamcontrollerneptune",
+     "text": "elenco nuovo in steammobile_android.js: 25 nomi mai visti: steamcontroller, steamcontrollerv2, steamcontrollerneptune, unknownsteamcontroller, frontpanelboard, unknownnonsteamcontroller, xbox360controller, xboxonecontroller, ps3controller, ps4controller, wiicontroller, applecontroller, androidcontro",
+     "token": "codenames:androidcontroller,applecontroller,frontpanelboard,generickeyboard,genericmouse,lastcontroller,mobiletouch,ps3controller,ps4controller,ps5controller,steamcontroller,steamcontrollerneptune,steamcontroll",
      "keywords": [
-      "codename_new"
+      "codename_new",
+      "codename_group"
      ],
-     "context": "nome di progetto 'steamcontrollerneptune' mai visto: tipo di controller Valve del client di Steam (k_EControllerType_Steam...)",
+     "context": "il nome con il punteggio più alto: (t[(t.k_eControllerType_SteamController = 2)] =",
      "anticipo_giorni": 65
     }
    ],
@@ -1162,334 +1119,616 @@
     "score": 80,
     "type": "codename",
     "file_path": "Scripts/WebUI/steammobile_android.js",
-    "text": "(t[(t.k_eControllerType_SteamControllerNeptune = 4)] =",
-    "token": "codename:steamcontrollerneptune",
+    "text": "elenco nuovo in steammobile_android.js: 25 nomi mai visti: steamcontroller, steamcontrollerv2, steamcontrollerneptune, unknownsteamcontroller, frontpanelboard, unknownnonsteamcontroller, xbox360controller, xboxonecontroller, ps3controller, ps4controller, wiicontroller, applecontroller, androidcontro",
+    "token": "codenames:androidcontroller,applecontroller,frontpanelboard,generickeyboard,genericmouse,lastcontroller,mobiletouch,ps3controller,ps4controller,ps5controller,steamcontroller,steamcontrollerneptune,steamcontroll",
     "keywords": [
-     "codename_new"
+     "codename_new",
+     "codename_group"
     ],
-    "context": "nome di progetto 'steamcontrollerneptune' mai visto: tipo di controller Valve del client di Steam (k_EControllerType_Steam...)",
+    "context": "il nome con il punteggio più alto: (t[(t.k_eControllerType_SteamController = 2)] =",
     "anticipo_giorni": 65
    },
-   "alerts_total": 25,
+   "alerts_total": 1,
    "alerts_high": 0,
-   "others_per_month": 23.5,
+   "others_per_month": 0.0,
    "others_high_per_month": 0.0,
-   "others_sample": [
+   "others_sample": [],
+   "seconds": 443
+  },
+  "deadlock_crescita": {
+   "key": "deadlock_crescita",
+   "title": "Deadlock: da marzo 2021 all'annuncio, una scansione ogni 60 giorni",
+   "project": "Deadlock",
+   "announced": "2024-08-23",
+   "repo": "dota2",
+   "start": "2021-03-01",
+   "end": "2024-08-22",
+   "codes": "citadel",
+   "commits": 22,
+   "mode": "scansioni",
+   "start_sha": "a91bd155efa77c74b21fbed7c74266f39da1d834",
+   "end_sha": "59ae113ee8c7a5c2544a1d80001c36af62e56267",
+   "learned_at_start": [],
+   "related": [
     {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 80,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_SteamController = 2)] =",
-     "token": "codename:steamcontroller",
+     "day": "2021-04-29",
+     "sha": "e684215b88",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CCitadel*",
+     "text": "Famiglia di classi nuova: CCitadel (2 nomi): CCitadelModifierHandleTyped, CitadelHudEvent",
+     "token": "classfam:ccitadel",
      "keywords": [
-      "codename_new"
+      "class_family"
      ],
-     "context": "nome di progetto 'steamcontroller' mai visto: tipo di controller Valve del client di Steam (k_EControllerType_Steam...)"
+     "context": "{\"famiglia\": \"CCitadel\", \"n\": 2, \"nomi\": [\"CCitadelModifierHandleTyped\", \"CitadelHudEvent\"], \"giochi\": [\"dota2\"]}",
+     "anticipo_giorni": 1212
     },
     {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 80,
+     "day": "2022-06-23",
+     "sha": "d3e986bc9c",
+     "score": 120,
      "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_SteamControllerV2 = 3)] =",
-     "token": "codename:steamcontrollerv2",
+     "file_path": "Protobufs/usercmd.proto",
+     "text": "message CCitadelUserCmdPB {",
+     "token": "codename:citadel",
      "keywords": [
       "codename_new"
      ],
-     "context": "nome di progetto 'steamcontrollerv2' mai visto: tipo di controller Valve del client di Steam (k_EControllerType_Steam...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_UnknownSteamController = 1)] =",
-     "token": "codename:unknownsteamcontroller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'unknownsteamcontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_FrontPanelBoard = 20)] =",
-     "token": "codename:frontpanelboard",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'frontpanelboard' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_UnknownNonSteamController = 30)] =",
-     "token": "codename:unknownnonsteamcontroller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'unknownnonsteamcontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_XBox360Controller = 31)] =",
-     "token": "codename:xbox360controller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'xbox360controller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_XBoxOneController = 32)] =",
-     "token": "codename:xboxonecontroller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'xboxonecontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_PS3Controller = 33)] =",
-     "token": "codename:ps3controller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'ps3controller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_PS4Controller = 34)] =",
-     "token": "codename:ps4controller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'ps4controller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_WiiController = 35)] =",
-     "token": "codename:wiicontroller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'wiicontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_AppleController = 36)] =",
-     "token": "codename:applecontroller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'applecontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_AndroidController = 37)] =",
-     "token": "codename:androidcontroller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'androidcontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_SwitchProController = 38)] =",
-     "token": "codename:switchprocontroller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'switchprocontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_SwitchJoyConLeft = 39)] =",
-     "token": "codename:switchjoyconleft",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'switchjoyconleft' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_SwitchJoyConRight = 40)] =",
-     "token": "codename:switchjoyconright",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'switchjoyconright' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_SwitchJoyConPair = 41)] =",
-     "token": "codename:switchjoyconpair",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'switchjoyconpair' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_SwitchInputOnlyController = 42)] =",
-     "token": "codename:switchinputonlycontroller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'switchinputonlycontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_MobileTouch = 43)] =",
-     "token": "codename:mobiletouch",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'mobiletouch' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_XInputSwitchController = 44)] =",
-     "token": "codename:xinputswitchcontroller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'xinputswitchcontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_PS5Controller = 45)] =",
-     "token": "codename:ps5controller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'ps5controller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_XBoxEliteController = 46)] =",
-     "token": "codename:xboxelitecontroller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'xboxelitecontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllerType_LastController = 47)] =",
-     "token": "codename:lastcontroller",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'lastcontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllertype_GenericKeyboard = 400)] =",
-     "token": "codename:generickeyboard",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'generickeyboard' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
-    },
-    {
-     "day": "2021-05-11",
-     "sha": "d0f5c34a2d",
-     "score": 60,
-     "type": "codename",
-     "file_path": "Scripts/WebUI/steammobile_android.js",
-     "text": "(t[(t.k_eControllertype_GenericMouse = 800)] =",
-     "token": "codename:genericmouse",
-     "keywords": [
-      "codename_new"
-     ],
-     "context": "nome di progetto 'genericmouse' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+     "context": "nome di progetto 'citadel' mai visto: messaggio di rete con i comandi del giocatore (UserCmdPB)",
+     "anticipo_giorni": 792
     }
    ],
-   "seconds": 526
+   "related_total": 2,
+   "first_related": {
+    "day": "2021-04-29",
+    "sha": "e684215b88",
+    "score": 55,
+    "type": "class_family",
+    "file_path": "classi CCitadel*",
+    "text": "Famiglia di classi nuova: CCitadel (2 nomi): CCitadelModifierHandleTyped, CitadelHudEvent",
+    "token": "classfam:ccitadel",
+    "keywords": [
+     "class_family"
+    ],
+    "context": "{\"famiglia\": \"CCitadel\", \"n\": 2, \"nomi\": [\"CCitadelModifierHandleTyped\", \"CitadelHudEvent\"], \"giochi\": [\"dota2\"]}",
+    "anticipo_giorni": 1212
+   },
+   "alerts_total": 209,
+   "alerts_high": 9,
+   "others_per_month": 5.0,
+   "others_high_per_month": 0.2,
+   "others_sample": [
+    {
+     "day": "2021-10-25",
+     "sha": "d2c116febb",
+     "score": 135,
+     "type": "added",
+     "file_path": "game/dota/bin/linuxsteamrt64/libclient_strings.txt",
+     "text": "hlx_combine_barrier_cell_spacing",
+     "token": "hlx_combine_barrier_cell_spacing",
+     "keywords": [
+      "hlx",
+      "hlx_prefix"
+     ],
+     "context": "contenuto attuale di SteamTracking/GameTracking-Dota2@d2c116febb"
+    },
+    {
+     "day": "2022-12-20",
+     "sha": "c28b12cd6b",
+     "score": 120,
+     "type": "codename",
+     "file_path": "game/bin/win64/pulse_system_strings.txt",
+     "text": "C:\\buildworker\\source2_win64\\build\\_build_\\pulse_runtime_lib\\_vpc_pulse_runtime_lib\\default\\win64\\_schema_\\release\\pulse_graph_def_h_schema.gen_cpp",
+     "token": "codename:source2_win64",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'source2_win64' mai visto: ramo di compilazione nei percorsi della macchina di build (buildworker)"
+    },
+    {
+     "day": "2021-04-29",
+     "sha": "e684215b88",
+     "score": 115,
+     "type": "added",
+     "file_path": "game/core/tools/demoinfo2/demoinfo2.txt",
+     "text": "// hlvr/hlx",
+     "token": "hlvr/hlx",
+     "keywords": [
+      "hlx"
+     ],
+     "context": "contenuto attuale di SteamTracking/GameTracking-Dota2@e684215b88"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 115,
+     "type": "added",
+     "file_path": "game/bin/win64/toolframework2_strings.txt",
+     "text": "G:\\dev\\source2\\main\\content\\hlx\\materials\\particle\\test\\test_shlit_%d.exr",
+     "token": "dev\\source2\\main\\content\\hlx\\materials\\particle\\test\\test_shlit_",
+     "keywords": [
+      "hlx"
+     ],
+     "context": "contenuto attuale di SteamTracking/GameTracking-Dota2@76fc67b138"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 115,
+     "type": "added",
+     "file_path": "game/bin/win64/toolframework2_strings.txt",
+     "text": "G:\\dev\\source2\\main\\content\\hlx\\materials\\particle\\test\\test_shlit_alpha.exr",
+     "token": "dev\\source2\\main\\content\\hlx\\materials\\particle\\test\\test_shlit_alpha.exr",
+     "keywords": [
+      "hlx"
+     ],
+     "context": "contenuto attuale di SteamTracking/GameTracking-Dota2@76fc67b138"
+    },
+    {
+     "day": "2022-06-23",
+     "sha": "d3e986bc9c",
+     "score": 115,
+     "type": "added",
+     "file_path": "Protobufs/usercmd.proto",
+     "text": "message CHLXUserCmdPB {",
+     "token": "CHLXUserCmdPB",
+     "keywords": [
+      "hlx_class"
+     ],
+     "context": "contenuto attuale di SteamTracking/GameTracking-Dota2@d3e986bc9c"
+    },
+    {
+     "day": "2021-04-29",
+     "sha": "e684215b88",
+     "score": 100,
+     "type": "added",
+     "file_path": "game/core/pak01_dir/soundevents/soundevents_diagnostics.vsndevts",
+     "text": "_builtins._voicegraph = \"hlx.hrtf_basic\"",
+     "token": "hlx.hrtf_basic",
+     "keywords": [
+      "hlx"
+     ],
+     "context": "contenuto attuale di SteamTracking/GameTracking-Dota2@e684215b88"
+    },
+    {
+     "day": "2023-04-11",
+     "sha": "40d6b6c46b",
+     "score": 100,
+     "type": "added",
+     "file_path": "game/bin/linuxsteamrt64/libparticles_strings.txt",
+     "text": "mod != hlx",
+     "token": "hlx",
+     "keywords": [
+      "hlx"
+     ],
+     "context": "contenuto attuale di SteamTracking/GameTracking-Dota2@40d6b6c46b"
+    },
+    {
+     "day": "2022-12-20",
+     "sha": "c28b12cd6b",
+     "score": 95,
+     "type": "class_family",
+     "file_path": "classi CTerrain*",
+     "text": "Famiglia di classi in crescita: CTerrain, da 5 a 11 nomi. Nuovi: CTerrainElementUpdater, CTerrainGraphEdge, CTerrainGraphNode, CTerrainGraphNodeType, CTerrainGraphPlug, CTerrainGrassRenderSet",
+     "token": "classfam:cterrain:crescita:11",
+     "keywords": [
+      "class_family",
+      "class_family_growth"
+     ],
+     "context": "{\"famiglia\": \"CTerrain\", \"n\": 11, \"nomi\": [\"CTerrainBakedLightingInfo\", \"CTerrainElementUpdater\", \"CTerrainGraphEdge\", \"CTerrainGraphNode\", \"CTerrainGraphNodeType\", \"CTerrainGraphPlug\", \"CTerrainGrass"
+    },
+    {
+     "day": "2024-02-13",
+     "sha": "a3710be2d1",
+     "score": 95,
+     "type": "class_family",
+     "file_path": "classi CPulse*",
+     "text": "Famiglia di classi in crescita: CPulse, da 52 a 113 nomi. Nuovi: CPulseCell_, CPulseCell_Base, CPulseCell_BaseFlow, CPulseCell_BaseValue, CPulseCell_BaseYieldingInflow, CPulseCell_CursorQueue, CPulseCell_Inflow_BaseEntrypoint, CPulseCell_Inflow_EntOutputHandler, CPulseCell_Inflow_EventHandler, CPuls",
+     "token": "classfam:cpulse:crescita:113",
+     "keywords": [
+      "class_family",
+      "class_family_growth"
+     ],
+     "context": "{\"famiglia\": \"CPulse\", \"n\": 113, \"nomi\": [\"CPulseCell_\", \"CPulseCell_Base\", \"CPulseCell_BaseFlow\", \"CPulseCell_BaseValue\", \"CPulseCell_BaseYieldingInflow\", \"CPulseCell_CursorQueue\", \"CPulseCell_Inflow"
+    },
+    {
+     "day": "2024-06-11",
+     "sha": "c24a61d098",
+     "score": 95,
+     "type": "class_family",
+     "file_path": "classi CGraph*",
+     "text": "Famiglia di classi in crescita: CGraph, da 5 a 10 nomi. Nuovi: CGraphCanvasPreset, CGraphCanvasStyleLayer, CGraphEditorConnectionItem, CGraphMotionItem, CGraphPreviewList",
+     "token": "classfam:cgraph:crescita:10",
+     "keywords": [
+      "class_family",
+      "class_family_growth"
+     ],
+     "context": "{\"famiglia\": \"CGraph\", \"n\": 10, \"nomi\": [\"CGraphCanvasPreset\", \"CGraphCanvasStyleLayer\", \"CGraphChangedEvent\", \"CGraphEditorBaseView\", \"CGraphEditorConnectionItem\", \"CGraphEditorScene\", \"CGraphEditorV"
+    },
+    {
+     "day": "2021-08-26",
+     "sha": "7f716e44b1",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CQueued*",
+     "text": "Famiglia di classi nuova: CQueued (5 nomi): CQueuedTask, QueuedDotaSceneEntityGameSystem, QueuedEvents_t, QueuedLoaderVersion001, QueuedOrderElement",
+     "token": "classfam:cqueued",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CQueued\", \"n\": 5, \"nomi\": [\"CQueuedTask\", \"QueuedDotaSceneEntityGameSystem\", \"QueuedEvents_t\", \"QueuedLoaderVersion001\", \"QueuedOrderElement\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2021-12-24",
+     "sha": "c94ef925a3",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CAmbisonics*",
+     "text": "Famiglia di classi nuova: CAmbisonics (5 nomi): CAmbisonicsBinauralEffect, CAmbisonicsDecodeEffect, CAmbisonicsEncodeEffect, CAmbisonicsPanningEffect, CAmbisonicsRotationEffect",
+     "token": "classfam:cambisonics",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CAmbisonics\", \"n\": 5, \"nomi\": [\"CAmbisonicsBinauralEffect\", \"CAmbisonicsDecodeEffect\", \"CAmbisonicsEncodeEffect\", \"CAmbisonicsPanningEffect\", \"CAmbisonicsRotationEffect\"], \"giochi\": [\"do"
+    },
+    {
+     "day": "2021-12-24",
+     "sha": "c94ef925a3",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CEmbree*",
+     "text": "Famiglia di classi nuova: CEmbree (6 nomi): CEmbreeDevice, EmbreeDevice, EmbreeInstancedMesh, EmbreeReflectionSimulator, EmbreeScene, EmbreeStaticMesh",
+     "token": "classfam:cembree",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CEmbree\", \"n\": 6, \"nomi\": [\"CEmbreeDevice\", \"EmbreeDevice\", \"EmbreeInstancedMesh\", \"EmbreeReflectionSimulator\", \"EmbreeScene\", \"EmbreeStaticMesh\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2021-12-24",
+     "sha": "c94ef925a3",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CTrue*",
+     "text": "Famiglia di classi nuova: CTrue (5 nomi): CTrueAudioNextDevice, TrueConstant, TrueForm, TrueType, TrueTypeFont",
+     "token": "classfam:ctrue",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CTrue\", \"n\": 5, \"nomi\": [\"CTrueAudioNextDevice\", \"TrueConstant\", \"TrueForm\", \"TrueType\", \"TrueTypeFont\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2022-02-23",
+     "sha": "c1beb8a5dd",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CWeight*",
+     "text": "Famiglia di classi nuova: CWeight (5 nomi): CWeightPreview, WeightForPhoneme, WeightList, WeightLists, WeightVector",
+     "token": "classfam:cweight",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CWeight\", \"n\": 5, \"nomi\": [\"CWeightPreview\", \"WeightForPhoneme\", \"WeightList\", \"WeightLists\", \"WeightVector\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CAsset*",
+     "text": "Famiglia di classi nuova: CAsset (9 nomi): CAssetDrivenFGDInfo, CAssetInfoFilterParams, CAssetSelection, CAssetStringTable16, CAssetStringTable32, CAssetSystem",
+     "token": "classfam:casset",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CAsset\", \"n\": 9, \"nomi\": [\"CAssetDrivenFGDInfo\", \"CAssetInfoFilterParams\", \"CAssetSelection\", \"CAssetStringTable16\", \"CAssetStringTable32\", \"CAssetSystem\", \"CAssetSystemTest\", \"CAssetTyp"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CBloom*",
+     "text": "Famiglia di classi nuova: CBloom (6 nomi): BloomBlendMode_t, BloomBuffer, BloomManifest, BloomScale, BloomTexture, CBloomLayer",
+     "token": "classfam:cbloom",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CBloom\", \"n\": 6, \"nomi\": [\"BloomBlendMode_t\", \"BloomBuffer\", \"BloomManifest\", \"BloomScale\", \"BloomTexture\", \"CBloomLayer\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CDirty*",
+     "text": "Famiglia di classi nuova: CDirty (5 nomi): CDirtyStatusChangedEvent, DirtyAndUpdateAttributesFromEditor, DirtyFlags, DirtySpatialPartitionEntityList, DirtyViewerCount",
+     "token": "classfam:cdirty",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CDirty\", \"n\": 5, \"nomi\": [\"CDirtyStatusChangedEvent\", \"DirtyAndUpdateAttributesFromEditor\", \"DirtyFlags\", \"DirtySpatialPartitionEntityList\", \"DirtyViewerCount\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CFace*",
+     "text": "Famiglia di classi nuova: CFace (6 nomi): CFaceSelectionSetDataElement, FaceDown, FaceSelection, FaceSet, FaceTowards, FaceVertex",
+     "token": "classfam:cface",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CFace\", \"n\": 6, \"nomi\": [\"CFaceSelectionSetDataElement\", \"FaceDown\", \"FaceSelection\", \"FaceSet\", \"FaceTowards\", \"FaceVertex\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CGraph*",
+     "text": "Famiglia di classi nuova: CGraph (5 nomi): CGraphChangedEvent, CGraphEditorBaseView, CGraphEditorScene, CGraphEditorView, CGraphEditorWidget",
+     "token": "classfam:cgraph",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CGraph\", \"n\": 5, \"nomi\": [\"CGraphChangedEvent\", \"CGraphEditorBaseView\", \"CGraphEditorScene\", \"CGraphEditorView\", \"CGraphEditorWidget\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CMix*",
+     "text": "Famiglia di classi nuova: CMix (39 nomi): CMixAmp, CMixAudioMeter, CMixAutoFilter, CMixBlendAudio, CMixControlAutomatic, CMixControlCrossfade",
+     "token": "classfam:cmix",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CMix\", \"n\": 39, \"nomi\": [\"CMixAmp\", \"CMixAudioMeter\", \"CMixAutoFilter\", \"CMixBlendAudio\", \"CMixControlAutomatic\", \"CMixControlCrossfade\", \"CMixControlCurve\", \"CMixControlInput\", \"CMixCon"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CNPC*",
+     "text": "Famiglia di classi nuova: CNPC (5 nomi): C_NPC_BaseHeadcrab, C_NPC_BaseZombie, C_NPC_Combine, C_NPC_RunnerHeadcrab, C_NPC_VR_Barnacle",
+     "token": "classfam:cnpc",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CNPC\", \"n\": 5, \"nomi\": [\"C_NPC_BaseHeadcrab\", \"C_NPC_BaseZombie\", \"C_NPC_Combine\", \"C_NPC_RunnerHeadcrab\", \"C_NPC_VR_Barnacle\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CQSFM*",
+     "text": "Famiglia di classi nuova: CQSFM (11 nomi): CQSFMController, CQSFMElementPickerWidget, CQSFMFilenameWidget, CQSFMMainWindow, CQSFMMapnameWidget, CQSFMNewWizardDialog",
+     "token": "classfam:cqsfm",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CQSFM\", \"n\": 11, \"nomi\": [\"CQSFMController\", \"CQSFMElementPickerWidget\", \"CQSFMFilenameWidget\", \"CQSFMMainWindow\", \"CQSFMMapnameWidget\", \"CQSFMNewWizardDialog\", \"CQSFMPropertyEditorDeleg"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CSGO*",
+     "text": "Famiglia di classi nuova: CSGO (10 nomi): CSGO_Workshop_ExtraMiscTags, CSGO_Workshop_Mode_armsrace, CSGO_Workshop_Mode_classic, CSGO_Workshop_Mode_coopstrike, CSGO_Workshop_Mode_custom, CSGO_Workshop_Mode_deathmatch",
+     "token": "classfam:csgo",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CSGO\", \"n\": 10, \"nomi\": [\"CSGO_Workshop_ExtraMiscTags\", \"CSGO_Workshop_Mode_armsrace\", \"CSGO_Workshop_Mode_classic\", \"CSGO_Workshop_Mode_coopstrike\", \"CSGO_Workshop_Mode_custom\", \"CSGO_W"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CSmd*",
+     "text": "Famiglia di classi nuova: CSmd (6 nomi): CSmdAnimParseContext, CSmdAnimParser, CSmdModelAnimParseContext, CSmdModelParseContext, CSmdModelParser, CSmdParser",
+     "token": "classfam:csmd",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CSmd\", \"n\": 6, \"nomi\": [\"CSmdAnimParseContext\", \"CSmdAnimParser\", \"CSmdModelAnimParseContext\", \"CSmdModelParseContext\", \"CSmdModelParser\", \"CSmdParser\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CTerrain*",
+     "text": "Famiglia di classi nuova: CTerrain (5 nomi): CTerrainBakedLightingInfo, CTerrainGrassTileRenderable, CTerrainGroundBlock, CTerrainInput, CTerrainSelection",
+     "token": "classfam:cterrain",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CTerrain\", \"n\": 5, \"nomi\": [\"CTerrainBakedLightingInfo\", \"CTerrainGrassTileRenderable\", \"CTerrainGroundBlock\", \"CTerrainInput\", \"CTerrainSelection\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CUndo*",
+     "text": "Famiglia di classi nuova: CUndo (22 nomi): CUndoArrayAttributeSetMultipleValueElement, CUndoArrayAttributeSetValueElement, CUndoAttributeAddRemove, CUndoAttributeArrayBase, CUndoAttributeArrayCopyAllElement, CUndoAttributeArrayInsertBefore",
+     "token": "classfam:cundo",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CUndo\", \"n\": 22, \"nomi\": [\"CUndoArrayAttributeSetMultipleValueElement\", \"CUndoArrayAttributeSetValueElement\", \"CUndoAttributeAddRemove\", \"CUndoAttributeArrayBase\", \"CUndoAttributeArrayCo"
+    },
+    {
+     "day": "2022-04-21",
+     "sha": "76fc67b138",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CVprop*",
+     "text": "Famiglia di classi nuova: CVprop (5 nomi): CVpropBreakableData, CVpropBreakableList, CVpropBreakableListReference, CVpropDataList, CVpropDataListReference",
+     "token": "classfam:cvprop",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CVprop\", \"n\": 5, \"nomi\": [\"CVpropBreakableData\", \"CVpropBreakableList\", \"CVpropBreakableListReference\", \"CVpropDataList\", \"CVpropDataListReference\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2022-12-20",
+     "sha": "c28b12cd6b",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CBuilder*",
+     "text": "Famiglia di classi nuova: CBuilder (6 nomi): BuilderFastSpatialSAH, BuilderMBlurSAH, BuilderModelAnimatedMaterialAttribute_t, BuilderModelBoneFlexDriverControl_t, BuilderModelBoneFlexDriver_t, CBuilderMaterialGroup",
+     "token": "classfam:cbuilder",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CBuilder\", \"n\": 6, \"nomi\": [\"BuilderFastSpatialSAH\", \"BuilderMBlurSAH\", \"BuilderModelAnimatedMaterialAttribute_t\", \"BuilderModelBoneFlexDriverControl_t\", \"BuilderModelBoneFlexDriver_t\", "
+    },
+    {
+     "day": "2022-12-20",
+     "sha": "c28b12cd6b",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CPulse*",
+     "text": "Famiglia di classi nuova: CPulse (52 nomi): CPulseBindableGlobalEvent0, CPulseBindableGlobalEvent1, CPulseExecCursor, CPulseGraphDef, CPulseGraphInstance_TestDomain, CPulseGraphInstance_TestDomain_Derived",
+     "token": "classfam:cpulse",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CPulse\", \"n\": 52, \"nomi\": [\"CPulseBindableGlobalEvent0\", \"CPulseBindableGlobalEvent1\", \"CPulseExecCursor\", \"CPulseGraphDef\", \"CPulseGraphInstance_TestDomain\", \"CPulseGraphInstance_TestDo"
+    },
+    {
+     "day": "2022-12-20",
+     "sha": "c28b12cd6b",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CClip*",
+     "text": "Famiglia di classi in crescita: CClip, da 2 a 7 nomi. Nuovi: CClipInput, CClipNameStorage, CClipResult, CClipStartTimeStorage, CClipTimeRangeStorage",
+     "token": "classfam:cclip:crescita:7",
+     "keywords": [
+      "class_family",
+      "class_family_growth"
+     ],
+     "context": "{\"famiglia\": \"CClip\", \"n\": 7, \"nomi\": [\"CClipInput\", \"CClipMetricsGizmo\", \"CClipNameStorage\", \"CClipProperties\", \"CClipResult\", \"CClipStartTimeStorage\", \"CClipTimeRangeStorage\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2022-12-20",
+     "sha": "c28b12cd6b",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CMesh*",
+     "text": "Famiglia di classi in crescita: CMesh, da 2 a 21 nomi. Nuovi: CMeshClusters, CMeshCollector, CMeshCutPoint, CMeshDisjointSetPartition, CMeshDrawPrimitive_t, CMeshDrawer, CMeshEdge, CMeshEdgeSplitter, CMeshFace, CMeshGroup_LEGACY",
+     "token": "classfam:cmesh:crescita:21",
+     "keywords": [
+      "class_family",
+      "class_family_growth"
+     ],
+     "context": "{\"famiglia\": \"CMesh\", \"n\": 21, \"nomi\": [\"CMeshClusters\", \"CMeshCollector\", \"CMeshCutPoint\", \"CMeshDisjointSetPartition\", \"CMeshDrawPrimitive_t\", \"CMeshDrawer\", \"CMeshEdge\", \"CMeshEdgeSplitter\", \"CMesh"
+    },
+    {
+     "day": "2022-12-20",
+     "sha": "c28b12cd6b",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CTile*",
+     "text": "Famiglia di classi in crescita: CTile, da 4 a 9 nomi. Nuovi: CTileInstanceSet, CTileInstanceSetState, CTileProperty, CTileSetLookupCache, CTileSetMapManager",
+     "token": "classfam:ctile:crescita:9",
+     "keywords": [
+      "class_family",
+      "class_family_growth"
+     ],
+     "context": "{\"famiglia\": \"CTile\", \"n\": 9, \"nomi\": [\"CTileInstanceSet\", \"CTileInstanceSetState\", \"CTileMeshFace\", \"CTileProperty\", \"CTileSetGrassParameters\", \"CTileSetLookupCache\", \"CTileSetMapManager\", \"CTileSetM"
+    },
+    {
+     "day": "2023-02-16",
+     "sha": "8da23ad958",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CBorder*",
+     "text": "Famiglia di classi nuova: CBorder (6 nomi): BorderBright, BorderImage, BorderOuterV, BorderSelection, BorderShadow, CBorderRegionList",
+     "token": "classfam:cborder",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CBorder\", \"n\": 6, \"nomi\": [\"BorderBright\", \"BorderImage\", \"BorderOuterV\", \"BorderSelection\", \"BorderShadow\", \"CBorderRegionList\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2023-04-11",
+     "sha": "40d6b6c46b",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CCSGO*",
+     "text": "Famiglia di classi nuova: CCSGO (7 nomi): CCSGOEconNode_, CCSGOEconNode_CaseKey, CCSGOEconNode_CommunityCase, CCSGOEconNode_PaintKit, CCSGOEconNode_SprayKit, CCSGOEconNode_StickerKit",
+     "token": "classfam:ccsgo",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CCSGO\", \"n\": 7, \"nomi\": [\"CCSGOEconNode_\", \"CCSGOEconNode_CaseKey\", \"CCSGOEconNode_CommunityCase\", \"CCSGOEconNode_PaintKit\", \"CCSGOEconNode_SprayKit\", \"CCSGOEconNode_StickerKit\", \"CCSGOE"
+    },
+    {
+     "day": "2023-08-17",
+     "sha": "8f55c56431",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CFixup*",
+     "text": "Famiglia di classi nuova: CFixup (6 nomi): CFixupResourceName, FixupAssetRefsInternal, FixupCodeRelativePositions, FixupKeyValues, FixupPathName, FixupResourceName",
+     "token": "classfam:cfixup",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CFixup\", \"n\": 6, \"nomi\": [\"CFixupResourceName\", \"FixupAssetRefsInternal\", \"FixupCodeRelativePositions\", \"FixupKeyValues\", \"FixupPathName\", \"FixupResourceName\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2023-10-16",
+     "sha": "5205046cfd",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CVrad3*",
+     "text": "Famiglia di classi nuova: CVrad3 (23 nomi): CVrad3Command_gpu_init, CVrad3Command_lightmap_bouncelight, CVrad3Command_lightmap_directlight, CVrad3Command_lightmap_generate_samples_from_packing_geometry, CVrad3Command_lightmap_image_filter_median, CVrad3Command_lightmap_image_remove_fireflies",
+     "token": "classfam:cvrad3",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CVrad3\", \"n\": 23, \"nomi\": [\"CVrad3Command_gpu_init\", \"CVrad3Command_lightmap_bouncelight\", \"CVrad3Command_lightmap_directlight\", \"CVrad3Command_lightmap_generate_samples_from_packing_geo"
+    },
+    {
+     "day": "2024-08-10",
+     "sha": "59ae113ee8",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CFighting*",
+     "text": "Famiglia di classi nuova: CFighting (6 nomi): CFightingGameSchema, FightingBar, FightingGame, FightingGameMenuSounds, FightingGamePanelContainer, FightingGameSounds",
+     "token": "classfam:cfighting",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CFighting\", \"n\": 6, \"nomi\": [\"CFightingGameSchema\", \"FightingBar\", \"FightingGame\", \"FightingGameMenuSounds\", \"FightingGamePanelContainer\", \"FightingGameSounds\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2024-08-10",
+     "sha": "59ae113ee8",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CMatch3*",
+     "text": "Famiglia di classi nuova: CMatch3 (9 nomi): CMatch3AbilityBaseDefinition, CMatch3AbilityDefinition, CMatch3HeroDefinition, CMatch3Level, CMatch3OpponentActionDefinition, CMatch3OpponentActionInstanceDefinition",
+     "token": "classfam:cmatch3",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CMatch3\", \"n\": 9, \"nomi\": [\"CMatch3AbilityBaseDefinition\", \"CMatch3AbilityDefinition\", \"CMatch3HeroDefinition\", \"CMatch3Level\", \"CMatch3OpponentActionDefinition\", \"CMatch3OpponentActionI"
+    }
+   ],
+   "seconds": 712
   }
  },
- "generated": "2026-11-04T20:39:22Z"
+ "generated": "2026-11-04T21:18:48Z"
 }

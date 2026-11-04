@@ -131,7 +131,9 @@
   entità di gioco con API di scripting (<code>CTankTrainAI_API</code>, <code>CMathCounter_API</code>...). Se la famiglia ha
   una classe sola, contano anche i nomi che iniziano con la stessa parola senza la C: Deadlock è entrato in Dota 2 il 25 marzo
   2021 con <code>CCitadelModifierHandleTyped</code> e <code>CitadelHudEvent</code>. Una parola che ricorre in più di 5 nomi
-  (<code>Parse...</code>) è una parola comune e non conta.</li>
+  (<code>Parse...</code>) è una parola comune e non conta. Una famiglia già segnalata che poi cresce (almeno il doppio dei
+  nomi, e almeno 5 in più) dà un avviso nuovo con 25 punti in più, fino a 95 (sotto l'alta rilevanza"): un progetto vero cresce, il rumore di
+  solito no.</li>
   <li><b>Pulsante 👎 su Telegram.</b> Sotto ogni avviso c'è un pulsante per voce: "è rumore". Le voci nuove dello stesso
   tipo (gioco, tipo di modifica, parola chiave principale e area dei file) restano in archivio e sul sito ma non mandano
   più avvisi; ripremere il pulsante annulla. L'elenco dei tipi silenziati è in pagina iniziale. Le tracce HLX forti e i
@@ -201,7 +203,9 @@
  nei driver di SteamVR, una riga per prodotto (<code>Valve Index HMD</code>; il 31 marzo 2022 ci è entrato
  <code>Valve Deckard</code>, il futuro Steam Frame) e i tipi di controller del client di Steam
  (<code>k_EControllerType_SteamControllerNeptune</code>, comparso l'11 maggio 2021, due mesi prima dello Steam Deck). I tipi
- di controller di altre marche valgono 60 punti. Tutti e due vengono dalla <a href="#passato">prova sul passato</a>.</p>
+ di controller di altre marche valgono 60 punti. Tutti e due vengono dalla <a href="#passato">prova sul passato</a>.
+ Quando in un file compaiono insieme 4 o più nomi nuovi (un elenco intero, come i tipi di controller nel maggio 2021)
+ arriva un avviso solo con tutti i nomi, invece di uno per nome.</p>
  <p>File sorvegliati, dove ogni riga cambiata diventa una voce anche senza parole chiave:
  {% for w in watched_files %}<code>{{ w.pattern }}</code> ({{ w.title }}, {{ w.score }} punti){% if not loop.last %}; {% endif %}{% endfor %}.</p>
 </section>
@@ -335,7 +339,7 @@
   {% for r in passato %}
   <tr>
    <td><b>{{ r.title }}</b><br><small class="muted">{{ r.repo }}, dal {{ r.start }} al {{ r.end }}; annuncio {{ r.announced }}</small></td>
-   <td>{{ r.commits }}</td>
+   <td>{{ r.commits }}{% if r.mode == "scansioni" %} scansioni complete{% endif %}</td>
    <td>{% if r.first %}{{ r.first.day }}, {{ r.first.anticipo_giorni }} giorni prima dell'annuncio (circa {{ r.first.mesi }} mesi):
     {{ r.first.kind }}, punteggio {{ r.first.score }}<br><small><code>{{ r.first.text[:120] }}</code></small>
     {% elif r.learned_at_start %}nessuno: il nome c'era già all'inizio ({{ r.learned_at_start|join(", ") }}) ed è stato imparato senza avviso
