@@ -13,14 +13,94 @@
    "start_sha": "d6f33b911bdf6caffcda5843db7320d8265136c2",
    "end_sha": "a6d5c07698cceb8cb800612ec7f29d59cfa2700c",
    "learned_at_start": [],
-   "related": [],
-   "related_total": 0,
-   "first_related": null,
-   "alerts_total": 6,
+   "related": [
+    {
+     "day": "2022-03-31",
+     "sha": "bd9f53945a",
+     "score": 80,
+     "type": "codename",
+     "file_path": "drivers/lighthouse/bin/win32/driver_lighthouse_strings.txt",
+     "text": "Valve Deckard",
+     "token": "codename:deckard",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'deckard' mai visto: dispositivo Valve nei driver di SteamVR (Valve <nome>)",
+     "anticipo_giorni": 1322
+    }
+   ],
+   "related_total": 1,
+   "first_related": {
+    "day": "2022-03-31",
+    "sha": "bd9f53945a",
+    "score": 80,
+    "type": "codename",
+    "file_path": "drivers/lighthouse/bin/win32/driver_lighthouse_strings.txt",
+    "text": "Valve Deckard",
+    "token": "codename:deckard",
+    "keywords": [
+     "codename_new"
+    ],
+    "context": "nome di progetto 'deckard' mai visto: dispositivo Valve nei driver di SteamVR (Valve <nome>)",
+    "anticipo_giorni": 1322
+   },
+   "alerts_total": 11,
    "alerts_high": 0,
-   "others_per_month": 1.5,
+   "others_per_month": 2.5,
    "others_high_per_month": 0.0,
    "others_sample": [
+    {
+     "day": "2022-03-31",
+     "sha": "bd9f53945a",
+     "score": 80,
+     "type": "codename",
+     "file_path": "drivers/gamepad/bin/win32/driver_gamepad_strings.txt",
+     "text": "Valve Corp.0",
+     "token": "codename:corp",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'corp' mai visto: dispositivo Valve nei driver di SteamVR (Valve <nome>)"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "bd9f53945a",
+     "score": 80,
+     "type": "codename",
+     "file_path": "drivers/lighthouse/bin/win32/driver_lighthouse_strings.txt",
+     "text": "Valve Index HMD",
+     "token": "codename:index",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'index' mai visto: dispositivo Valve nei driver di SteamVR (Valve <nome>)"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "bd9f53945a",
+     "score": 80,
+     "type": "codename",
+     "file_path": "drivers/lighthouse/bin/win32/driver_lighthouse_strings.txt",
+     "text": "Valve Unidentified",
+     "token": "codename:unidentified",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'unidentified' mai visto: dispositivo Valve nei driver di SteamVR (Valve <nome>)"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "bd9f53945a",
+     "score": 80,
+     "type": "codename",
+     "file_path": "drivers/lighthouse/bin/win32/driver_lighthouse_strings.txt",
+     "text": "Valve VMinus1",
+     "token": "codename:vminus1",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'vminus1' mai visto: dispositivo Valve nei driver di SteamVR (Valve <nome>)"
+    },
     {
      "day": "2022-03-31",
      "sha": "a6d5c07698",
@@ -100,7 +180,7 @@
      "context": "{\"famiglia\": \"CWin32\", \"nomi\": [\"CWin32EntropyPool\", \"Win32Event\", \"Win32Exception\", \"Win32Mutex\"], \"giochi\": [\"steamvr\"]}"
     }
    ],
-   "seconds": 1855
+   "seconds": 2026
   },
   "frame_2025": {
    "key": "frame_2025",
@@ -189,7 +269,7 @@
      "context": "{\"famiglia\": \"CWinsock\", \"nomi\": [\"CWinsockControlListener\", \"CWinsockImpl\"], \"giochi\": [\"steamvr\"]}"
     }
    ],
-   "seconds": 991
+   "seconds": 1159
   },
   "deadlock_2021": {
    "key": "deadlock_2021",
@@ -696,7 +776,7 @@
      "context": "file sorvegliato: gameinfo.gi (definizione del gioco)"
     }
    ],
-   "seconds": 1431
+   "seconds": 1459
   },
   "deadlock_2022": {
    "key": "deadlock_2022",
@@ -1021,7 +1101,7 @@
      "context": "file sorvegliato: gameinfo.gi (definizione del gioco)"
     }
    ],
-   "seconds": 911
+   "seconds": 937
   },
   "deck_2019": {
    "key": "deck_2019",
@@ -1044,8 +1124,372 @@
    "others_per_month": 0.0,
    "others_high_per_month": 0.0,
    "others_sample": [],
-   "seconds": 353
+   "seconds": 383
+  },
+  "deck_2021": {
+   "key": "deck_2021",
+   "title": "Steam Deck: il tipo di controller Neptune",
+   "project": "Steam Deck",
+   "announced": "2021-07-15",
+   "repo": "steamclient",
+   "start": "2021-05-01",
+   "end": "2021-06-01",
+   "codes": "neptune|steampal",
+   "commits": 90,
+   "start_sha": "819900b23e8fdd2e310eae142771b7d3d339641f",
+   "end_sha": "ea2030b03740fb4e9e48e44bb0e46f33ee1edbfe",
+   "learned_at_start": [],
+   "related": [
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 80,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_SteamControllerNeptune = 4)] =",
+     "token": "codename:steamcontrollerneptune",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'steamcontrollerneptune' mai visto: tipo di controller Valve del client di Steam (k_EControllerType_Steam...)",
+     "anticipo_giorni": 65
+    }
+   ],
+   "related_total": 1,
+   "first_related": {
+    "day": "2021-05-11",
+    "sha": "d0f5c34a2d",
+    "score": 80,
+    "type": "codename",
+    "file_path": "Scripts/WebUI/steammobile_android.js",
+    "text": "(t[(t.k_eControllerType_SteamControllerNeptune = 4)] =",
+    "token": "codename:steamcontrollerneptune",
+    "keywords": [
+     "codename_new"
+    ],
+    "context": "nome di progetto 'steamcontrollerneptune' mai visto: tipo di controller Valve del client di Steam (k_EControllerType_Steam...)",
+    "anticipo_giorni": 65
+   },
+   "alerts_total": 25,
+   "alerts_high": 0,
+   "others_per_month": 23.5,
+   "others_high_per_month": 0.0,
+   "others_sample": [
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 80,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_SteamController = 2)] =",
+     "token": "codename:steamcontroller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'steamcontroller' mai visto: tipo di controller Valve del client di Steam (k_EControllerType_Steam...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 80,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_SteamControllerV2 = 3)] =",
+     "token": "codename:steamcontrollerv2",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'steamcontrollerv2' mai visto: tipo di controller Valve del client di Steam (k_EControllerType_Steam...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_UnknownSteamController = 1)] =",
+     "token": "codename:unknownsteamcontroller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'unknownsteamcontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_FrontPanelBoard = 20)] =",
+     "token": "codename:frontpanelboard",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'frontpanelboard' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_UnknownNonSteamController = 30)] =",
+     "token": "codename:unknownnonsteamcontroller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'unknownnonsteamcontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_XBox360Controller = 31)] =",
+     "token": "codename:xbox360controller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'xbox360controller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_XBoxOneController = 32)] =",
+     "token": "codename:xboxonecontroller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'xboxonecontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_PS3Controller = 33)] =",
+     "token": "codename:ps3controller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'ps3controller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_PS4Controller = 34)] =",
+     "token": "codename:ps4controller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'ps4controller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_WiiController = 35)] =",
+     "token": "codename:wiicontroller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'wiicontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_AppleController = 36)] =",
+     "token": "codename:applecontroller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'applecontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_AndroidController = 37)] =",
+     "token": "codename:androidcontroller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'androidcontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_SwitchProController = 38)] =",
+     "token": "codename:switchprocontroller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'switchprocontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_SwitchJoyConLeft = 39)] =",
+     "token": "codename:switchjoyconleft",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'switchjoyconleft' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_SwitchJoyConRight = 40)] =",
+     "token": "codename:switchjoyconright",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'switchjoyconright' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_SwitchJoyConPair = 41)] =",
+     "token": "codename:switchjoyconpair",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'switchjoyconpair' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_SwitchInputOnlyController = 42)] =",
+     "token": "codename:switchinputonlycontroller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'switchinputonlycontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_MobileTouch = 43)] =",
+     "token": "codename:mobiletouch",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'mobiletouch' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_XInputSwitchController = 44)] =",
+     "token": "codename:xinputswitchcontroller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'xinputswitchcontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_PS5Controller = 45)] =",
+     "token": "codename:ps5controller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'ps5controller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_XBoxEliteController = 46)] =",
+     "token": "codename:xboxelitecontroller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'xboxelitecontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllerType_LastController = 47)] =",
+     "token": "codename:lastcontroller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'lastcontroller' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllertype_GenericKeyboard = 400)] =",
+     "token": "codename:generickeyboard",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'generickeyboard' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    },
+    {
+     "day": "2021-05-11",
+     "sha": "d0f5c34a2d",
+     "score": 60,
+     "type": "codename",
+     "file_path": "Scripts/WebUI/steammobile_android.js",
+     "text": "(t[(t.k_eControllertype_GenericMouse = 800)] =",
+     "token": "codename:genericmouse",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'genericmouse' mai visto: tipo di controller del client di Steam (k_EControllerType_...)"
+    }
+   ],
+   "seconds": 526
   }
  },
- "generated": "2026-11-04T19:56:50Z"
+ "generated": "2026-11-04T20:39:22Z"
 }

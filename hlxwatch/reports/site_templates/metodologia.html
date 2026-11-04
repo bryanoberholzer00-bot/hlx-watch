@@ -197,6 +197,11 @@
  del giocatore che ogni gioco definisce (<code>CDota2UserCmdPB</code>, <code>CCitadelUserCmdPB</code> per Deadlock; in Dota 2
  dal giugno 2022 al marzo 2023 c'era <code>CHLXUserCmdPB</code>). Un nome che non è tra quelli noti diventa
  una voce "codename" da {{ codename_score }} punti. Nomi noti finora: {{ project_names|join(", ") }}.</p>
+ <p>Per l'hardware ci sono due posti in più, da 80 punti (avviso, ma non alta rilevanza): l'elenco dei dispositivi Valve
+ nei driver di SteamVR, una riga per prodotto (<code>Valve Index HMD</code>; il 31 marzo 2022 ci è entrato
+ <code>Valve Deckard</code>, il futuro Steam Frame) e i tipi di controller del client di Steam
+ (<code>k_EControllerType_SteamControllerNeptune</code>, comparso l'11 maggio 2021, due mesi prima dello Steam Deck). I tipi
+ di controller di altre marche valgono 60 punti. Tutti e due vengono dalla <a href="#passato">prova sul passato</a>.</p>
  <p>File sorvegliati, dove ogni riga cambiata diventa una voce anche senza parole chiave:
  {% for w in watched_files %}<code>{{ w.pattern }}</code> ({{ w.title }}, {{ w.score }} punti){% if not loop.last %}; {% endif %}{% endfor %}.</p>
 </section>

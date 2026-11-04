@@ -48,13 +48,25 @@ PLACES: list[tuple[str, re.Pattern[str], str, re.Pattern[str] | None]] = [
      "messaggio di rete con i comandi del giocatore (UserCmdPB)", None),
     ("vr_device", re.compile(r'"controller_type"\s*:\s*"(?P<name>[A-Za-z0-9_]+)"'),
      "tipo di dispositivo di SteamVR (controller_type)", None),
+    # l'elenco dei dispositivi Valve nei driver di SteamVR, una riga per prodotto: "Valve Index HMD", "Valve SR",
+    # "Valve VMinus1". Il 31 marzo 2022 ci è entrato "Valve Deckard", tre anni e mezzo prima di Steam Frame
+    ("valve_device", re.compile(r"^\s*Valve (?P<name>[A-Z][A-Za-z0-9]+)\b"),
+     "dispositivo Valve nei driver di SteamVR (Valve <nome>)", re.compile(r"^drivers/[^/]+/bin/.+_strings\.txt$", re.I)),
+    # i tipi di controller del client di Steam: k_eControllerType_SteamControllerNeptune è comparso l'11 maggio 2021,
+    # due mesi prima dello Steam Deck. I tipi Valve (Steam...) valgono più di quelli di altre marche
+    ("controller_type_valve", re.compile(r"k_e(?:Steam)?(?:Controller|Input)Type_(?P<name>Steam[A-Za-z0-9]+)", re.I),
+     "tipo di controller Valve del client di Steam (k_EControllerType_Steam...)", None),
+    ("controller_type", re.compile(r"k_e(?:Steam)?(?:Controller|Input)Type_(?P<name>(?!steam)[A-Za-z0-9]+)", re.I),
+     "tipo di controller del client di Steam (k_EControllerType_...)", None),
 ]
 C_IN_NAME = {"csgo"}          # nomi in cui la C iniziale è del gioco (CSGOUserCmdPB), non il prefisso delle classi
 # parole che compaiono in quei posti ma non sono nomi di progetto
 GENERIC = {"base", "other", "unassigned", "default", "bugreporter", "none", "core", "tools", "---", "version", "owner",
-           "severity", "priority", "category", "product", "component", "main", "bin", "sdk", "build", "src"}
-# regex estesa per `git grep -i -E` della scansione completa: seleziona le righe dei tre posti
-PREFILTER = r'mod *[!=]=|"(product|component|mod)"|source2[\\/]main[\\/](content|game)[\\/]|buildworker[\\/]|"controller_type"|UserCmdPB'
+           "severity", "priority", "category", "product", "component", "main", "bin", "sdk", "build", "src",
+           "corporation", "corp", "software", "unknown", "count", "maximumpossiblevalue"}
+# regex estesa per `git grep -i -E` della scansione completa: seleziona le righe dei posti
+PREFILTER = (r'mod *[!=]=|"(product|component|mod)"|source2[\\/]main[\\/](content|game)[\\/]|buildworker[\\/]'
+             r'|"controller_type"|UserCmdPB|^[[:space:]]*Valve [A-Z]|k_e(steam)?(controller|input)type_')
 STATE_SEEN = "codenames:seen"
 STATE_LEARNED = "codenames:learned"
 STATE_LEARNED_PLACES = "codenames:learned_places"

@@ -48,9 +48,10 @@ TESTS: dict[str, dict[str, Any]] = {
     "frame_2022": {"title": "Steam Frame: Deckard nei file di SteamVR", "project": "Steam Frame",
                    "announced": "2025-11-12", "repo": "steamvr", "start": "2022-03-01", "end": "2022-07-01",
                    "codes": r"deckard",
-                   "nota": "Il 31 marzo 2022 entrano in SteamVR le righe 'Valve Deckard' e 'Deckard POC-A', ma in un dump "
-                           "di stringhe dei driver, dove nessun rilevatore cerca nomi di progetto. Oggi una parola chiave "
-                           "scritta dopo le segna a 35 punti, sotto la soglia degli avvisi."},
+                   "nota": "Il 31 marzo 2022 entra nel driver dei sensori di SteamVR l'elenco dei dispositivi Valve, con "
+                           "'Valve Deckard'. Fino al 4 novembre 2026 nessun rilevatore guardava lì; ora è un posto dei nomi "
+                           "di progetto. Lo stesso giorno arrivano anche Index, VMinus1 e Unidentified: l'elenco compariva "
+                           "per la prima volta, e oggi sono nomi già noti."},
     "frame_2025": {"title": "Steam Frame: i mesi prima dell'annuncio", "project": "Steam Frame",
                    "announced": "2025-11-12", "repo": "steamvr", "start": "2025-06-01", "end": "2025-11-12",
                    "codes": r"deckard|frame_(?:hmd|controller)|fremont|ibex|steam ?frame",
@@ -74,7 +75,15 @@ TESTS: dict[str, dict[str, Any]] = {
                   "codes": r"neptune|steampal",
                   "nota": "Neptune compare il 19 novembre 2019 dentro un nome di variabile del client di Steam "
                           "(s_rgPropValuesGyroButtonNeptune): non è uno dei posti in cui si cercano i nomi di progetto, e "
-                          "nel client di Steam non c'è niente che faccia scattare un avviso."},
+                          "nel client di Steam non c'è niente che faccia scattare un avviso. Il segnale utile arriva "
+                          "dopo: vedi la prova di maggio 2021."},
+    "deck_2021": {"title": "Steam Deck: il tipo di controller Neptune", "project": "Steam Deck",
+                  "announced": "2021-07-15", "repo": "steamclient", "start": "2021-05-01", "end": "2021-06-01",
+                  "codes": r"neptune|steampal",
+                  "nota": "L'11 maggio 2021 compare nel client di Steam l'elenco dei tipi di controller, con "
+                          "k_eControllerType_SteamControllerNeptune: il controller dello Steam Deck, due mesi prima "
+                          "dell'annuncio. Lo stesso giorno arrivano anche gli altri tipi (Xbox, PlayStation...), perché "
+                          "l'elenco compariva per la prima volta; oggi sono già noti."},
 }
 
 

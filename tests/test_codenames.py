@@ -70,3 +70,31 @@ def test_watched_file_lines(tmp_path):
     assert all(f.score == 60 for f in watched) and watched[2].change_type == "removed"
     assert src._extra_findings("cs2", "game/csgo/x.txt", [("+", "qualsiasi riga")], matcher) == []
     db.close()
+
+
+def test_hardware_places():
+    lighthouse = "drivers/lighthouse/bin/win32/driver_lighthouse_strings.txt"
+    assert detect("Valve Deckard", lighthouse)[0][:2] == ("valve_device", "deckard")
+    assert detect("Valve Index HMD", lighthouse)[0][:2] == ("valve_device", "index")
+    assert detect("Valve Corporation", lighthouse) == []                 # parola generica
+    assert detect("Valve Deckard", "bin/win64/vrclient_strings.txt") == []   # solo nei driver
+    assert detect("  the Valve Deckard", lighthouse) == []               # solo a inizio riga
+    neptune = detect("(t[(t.k_eControllerType_SteamControllerNeptune = 4)] =", "Scripts/WebUI/steammobile_android.js")
+    assert [x[:2] for x in neptune] == [("controller_type_valve", "steamcontrollerneptune")]
+    assert detect("k_ESteamInputType_SteamDeckController")[0][:2] == ("controller_type_valve", "steamdeckcontroller")
+    assert detect("k_EControllerType_ZotacZone")[0][:2] == ("controller_type", "zotaczone")
+    assert detect("k_ESteamInputType_Count") == []
+
+
+def test_hardware_place_scores(tmp_path):
+    cfg, db = make(tmp_path)
+    cfg.raw.setdefault("codenames", {})["place_scores"] = {"valve_device": 80, "controller_type": 60,
+                                                          "controller_type_valve": 80}
+    t = CodenameTracker(cfg, db)
+    t.check("k_EControllerType_PS4Controller", "a.js", game="steamclient", change_type="present")
+    t.finish_learning()
+    t = CodenameTracker(cfg, db)
+    assert t.check("k_EControllerType_PS4Controller", "a.js", game="steamclient") is None      # imparato
+    assert t.check("k_EControllerType_SteamControllerNeptune", "a.js", game="steamclient").score == 80
+    assert t.check("k_EControllerType_ZotacZone", "a.js", game="steamclient").score == 60
+    db.close()

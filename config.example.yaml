@@ -111,7 +111,9 @@ codenames:
   enabled: true                          # nomi di progetto mai visti dove Valve li scrive (mod != X, bug reporter, content/X,
                                          # rami di compilazione C:\buildworker\<ramo> nei dump delle DLL)
   score: 120                             # sopra la soglia alta: avviso immediato e voce in cronologia
-  place_scores: {vr_device: 60}          # dispositivo SteamVR nuovo (anche di altri marchi): avviso, non rilevanza alta
+  # hardware: avviso, non rilevanza alta. vr_device e controller_type anche di altre marche (60); valve_device
+  # ("Valve Deckard" nei driver di SteamVR) e controller_type_valve (k_EControllerType_SteamControllerNeptune) 80
+  place_scores: {vr_device: 60, controller_type: 60, valve_device: 80, controller_type_valve: 80}
   known: [csgo, cs2, dota, dota2, dota_lv, hlx, hlvr, "half-life vr", hl3, left4dead3, left4dead2_source2,
           rpg, citadel, core, "source 2 tools", steamvr, steampal,
           # rami di compilazione presenti oggi nei dump delle DLL (CS2, Dota 2, Deadlock, Alyx, SteamVR, client Steam)
