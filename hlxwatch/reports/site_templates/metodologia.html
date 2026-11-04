@@ -313,6 +313,38 @@
  <p class="muted">Se ricevi questa notifica: Valve non ha annunciato niente, è solo un controllo che la catena funziona.</p>
 </section>
 
+{% if passato %}
+<section id="passato">
+ <h2>Prova sul passato</h2>
+ <p>Quanto ci si può fidare degli avvisi? Per saperlo HLX Watch è stato fatto girare sui commit di SteamTracking dei mesi in
+ cui sono comparsi per la prima volta i nomi in codice di progetti Valve poi annunciati (date nella
+ <a href="alyx.html">pagina di confronto</a>). I rilevatori sono quelli di oggi, ma senza i nomi di quei progetti: sono
+ stati aggiunti dopo, sapendo la risposta. Il repository parte com'era il giorno prima della finestra, e quello che
+ c'era già viene imparato in silenzio, come al primo giro vero. Un avviso è una voce nuova con punteggio almeno
+ {{ notify_min_score }}, come per le notifiche.</p>
+ <table>
+  <tr><th>Prova</th><th>Commit</th><th>Primo avviso sul progetto</th><th>Altri avvisi al mese</th></tr>
+  {% for r in passato %}
+  <tr>
+   <td><b>{{ r.title }}</b><br><small class="muted">{{ r.repo }}, dal {{ r.start }} al {{ r.end }}; annuncio {{ r.announced }}</small></td>
+   <td>{{ r.commits }}</td>
+   <td>{% if r.first %}{{ r.first.day }}, {{ r.first.anticipo_giorni }} giorni prima dell'annuncio (circa {{ r.first.mesi }} mesi):
+    {{ r.first.kind }}, punteggio {{ r.first.score }}<br><small><code>{{ r.first.text[:120] }}</code></small>
+    {% elif r.learned_at_start %}nessuno: il nome c'era già all'inizio ({{ r.learned_at_start|join(", ") }}) ed è stato imparato senza avviso
+    {% else %}nessuno{% endif %}
+    {% if r.nota %}<br><small class="muted">{{ r.nota }}</small>{% endif %}</td>
+   <td>{{ r.others_per_month }}<br><small class="muted">{{ r.others_high_per_month }} ad alta rilevanza</small></td>
+  </tr>
+  {% endfor %}
+ </table>
+ <p class="muted">Gli "altri avvisi" non sono tutti falsi allarmi: sono le voci che sarebbero arrivate nello stesso periodo
+ per altri motivi. La scansione di partenza legge un solo repository: alcune famiglie di classi (librerie di terzi,
+ classi di Steam) che oggi sono note grazie agli altri giochi qui risultano nuove e gonfiano il conto. Restano fuori le
+ fonti che non hanno storia (post e pagine di Steam, certificati, cartelle lette con l'API). I risultati completi sono in <a href="{{ repo_url }}/blob/main/hlxwatch/backtest_seed.json">backtest_seed.json</a>;
+ il comando è <code>python -m hlxwatch prova-passato</code>.</p>
+</section>
+{% endif %}
+
 <section>
  <h2>Dati aperti</h2>
  <p>Tutti i dati di HLX Watch sono pubblici e si possono riusare citando HLX Watch e le fonti (SteamTracking, Steam):</p>

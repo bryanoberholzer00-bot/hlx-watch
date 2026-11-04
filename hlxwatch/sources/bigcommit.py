@@ -96,20 +96,25 @@ class LocalDiff:
             subprocess.run(["git", "init", "-q", "--bare", str(gitdir)], check=True, capture_output=True)
             self._git(gitdir, "fetch", "-q", "--depth", "2", "--filter=blob:none",
                       clone_url or f"https://github.com/{repo}.git", sha)
-            parts = self._git(gitdir, "diff", "--name-status", "--no-renames", "-z", parent, sha) \
-                .decode("utf-8", "replace").split("\0")
-            statuses = {parts[i + 1]: STATUS.get(parts[i][:1], "modified")
-                        for i in range(0, len(parts) - 1, 2) if parts[i]}
-            self.files_total = len(statuses)
-            missing = [p for p in statuses if p not in skip]
-            log.info("%s %s: %d file cambiati, %d non esposti dall'API: li leggo con git", repo, sha[:10],
-                     len(statuses), len(missing))
-            if not missing:
-                return
-            for batch in _batches(missing):
-                yield from self._diff(gitdir, parent, sha, batch, statuses)
+            yield from self.diff_entries(gitdir, parent, sha, skip, label=repo)
         finally:
             _remove(gitdir)
+
+    def diff_entries(self, gitdir: Path, parent: str, sha: str, skip: set[str] | frozenset[str] = frozenset(),
+                     *, label: str = "") -> Iterator[dict]:
+        """Le voci dei file cambiati fra `parent` e `sha` in un clone già scaricato (anche senza contenuti:
+        `git diff` scarica quelli che servono). Le usa anche la prova sul passato (backtest.py)."""
+        parts = self._git(gitdir, "diff", "--name-status", "--no-renames", "-z", parent, sha) \
+            .decode("utf-8", "replace").split("\0")
+        statuses = {parts[i + 1]: STATUS.get(parts[i][:1], "modified")
+                    for i in range(0, len(parts) - 1, 2) if parts[i]}
+        self.files_total = len(statuses)
+        missing = [p for p in statuses if p not in skip]
+        if skip:
+            log.info("%s %s: %d file cambiati, %d non esposti dall'API: li leggo con git", label, sha[:10],
+                     len(statuses), len(missing))
+        for batch in _batches(missing):
+            yield from self._diff(gitdir, parent, sha, batch, statuses)
 
     def _diff(self, gitdir: Path, parent: str, sha: str, paths: list[str],
               statuses: dict[str, str]) -> Iterator[dict]:

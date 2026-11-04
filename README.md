@@ -387,6 +387,16 @@ nella Cronologia. Si rileggono anche i commit già nell'archivio, aggiungendo so
 mancano: dopo una parola chiave nuova un nuovo giro ripesca anche le righe dei commit già noti, e si può
 rilanciare senza doppioni.
 
+### Prova sul passato
+
+`python -m hlxwatch prova-passato` fa girare i rilevatori di oggi sui commit dei mesi in cui sono comparsi i nomi
+in codice di progetti Valve poi annunciati (Steam Frame, Deadlock, Steam Deck), per sapere se e con quanto anticipo
+sarebbe arrivato un avviso e quanti altri avvisi sarebbero arrivati nello stesso periodo. I nomi del progetto si
+tolgono da nomi noti, parole chiave, esclusioni e file sorvegliati (sono stati scritti dopo, sapendo la risposta); il
+repository parte com'era il giorno prima della finestra e la scansione completa impara in silenzio quello che c'era.
+Tutto avviene in un archivio temporaneo separato, senza notifiche. Il risultato va in `hlxwatch/backtest_seed.json`
+e nella pagina Metodologia; `--prova deadlock_2022` limita a una prova. Le prove su Dota 2 richiedono 15-25 minuti.
+
 ### Cronologia HLX
 
 La pagina `cronologia.html` del sito mette in fila gli indizi importanti (voci con punteggio >= `timeline.min_score`, 90), ognuno con

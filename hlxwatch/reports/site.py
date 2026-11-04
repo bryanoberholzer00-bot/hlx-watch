@@ -308,6 +308,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     from hlxwatch import alyx
     cmp = alyx.compare(alyx.load_seed(), outcomes, stamp.date().isoformat(), cfg.game_title)
     from hlxwatch import progetti
+    from hlxwatch.backtest import load_seed as load_backtest, summary as backtest_summary
     pseed, today = progetti.load_seed(), stamp.date().isoformat()
     others = progetti.summary(pseed, today)
     before = progetti.before_announce(pseed, alyx.load_seed(), outcomes, today)
@@ -331,6 +332,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
         structure_score=int((cfg.get("structure", {}) or {}).get("score", 100)),
         loc={"min_tokens": 20, "score_new_file": 100, "score_new_prefix": 60, **(cfg.get("localization", {}) or {})},
         ai_model="Claude Opus 5.5", repo_url=str(cfg.get("general.repo_url", "https://github.com/bryanoberholzer00-bot/hlx-watch")),
+        passato=backtest_summary(load_backtest()),
     ), encoding="utf-8")
     from hlxwatch.timeline import build_entries
     (out_dir / "cronologia.html").write_text(env.get_template("cronologia.html").render(

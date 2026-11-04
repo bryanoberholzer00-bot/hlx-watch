@@ -212,6 +212,27 @@ def cmd_progetti_storia(args: argparse.Namespace) -> int:
     return 1 if data["repos"] and all(r.get("error") for r in data["repos"].values()) else 0
 
 
+def cmd_prova_passato(args: argparse.Namespace) -> int:
+    """Prova sul passato: i rilevatori di oggi sui commit di progetti Valve già annunciati."""
+    from hlxwatch import backtest
+    cfg = load_config(args.config)
+    setup_logging(args.log_level or cfg.get("general.log_level", "INFO"), cfg.log_dir)
+    workdir = Path(args.workdir) if args.workdir else cfg.data_dir / "backtest"
+    data = backtest.run(cfg, args.prova, workdir, Path(args.out))
+    for key, r in data["tests"].items():
+        if args.prova and key not in args.prova:
+            continue
+        if r.get("error"):
+            print(f"{key}: ERRORE {r['error']}")
+            continue
+        first = r["first_related"]
+        print(f"{key}: {r['commits']} commit, {r['alerts_total']} avvisi ({r['alerts_high']} alti); "
+              + (f"primo avviso sul progetto il {first['day']} ({first['anticipo_giorni']} giorni prima, "
+                 f"{first['type']}, {first['score']}): {first['text'][:80]}" if first else "nessun avviso sul progetto")
+              + (f"; già presenti all'inizio: {', '.join(r['learned_at_start'])}" if r["learned_at_start"] else ""))
+    return 1 if data["tests"] and all(r.get("error") for r in data["tests"].values()) else 0
+
+
 def cmd_daemon(args: argparse.Namespace) -> int:
     cfg, db = _open(args)
     from hlxwatch.core import Pipeline
@@ -428,6 +449,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--progetto", action="append", help="limita a un progetto (deadlock, cs2, deck, frame); ripetibile")
     p.add_argument("--workdir", help="cartella per le copie dei repository (default: temporanea)")
     p.set_defaults(func=cmd_progetti_storia)
+
+    p = sub.add_parser("prova-passato", help="prova sul passato: gli avvisi che HLX Watch avrebbe dato prima di annunci veri")
+    p.add_argument("--out", default=str(Path(__file__).with_name("backtest_seed.json")), help="file JSON da scrivere")
+    p.add_argument("--prova", action="append", help="limita a una prova (frame_2022, deadlock_2022...); ripetibile")
+    p.add_argument("--workdir", help="cartella di lavoro (default: data/backtest, cancellata alla fine)")
+    p.set_defaults(func=cmd_prova_passato)
 
     p = sub.add_parser("weekly", help="riepilogo della settimana precedente (anteprima; --send per Telegram)")
     p.add_argument("--send", action="store_true", help="invia il riepilogo su Telegram")

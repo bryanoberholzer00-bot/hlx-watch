@@ -132,20 +132,40 @@ class KeywordMatcher:
         # due bonus su "npc_" (15) non devono trasformare un file di eroi di Dota in un avviso
         self.bonus_min_weight = int(keyword_cfg.get("bonus_min_weight", 40))
         self.ignore = {str(x) for x in ignore_ids}
+        self.prefilter = self._build_prefilter()
+
+    def _build_prefilter(self) -> list[re.Pattern[str]] | None:
+        """Una sola espressione con tutte le parole chiave (una per le maiuscole esatte, una no): quasi tutte le
+        righe dei dump non contengono niente, e così si scartano con una ricerca invece di una per parola chiave.
+        Con riferimenti all'indietro o flag interni l'unione cambierebbe significato: in quel caso niente filtro."""
+        groups: dict[bool, list[str]] = {True: [], False: []}
+        for kw in self.keywords:
+            if kw.id in self.ignore:
+                continue
+            if re.search(r"\\[1-9]|\(\?P=|\(\?[aiLmsux-]+[:)]", kw.regex.pattern):
+                return None
+            groups[not kw.regex.flags & re.IGNORECASE].append(kw.regex.pattern)
+        try:
+            return [re.compile("|".join(f"(?:{p})" for p in pats), 0 if exact else re.IGNORECASE)
+                    for exact, pats in groups.items() if pats]
+        except re.error:
+            return None
 
     # ------------------------------------------------------------------ base
     def find(self, text: str, file_path: str = "") -> list[Match]:
         matches: list[Match] = []
+        if self.prefilter is not None and not any(p.search(text) for p in self.prefilter):
+            return matches
         for kw in self.keywords:
-            if kw.id in self.ignore:
-                continue
-            if any(ex.search(text) for ex in kw.excludes):
-                continue
-            if file_path and any(ex.search(file_path) for ex in kw.path_excludes):
+            if kw.id in self.ignore or not kw.regex.search(text):
                 continue
             # la prima corrispondenza con maiuscole normali: "hLX", "HLx" sono sequenze casuali dei dump binari
             m = next((c for c in kw.regex.finditer(text) if not mixed_case(c.group(0))), None)
             if m is None:
+                continue
+            if any(ex.search(text) for ex in kw.excludes):
+                continue
+            if file_path and any(ex.search(file_path) for ex in kw.path_excludes):
                 continue
             matches.append(Match(kw, m.start(), m.end()))
         if matches and self.global_excludes:

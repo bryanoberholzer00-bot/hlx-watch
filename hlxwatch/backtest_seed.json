@@ -1,0 +1,1491 @@
+{
+ "tests": {
+  "frame_2022": {
+   "key": "frame_2022",
+   "title": "Steam Frame: Deckard nei file di SteamVR",
+   "project": "Steam Frame",
+   "announced": "2025-11-12",
+   "repo": "steamvr",
+   "start": "2022-03-01",
+   "end": "2022-07-01",
+   "codes": "deckard",
+   "commits": 22,
+   "start_sha": "d6f33b911bdf6caffcda5843db7320d8265136c2",
+   "end_sha": "a6d5c07698cceb8cb800612ec7f29d59cfa2700c",
+   "learned_at_start": [],
+   "related": [],
+   "related_total": 0,
+   "first_related": null,
+   "alerts_total": 48,
+   "alerts_high": 0,
+   "others_per_month": 12.0,
+   "others_high_per_month": 0.0,
+   "others_sample": [
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CAD*",
+     "text": "Famiglia di classi nuova: CAD (7 nomi): CADArgHolder, CADMessageBase, CADMethodCallMessage, CADMethodRef, CADMethodReturnMessage, CADObjRef",
+     "token": "classfam:cad",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CAD\", \"nomi\": [\"CADArgHolder\", \"CADMessageBase\", \"CADMethodCallMessage\", \"CADMethodRef\", \"CADMethodReturnMessage\", \"CADObjRef\", \"CADSerializer\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CCD*",
+     "text": "Famiglia di classi nuova: CCD (5 nomi): CCDAdvance, CCDBones, CCDPass, CCDSweep, CCDWeight",
+     "token": "classfam:ccd",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CCD\", \"nomi\": [\"CCDAdvance\", \"CCDBones\", \"CCDPass\", \"CCDSweep\", \"CCDWeight\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CFX*",
+     "text": "Famiglia di classi nuova: CFX (10 nomi): CFX_AutoDestructShuriken, CFX_AutoRotate, CFX_AutodestructWhenNoChildren, CFX_Demo, CFX_Demo_RandomDir, CFX_Demo_RandomDirectionTranslate",
+     "token": "classfam:cfx",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CFX\", \"nomi\": [\"CFX_AutoDestructShuriken\", \"CFX_AutoRotate\", \"CFX_AutodestructWhenNoChildren\", \"CFX_Demo\", \"CFX_Demo_RandomDir\", \"CFX_Demo_RandomDirectionTranslate\", \"CFX_Demo_RotateCame"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CFriends*",
+     "text": "Famiglia di classi nuova: CFriends (6 nomi): CFriendsEnumerateFollowingList_t_CallResult, CFriendsEnumerateFollowingList_t_RemoveCallResult, CFriendsEnumerateFollowingList_t_SetCallResult, CFriendsGetFollowerCount_t_CallResult, CFriendsGetFollowerCount_t_RemoveCallResult, CFriendsGetFollowerCount_t_",
+     "token": "classfam:cfriends",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CFriends\", \"nomi\": [\"CFriendsEnumerateFollowingList_t_CallResult\", \"CFriendsEnumerateFollowingList_t_RemoveCallResult\", \"CFriendsEnumerateFollowingList_t_SetCallResult\", \"CFriendsGetFoll"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CGS*",
+     "text": "Famiglia di classi nuova: CGS (9 nomi): CGSReputation_t_CallResult, CGSReputation_t_RemoveCallResult, CGSReputation_t_SetCallResult, CGSStatsReceived_t_CallResult, CGSStatsReceived_t_RemoveCallResult, CGSStatsReceived_t_SetCallResult",
+     "token": "classfam:cgs",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CGS\", \"nomi\": [\"CGSReputation_t_CallResult\", \"CGSReputation_t_RemoveCallResult\", \"CGSReputation_t_SetCallResult\", \"CGSStatsReceived_t_CallResult\", \"CGSStatsReceived_t_RemoveCallResult\", "
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CGlobal*",
+     "text": "Famiglia di classi nuova: CGlobal (6 nomi): CGlobalAchievementPercentagesReady_t_CallResult, CGlobalAchievementPercentagesReady_t_RemoveCallResult, CGlobalAchievementPercentagesReady_t_SetCallResult, CGlobalStatsReceived_t_CallResult, CGlobalStatsReceived_t_RemoveCallResult, CGlobalStatsReceived_t_S",
+     "token": "classfam:cglobal",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CGlobal\", \"nomi\": [\"CGlobalAchievementPercentagesReady_t_CallResult\", \"CGlobalAchievementPercentagesReady_t_RemoveCallResult\", \"CGlobalAchievementPercentagesReady_t_SetCallResult\", \"CGlo"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CJK*",
+     "text": "Famiglia di classi nuova: CJK (6 nomi): CJKDaySuff, CJKHourSuff, CJKMinuteSuff, CJKMonthSuff, CJKSecondSuff, CJKYearSuff",
+     "token": "classfam:cjk",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CJK\", \"nomi\": [\"CJKDaySuff\", \"CJKHourSuff\", \"CJKMinuteSuff\", \"CJKMonthSuff\", \"CJKSecondSuff\", \"CJKYearSuff\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CLeaderboard*",
+     "text": "Famiglia di classi nuova: CLeaderboard (12 nomi): CLeaderboardFindResult_t_CallResult, CLeaderboardFindResult_t_RemoveCallResult, CLeaderboardFindResult_t_SetCallResult, CLeaderboardScoreUploaded_t_CallResult, CLeaderboardScoreUploaded_t_RemoveCallResult, CLeaderboardScoreUploaded_t_SetCallResult",
+     "token": "classfam:cleaderboard",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CLeaderboard\", \"nomi\": [\"CLeaderboardFindResult_t_CallResult\", \"CLeaderboardFindResult_t_RemoveCallResult\", \"CLeaderboardFindResult_t_SetCallResult\", \"CLeaderboardScoreUploaded_t_CallRes"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CLobby*",
+     "text": "Famiglia di classi nuova: CLobby (9 nomi): CLobbyCreated_t_CallResult, CLobbyCreated_t_RemoveCallResult, CLobbyCreated_t_SetCallResult, CLobbyEnter_t_CallResult, CLobbyEnter_t_RemoveCallResult, CLobbyEnter_t_SetCallResult",
+     "token": "classfam:clobby",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CLobby\", \"nomi\": [\"CLobbyCreated_t_CallResult\", \"CLobbyCreated_t_RemoveCallResult\", \"CLobbyCreated_t_SetCallResult\", \"CLobbyEnter_t_CallResult\", \"CLobbyEnter_t_RemoveCallResult\", \"CLobby"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CMDI*",
+     "text": "Famiglia di classi nuova: CMDI (6 nomi): CMDIChildWnd, CMDIChildWndEx, CMDIClientAreaWnd, CMDIFrameWnd, CMDIFrameWndEx, CMDITabProxyWnd",
+     "token": "classfam:cmdi",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CMDI\", \"nomi\": [\"CMDIChildWnd\", \"CMDIChildWndEx\", \"CMDIClientAreaWnd\", \"CMDIFrameWnd\", \"CMDIFrameWndEx\", \"CMDITabProxyWnd\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CMFC*",
+     "text": "Famiglia di classi nuova: CMFC (103 nomi): CMFCAutoHideBar, CMFCAutoHideButton, CMFCBaseAccessibleObject, CMFCBaseTabCtrl, CMFCBaseToolBar, CMFCButton",
+     "token": "classfam:cmfc",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CMFC\", \"nomi\": [\"CMFCAutoHideBar\", \"CMFCAutoHideButton\", \"CMFCBaseAccessibleObject\", \"CMFCBaseTabCtrl\", \"CMFCBaseToolBar\", \"CMFCButton\", \"CMFCCaptionBar\", \"CMFCColorBar\", \"CMFCColorButto"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi COle*",
+     "text": "Famiglia di classi nuova: COle (14 nomi): COleCntrFrameWndEx, COleDataSource, COleDispatchException, COleDocIPFrameWnd, COleDocIPFrameWndEx, COleDocument",
+     "token": "classfam:cole",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"COle\", \"nomi\": [\"COleCntrFrameWndEx\", \"COleDataSource\", \"COleDispatchException\", \"COleDocIPFrameWnd\", \"COleDocIPFrameWndEx\", \"COleDocument\", \"COleDropSource\", \"COleDropTarget\", \"COleExce"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CRemote*",
+     "text": "Famiglia di classi nuova: CRemote (48 nomi): CRemoteStorageDeletePublishedFileResult_t_CallResult, CRemoteStorageDeletePublishedFileResult_t_RemoveCallResult, CRemoteStorageDeletePublishedFileResult_t_SetCallResult, CRemoteStorageDownloadUGCResult_t_CallResult, CRemoteStorageDownloadUGCResult_t_Remo",
+     "token": "classfam:cremote",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CRemote\", \"nomi\": [\"CRemoteStorageDeletePublishedFileResult_t_CallResult\", \"CRemoteStorageDeletePublishedFileResult_t_RemoveCallResult\", \"CRemoteStorageDeletePublishedFileResult_t_SetCal"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CSharp*",
+     "text": "Famiglia di classi nuova: CSharp (6 nomi): CSharpCodeGenerator, CSharpCodeProvider, CSharpHelpers, CSharpMemberAttributeConverter, CSharpModifierAttributeConverter, CSharpTypeAttributeConverter",
+     "token": "classfam:csharp",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CSharp\", \"nomi\": [\"CSharpCodeGenerator\", \"CSharpCodeProvider\", \"CSharpHelpers\", \"CSharpMemberAttributeConverter\", \"CSharpModifierAttributeConverter\", \"CSharpTypeAttributeConverter\"], \"gi"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CAXPAV*",
+     "text": "Famiglia di classi nuova: CAXPAV (2 nomi): CAXPAVIsolate, CAXPAVValue",
+     "token": "classfam:caxpav",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CAXPAV\", \"nomi\": [\"CAXPAVIsolate\", \"CAXPAVValue\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CAssociate*",
+     "text": "Famiglia di classi nuova: CAssociate (3 nomi): CAssociateWithClanResult_t_CallResult, CAssociateWithClanResult_t_RemoveCallResult, CAssociateWithClanResult_t_SetCallResult",
+     "token": "classfam:cassociate",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CAssociate\", \"nomi\": [\"CAssociateWithClanResult_t_CallResult\", \"CAssociateWithClanResult_t_RemoveCallResult\", \"CAssociateWithClanResult_t_SetCallResult\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CCallback*",
+     "text": "Famiglia di classi nuova: CCallback (3 nomi): CCallbackBase, CCallbackImpl, CCallbackManual",
+     "token": "classfam:ccallback",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CCallback\", \"nomi\": [\"CCallbackBase\", \"CCallbackImpl\", \"CCallbackManual\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CCheck*",
+     "text": "Famiglia di classi nuova: CCheck (4 nomi): CCheckFileSignature_t_CallResult, CCheckFileSignature_t_RemoveCallResult, CCheckFileSignature_t_SetCallResult, CCheckListBox",
+     "token": "classfam:ccheck",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CCheck\", \"nomi\": [\"CCheckFileSignature_t_CallResult\", \"CCheckFileSignature_t_RemoveCallResult\", \"CCheckFileSignature_t_SetCallResult\", \"CCheckListBox\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CClan*",
+     "text": "Famiglia di classi nuova: CClan (3 nomi): CClanOfficerListResponse_t_CallResult, CClanOfficerListResponse_t_RemoveCallResult, CClanOfficerListResponse_t_SetCallResult",
+     "token": "classfam:cclan",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CClan\", \"nomi\": [\"CClanOfficerListResponse_t_CallResult\", \"CClanOfficerListResponse_t_RemoveCallResult\", \"CClanOfficerListResponse_t_SetCallResult\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CCom*",
+     "text": "Famiglia di classi nuova: CCom (2 nomi): CComObjectNoLock, CComObjectRootEx",
+     "token": "classfam:ccom",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CCom\", \"nomi\": [\"CComObjectNoLock\", \"CComObjectRootEx\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CCompute*",
+     "text": "Famiglia di classi nuova: CCompute (3 nomi): CComputeNewPlayerCompatibilityResult_t_CallResult, CComputeNewPlayerCompatibilityResult_t_RemoveCallResult, CComputeNewPlayerCompatibilityResult_t_SetCallResult",
+     "token": "classfam:ccompute",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CCompute\", \"nomi\": [\"CComputeNewPlayerCompatibilityResult_t_CallResult\", \"CComputeNewPlayerCompatibilityResult_t_RemoveCallResult\", \"CComputeNewPlayerCompatibilityResult_t_SetCallResult\""
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CDef*",
+     "text": "Famiglia di classi nuova: CDef (4 nomi): CDefEquals, CDefHashKey, CDefLess, CDefRBTreeBalanceListener",
+     "token": "classfam:cdef",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CDef\", \"nomi\": [\"CDefEquals\", \"CDefHashKey\", \"CDefLess\", \"CDefRBTreeBalanceListener\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CDoc*",
+     "text": "Famiglia di classi nuova: CDoc (2 nomi): CDocItem, CDocTemplate",
+     "token": "classfam:cdoc",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CDoc\", \"nomi\": [\"CDocItem\", \"CDocTemplate\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CDock*",
+     "text": "Famiglia di classi nuova: CDock (3 nomi): CDockBar, CDockSite, CDockState",
+     "token": "classfam:cdock",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CDock\", \"nomi\": [\"CDockBar\", \"CDockSite\", \"CDockState\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CDockable*",
+     "text": "Famiglia di classi nuova: CDockable (2 nomi): CDockablePane, CDockablePaneAdapter",
+     "token": "classfam:cdockable",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CDockable\", \"nomi\": [\"CDockablePane\", \"CDockablePaneAdapter\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CEncrypted*",
+     "text": "Famiglia di classi nuova: CEncrypted (3 nomi): CEncryptedAppTicketResponse_t_CallResult, CEncryptedAppTicketResponse_t_RemoveCallResult, CEncryptedAppTicketResponse_t_SetCallResult",
+     "token": "classfam:cencrypted",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CEncrypted\", \"nomi\": [\"CEncryptedAppTicketResponse_t_CallResult\", \"CEncryptedAppTicketResponse_t_RemoveCallResult\", \"CEncryptedAppTicketResponse_t_SetCallResult\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CGet*",
+     "text": "Famiglia di classi nuova: CGet (3 nomi): CGetUserItemVoteResult_t_CallResult, CGetUserItemVoteResult_t_RemoveCallResult, CGetUserItemVoteResult_t_SetCallResult",
+     "token": "classfam:cget",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CGet\", \"nomi\": [\"CGetUserItemVoteResult_t_CallResult\", \"CGetUserItemVoteResult_t_RemoveCallResult\", \"CGetUserItemVoteResult_t_SetCallResult\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CHTML*",
+     "text": "Famiglia di classi nuova: CHTML (3 nomi): CHTML_BrowserReady_t_CallResult, CHTML_BrowserReady_t_RemoveCallResult, CHTML_BrowserReady_t_SetCallResult",
+     "token": "classfam:chtml",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CHTML\", \"nomi\": [\"CHTML_BrowserReady_t_CallResult\", \"CHTML_BrowserReady_t_RemoveCallResult\", \"CHTML_BrowserReady_t_SetCallResult\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CJoin*",
+     "text": "Famiglia di classi nuova: CJoin (3 nomi): CJoinClanChatRoomCompletionResult_t_CallResult, CJoinClanChatRoomCompletionResult_t_RemoveCallResult, CJoinClanChatRoomCompletionResult_t_SetCallResult",
+     "token": "classfam:cjoin",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CJoin\", \"nomi\": [\"CJoinClanChatRoomCompletionResult_t_CallResult\", \"CJoinClanChatRoomCompletionResult_t_RemoveCallResult\", \"CJoinClanChatRoomCompletionResult_t_SetCallResult\"], \"giochi\":"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CLR*",
+     "text": "Famiglia di classi nuova: CLR (4 nomi): CLRConfig, CLRInstanceID, CLRLicenseContext, CLRNamespaceMappedMultipleTimes",
+     "token": "classfam:clr",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CLR\", \"nomi\": [\"CLRConfig\", \"CLRInstanceID\", \"CLRLicenseContext\", \"CLRNamespaceMappedMultipleTimes\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CList*",
+     "text": "Famiglia di classi nuova: CList (2 nomi): CListBox, CListCtrl",
+     "token": "classfam:clist",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CList\", \"nomi\": [\"CListBox\", \"CListCtrl\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CMYK*",
+     "text": "Famiglia di classi nuova: CMYK (2 nomi): CMYKCustomColor, CMYKProcessColor",
+     "token": "classfam:cmyk",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CMYK\", \"nomi\": [\"CMYKCustomColor\", \"CMYKProcessColor\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CMod*",
+     "text": "Famiglia di classi nuova: CMod (2 nomi): CModOpt, CModReqd",
+     "token": "classfam:cmod",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CMod\", \"nomi\": [\"CModOpt\", \"CModReqd\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CORE*",
+     "text": "Famiglia di classi nuova: CORE (2 nomi): CORE_DB_MagickCore_, CORE_RL_MagickCore_",
+     "token": "classfam:core",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CORE\", \"nomi\": [\"CORE_DB_MagickCore_\", \"CORE_RL_MagickCore_\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CPane*",
+     "text": "Famiglia di classi nuova: CPane (4 nomi): CPaneContainer, CPaneContainerManager, CPaneDivider, CPaneFrameWnd",
+     "token": "classfam:cpane",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CPane\", \"nomi\": [\"CPaneContainer\", \"CPaneContainerManager\", \"CPaneDivider\", \"CPaneFrameWnd\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CPtr*",
+     "text": "Famiglia di classi nuova: CPtr (2 nomi): CPtrArray, CPtrList",
+     "token": "classfam:cptr",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CPtr\", \"nomi\": [\"CPtrArray\", \"CPtrList\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CPublisher*",
+     "text": "Famiglia di classi nuova: CPublisher (3 nomi): CPublisherOwnedAppDataReady_t_Callback, CPublisherOwnedAppDataReady_t_RemoveCallback, CPublisherOwnedAppDataReady_t_SetCallback",
+     "token": "classfam:cpublisher",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CPublisher\", \"nomi\": [\"CPublisherOwnedAppDataReady_t_Callback\", \"CPublisherOwnedAppDataReady_t_RemoveCallback\", \"CPublisherOwnedAppDataReady_t_SetCallback\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CRC*",
+     "text": "Famiglia di classi nuova: CRC (3 nomi): CRCMessage, CRCMessageEntry, CRCMismatch",
+     "token": "classfam:crc",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CRC\", \"nomi\": [\"CRCMessage\", \"CRCMessageEntry\", \"CRCMismatch\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CSV*",
+     "text": "Famiglia di classi nuova: CSV (2 nomi): CSVFileWriter, CSVWriting",
+     "token": "classfam:csv",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CSV\", \"nomi\": [\"CSVFileWriter\", \"CSVWriting\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2022-03-31",
+     "sha": "a6d5c07698",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CSVFX*",
+     "text": "Famiglia di classi nuova: CSVFX (4 nomi): CSVFXCopyBuffer, CSVFXIndirectArgs, CSVFXInitDeadListBuffer, CSVFXZeroInitBuffer",
+     "token": "classfam:csvfx",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CSVFX\", \"nomi\": [\"CSVFXCopyBuffer\", \"CSVFXIndirectArgs\", \"CSVFXInitDeadListBuffer\", \"CSVFXZeroInitBuffer\"], \"giochi\": [\"steamvr\"]}"
+    }
+   ],
+   "seconds": 1702
+  },
+  "frame_2025": {
+   "key": "frame_2025",
+   "title": "Steam Frame: i mesi prima dell'annuncio",
+   "project": "Steam Frame",
+   "announced": "2025-11-12",
+   "repo": "steamvr",
+   "start": "2025-06-01",
+   "end": "2025-11-12",
+   "codes": "deckard|frame_(?:hmd|controller)|fremont|ibex|steam ?frame",
+   "commits": 10,
+   "start_sha": "06c9ce748561b74fb5806438563ac1f71cd23854",
+   "end_sha": "573f14ddfee3d0efcad972a861c1d38253215d8a",
+   "learned_at_start": [],
+   "related": [],
+   "related_total": 0,
+   "first_related": null,
+   "alerts_total": 8,
+   "alerts_high": 0,
+   "others_per_month": 1.5,
+   "others_high_per_month": 0.0,
+   "others_sample": [
+    {
+     "day": "2025-06-03",
+     "sha": "573f14ddfe",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CNFG*",
+     "text": "Famiglia di classi nuova: CNFG (38 nomi): CNFGBlitImage, CNFGChangeWindowTitle, CNFGClassHint, CNFGClearFrame, CNFGColor, CNFGDepth",
+     "token": "classfam:cnfg",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CNFG\", \"nomi\": [\"CNFGBlitImage\", \"CNFGChangeWindowTitle\", \"CNFGClassHint\", \"CNFGClearFrame\", \"CNFGColor\", \"CNFGDepth\", \"CNFGDialogColor\", \"CNFGDisplay\", \"CNFGDrawBox\", \"CNFGDrawText\", \"C"
+    },
+    {
+     "day": "2025-11-11",
+     "sha": "573f14ddfe",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CBU*",
+     "text": "Famiglia di classi nuova: CBU (5 nomi): CBUApplySubpassTransitionBarriersAction, CBUApplyTrackbackStackAction, CBUBatchBarrierOp, CBUNoopBarrierAction, CBUQueueTagOffsetBarrierAction",
+     "token": "classfam:cbu",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CBU\", \"nomi\": [\"CBUApplySubpassTransitionBarriersAction\", \"CBUApplyTrackbackStackAction\", \"CBUBatchBarrierOp\", \"CBUNoopBarrierAction\", \"CBUQueueTagOffsetBarrierAction\"], \"giochi\": [\"stea"
+    },
+    {
+     "day": "2025-11-11",
+     "sha": "573f14ddfe",
+     "score": 80,
+     "type": "class_family",
+     "file_path": "classi CBV*",
+     "text": "Famiglia di classi nuova: CBV (6 nomi): CBVAccessContext, CBVApplyAcquireNextSemaphoreAction, CBVApplySemaphoreBarrierAction, CBVCommandBuffer, CBVDescriptorSetLayoutDef, CBVRenderPass",
+     "token": "classfam:cbv",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CBV\", \"nomi\": [\"CBVAccessContext\", \"CBVApplyAcquireNextSemaphoreAction\", \"CBVApplySemaphoreBarrierAction\", \"CBVCommandBuffer\", \"CBVDescriptorSetLayoutDef\", \"CBVRenderPass\"], \"giochi\": [\""
+    },
+    {
+     "day": "2025-06-03",
+     "sha": "7abb05f918",
+     "score": 60,
+     "type": "codename",
+     "file_path": "resources/input/khr_generic_controller.json",
+     "text": "\"controller_type\": \"khr_generic_controller\",",
+     "token": "codename:khr_generic_controller",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'khr_generic_controller' mai visto: tipo di dispositivo di SteamVR (controller_type)"
+    },
+    {
+     "day": "2025-08-05",
+     "sha": "6cdf9308ee",
+     "score": 60,
+     "type": "codename",
+     "file_path": "resources/input/hand_interaction_ext.json",
+     "text": "\"controller_type\": \"hand_interaction_ext\",",
+     "token": "codename:hand_interaction_ext",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'hand_interaction_ext' mai visto: tipo di dispositivo di SteamVR (controller_type)"
+    },
+    {
+     "day": "2025-06-03",
+     "sha": "573f14ddfe",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CPcap*",
+     "text": "Famiglia di classi nuova: CPcap (2 nomi): CPcapRadiotapWriter, CPcapWriterBase",
+     "token": "classfam:cpcap",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CPcap\", \"nomi\": [\"CPcapRadiotapWriter\", \"CPcapWriterBase\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2025-06-03",
+     "sha": "573f14ddfe",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CWinsock*",
+     "text": "Famiglia di classi nuova: CWinsock (2 nomi): CWinsockControlListener, CWinsockImpl",
+     "token": "classfam:cwinsock",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CWinsock\", \"nomi\": [\"CWinsockControlListener\", \"CWinsockImpl\"], \"giochi\": [\"steamvr\"]}"
+    },
+    {
+     "day": "2025-11-11",
+     "sha": "573f14ddfe",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CDia*",
+     "text": "Famiglia di classi nuova: CDia (2 nomi): CDiaEnumXfgTypeHashes, CDiaXfgTypeHash",
+     "token": "classfam:cdia",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CDia\", \"nomi\": [\"CDiaEnumXfgTypeHashes\", \"CDiaXfgTypeHash\"], \"giochi\": [\"steamvr\"]}"
+    }
+   ],
+   "seconds": 998
+  },
+  "deadlock_2021": {
+   "key": "deadlock_2021",
+   "title": "Deadlock: le prime classi Citadel in Dota 2",
+   "project": "Deadlock",
+   "announced": "2024-08-23",
+   "repo": "dota2",
+   "start": "2021-03-01",
+   "end": "2021-05-01",
+   "codes": "citadel",
+   "commits": 88,
+   "start_sha": "a91bd155efa77c74b21fbed7c74266f39da1d834",
+   "end_sha": "563649b74fb55fd6d91267b20f02b8aa9f92011e",
+   "learned_at_start": [],
+   "related": [],
+   "related_total": 0,
+   "first_related": null,
+   "alerts_total": 35,
+   "alerts_high": 3,
+   "others_per_month": 17.4,
+   "others_high_per_month": 1.5,
+   "others_sample": [
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 115,
+     "type": "added",
+     "file_path": "game/core/tools/demoinfo2/demoinfo2.txt",
+     "text": "// hlvr/hlx",
+     "token": "hlvr/hlx",
+     "keywords": [
+      "hlx"
+     ],
+     "context": "+\t\tDemoSimpleEncoders_t { m_Name = \"AmmoIndex_t\"\t\t\t\t\t\t\tm_VarType = \"NET_DATA_TYPE_INT64\" },\t// int8\n+\n+\t\t// hlvr/hlx\n \t\t//  DemoSimpleEncoders_t{ m_Name = \"CBaseVRHandAttachmentHandle\"\t\tm_VarType = \"N"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 100,
+     "type": "added",
+     "file_path": "game/core/pak01_dir/soundevents/soundevents_diagnostics.vsndevts",
+     "text": "_builtins._voicegraph = \"hlx.hrtf_basic\"",
+     "token": "hlx.hrtf_basic",
+     "keywords": [
+      "hlx"
+     ],
+     "context": " \t{\n \t\ttype = \"update_test_start_vsnd_rand_oneshot\"\n+\t\t_builtins._voicegraph = \"hlx.hrtf_basic\"\n \t\tdelay = 0.000000\n \t\trestart_time = 9.000000"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 100,
+     "type": "localization",
+     "file_path": "game/dota_addons/npx_2019/resource/addon_english.txt",
+     "text": "nuovo file di localizzazione addon_english.txt: famiglie di token scenario_ (495), initiation_ (20), scenario1_ (16)",
+     "token": "locfile:dota2:game/dota_addons/npx_2019/resource/addon_english.txt",
+     "keywords": [
+      "loc_file_new"
+     ],
+     "context": "568 token in tutto"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 60,
+     "type": "localization",
+     "file_path": "game/core/panorama/localization/panorama_english.txt",
+     "text": "famiglia di token di localizzazione mai vista: debugger_* (20 testi, panorama_english.txt)",
+     "token": "locprefix:dota2:debugger",
+     "keywords": [
+      "loc_prefix_new"
+     ],
+     "context": "famiglie note per dota2: 487; vista in un commit"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 60,
+     "type": "localization",
+     "file_path": "game/dota/pak01_dir/resource/localization/dota_english.txt",
+     "text": "famiglia di token di localizzazione mai vista: npe_* (24 testi, dota_english.txt)",
+     "token": "locprefix:dota2:npe",
+     "keywords": [
+      "loc_prefix_new"
+     ],
+     "context": "famiglie note per dota2: 487; vista in un commit"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 60,
+     "type": "localization",
+     "file_path": "game/dota_addons/npx_2019/resource/addon_english.txt",
+     "text": "famiglia di token di localizzazione mai vista: initiation_* (20 testi, addon_english.txt)",
+     "token": "locprefix:dota2:initiation",
+     "keywords": [
+      "loc_prefix_new"
+     ],
+     "context": "famiglie note per dota2: 488; vista in un commit"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 60,
+     "type": "localization",
+     "file_path": "game/dota_addons/npx_2019/resource/addon_english.txt",
+     "text": "famiglia di token di localizzazione mai vista: scenario_* (495 testi, addon_english.txt)",
+     "token": "locprefix:dota2:scenario",
+     "keywords": [
+      "loc_prefix_new"
+     ],
+     "context": "famiglie note per dota2: 488; vista in un commit"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_basenpc.fgd",
+     "text": "102: \"Tactical: Hide\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_basenpc.fgd",
+     "text": "104: \"Tactical: Sentry\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "removed",
+     "file_path": "game/core/ai_basenpc.fgd",
+     "text": "hintactivity(string) : \"Hint Activity\" : \"\" : \"Activity associated with this hint node. Various parts of the NPC AI play this activity at times. i.e. Actbusy nodes will play this activity when an NPC acts busy on the node.\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_basenpc.fgd",
+     "text": "animgraph_entry_cmd(string) : \"Animgraph Entry Command\" : \"\" : \"Animgraph command that NPCs using this hint should apply to their animgraph when they start using it.\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_basenpc.fgd",
+     "text": "animgraph_entry_tag(string) : \"Animgraph Entry Finish Tag\" : \"\" : \"The name of the Animgraph tag that will be fired when the NPC has finished playing the animgraph entry.\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_basenpc.fgd",
+     "text": "animgraph_exit_cmd(string) : \"Animgraph Exit Command\" : \"\" : \"Animgraph command that NPCs using this hint should apply to their animgraph when they want to stop using it.\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_basenpc.fgd",
+     "text": "animgraph_exit_tag(string) : \"Animgraph Exit Finish Tag\" : \"\" : \"The name of the Animgraph tag that will be fired when the NPC has finished playing the animgraph exit.\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_basenpc.fgd",
+     "text": "animgraph_navlink_target(target_destination) : \"Navlink Target\" : \"\" : \"The name of an info_target entity that specifies the location that the animgraph's 'v_navlink_target' parameter should be set to when an NPC uses this node.\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "removed",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "footstep_script(string) : \"Footstep script\" : \"\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "@PointClass base(Targetname) tags( Choreo ) color(255 0 255) iconsprite(\"editor/aiscripted_schedule\") = ai_scripted_idle :",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "\"Forces an NPC to idle (optionally at a specified location), allowing you to control what will interrupt it.\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "m_iszNPC(target_destination) : \"Target NPC(s)\" : : \"The name or classname of an NPC to use. If multiple NPCs are found, all of them will be told to idle.\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "m_iszTarget(target_destination) : \"Target Destination\" : \"\" : \"An optional entity that marks the position at which the NPC should idle. If left blank, the NPC will idle where it currently is.\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "resilient(choices) : \"Reacquire after break\" : 1 : \"If set, once the NPC has nothing important to do, it'll return to idling, even if it previously broke out of the schedule due to the Interruptability choices.\" =",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "0 : \"No\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "1 : \"Yes\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "switchidletoalert(choices) : \"Switch To Alert State if Idle\" : 0 : \"If the commanded NPC(s) is in Idle state, switch them to Alert state.\" =",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "interruptability(choices) : \"Interruptability\" : 0 : \"Sets what kind of events can interrupt an NPC that's performing this idle. Note that when set to 'Everything', NPCs can be easily interrupted by small things like physics impact sounds, or distant combat sounds.\" =",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "0 : \"Everything that usually interrupts AI\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "3 : \"Direct Combat (Seeing enemies, taking damage, etc)\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "1 : \"Only Taking Damage\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "2 : \"Nothing\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "input StartIdle(void) : \"Starts all target NPC(s) idling, potentially to the target destination if it's specified and they're not on it.\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "input StopIdle(void) : \"Stops all target NPCs that are performing this idle.\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "fdc15c99b7",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "output OnFailedToPerform(string) : \"Fired when any target NPC(s) fails to move to the destination. This occurs if no target NPCs could be found, or if they were found but were in a state that couldn't be broken out of to perform the movement.\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "563649b74f",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CEmbedded*",
+     "text": "Famiglia di classi nuova: CEmbedded (2 nomi): CEmbeddedSubclass, CEmbeddedSubclassGeneric",
+     "token": "classfam:cembedded",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CEmbedded\", \"nomi\": [\"CEmbeddedSubclass\", \"CEmbeddedSubclassGeneric\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2021-03-25",
+     "sha": "563649b74f",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CForce*",
+     "text": "Famiglia di classi nuova: CForce (2 nomi): CForceFacingCondition, CForceFacingConditionUpdater",
+     "token": "classfam:cforce",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CForce\", \"nomi\": [\"CForceFacingCondition\", \"CForceFacingConditionUpdater\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2021-04-09",
+     "sha": "2956304e4c",
+     "score": 50,
+     "type": "removed",
+     "file_path": "game/dota/gameinfo.gi",
+     "text": "\"DefaultPathEntity\"\t\t\t\"path_particle_rope\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: gameinfo.gi (definizione del gioco)"
+    }
+   ],
+   "seconds": 1432
+  },
+  "deadlock_2022": {
+   "key": "deadlock_2022",
+   "title": "Deadlock: CCitadelUserCmdPB in Dota 2",
+   "project": "Deadlock",
+   "announced": "2024-08-23",
+   "repo": "dota2",
+   "start": "2022-05-15",
+   "end": "2022-07-01",
+   "codes": "citadel",
+   "commits": 61,
+   "start_sha": "464adaf20ec0c7db38760cb6a03c2a87a875e4fd",
+   "end_sha": "85c261222ed97c7b6714b8770d27a4599600ad9d",
+   "learned_at_start": [],
+   "related": [
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 120,
+     "type": "codename",
+     "file_path": "Protobufs/usercmd.proto",
+     "text": "message CCitadelUserCmdPB {",
+     "token": "codename:citadel",
+     "keywords": [
+      "codename_new"
+     ],
+     "context": "nome di progetto 'citadel' mai visto: messaggio di rete con i comandi del giocatore (UserCmdPB)",
+     "anticipo_giorni": 806
+    }
+   ],
+   "related_total": 1,
+   "first_related": {
+    "day": "2022-06-09",
+    "sha": "7e011a5768",
+    "score": 120,
+    "type": "codename",
+    "file_path": "Protobufs/usercmd.proto",
+    "text": "message CCitadelUserCmdPB {",
+    "token": "codename:citadel",
+    "keywords": [
+     "codename_new"
+    ],
+    "context": "nome di progetto 'citadel' mai visto: messaggio di rete con i comandi del giocatore (UserCmdPB)",
+    "anticipo_giorni": 806
+   },
+   "alerts_total": 21,
+   "alerts_high": 4,
+   "others_per_month": 12.9,
+   "others_high_per_month": 1.9,
+   "others_sample": [
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 115,
+     "type": "added",
+     "file_path": "Protobufs/usercmd.proto",
+     "text": "message CHLXUserCmdPB {",
+     "token": "CHLXUserCmdPB",
+     "keywords": [
+      "hlx_class"
+     ],
+     "context": "+}\n+\n+message CHLXUserCmdPB {\n+\toptional .CBaseUserCmdPB base = 1;\n+}"
+    },
+    {
+     "day": "2022-06-30",
+     "sha": "61fcf512b4",
+     "score": 100,
+     "type": "localization",
+     "file_path": "game/dota_addons/conquest/panorama/localization/addon_english.txt",
+     "text": "nuovo file di localizzazione addon_english.txt: famiglie di token conquest_ (24), reward_ (10), achievement_ (5)",
+     "token": "locfile:dota2:game/dota_addons/conquest/panorama/localization/addon_english.txt",
+     "keywords": [
+      "loc_file_new"
+     ],
+     "context": "58 token in tutto"
+    },
+    {
+     "day": "2022-06-30",
+     "sha": "61fcf512b4",
+     "score": 100,
+     "type": "localization",
+     "file_path": "game/dota_addons/conquest/resource/addon_english.txt",
+     "text": "nuovo file di localizzazione addon_english.txt: famiglie di token dota_ (39), npc_ (10), cp_ (9)",
+     "token": "locfile:dota2:game/dota_addons/conquest/resource/addon_english.txt",
+     "keywords": [
+      "loc_file_new"
+     ],
+     "context": "61 token in tutto"
+    },
+    {
+     "day": "2022-06-30",
+     "sha": "61fcf512b4",
+     "score": 60,
+     "type": "localization",
+     "file_path": "game/dota_addons/conquest/panorama/localization/addon_english.txt",
+     "text": "famiglia di token di localizzazione mai vista: addon_* (20 testi, addon_english.txt)",
+     "token": "locprefix:dota2:addon",
+     "keywords": [
+      "loc_prefix_new"
+     ],
+     "context": "famiglie note per dota2: 552; vista in un commit"
+    },
+    {
+     "day": "2022-06-30",
+     "sha": "61fcf512b4",
+     "score": 60,
+     "type": "localization",
+     "file_path": "game/dota_addons/conquest/panorama/localization/addon_english.txt",
+     "text": "famiglia di token di localizzazione mai vista: conquest_* (24 testi, addon_english.txt)",
+     "token": "locprefix:dota2:conquest",
+     "keywords": [
+      "loc_prefix_new"
+     ],
+     "context": "famiglie note per dota2: 552; vista in un commit"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 55,
+     "type": "removed",
+     "file_path": "game/core/ai_basenpc.fgd",
+     "text": "SceneFile(scene) : \"Scene file\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_basenpc.fgd",
+     "text": "SceneFile(scene) { asset_specific_keys_destination=\"vcd_keys\" } : \"Scene file\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 55,
+     "type": "removed",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "@PointClass base(Targetname) tags( Choreo ) selected_line( 255 255 255, targetname, m_iszTarget ) color(255 0 255)  iconsprite(\"editor/ai_scripted_moveto\") = ai_scripted_moveto :",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "@PointClass base(Targetname) tags( Choreo ) selected_line( 255 255 255, targetname, m_iszTarget ) selected_line( 255 255 255, targetname, m_iszNPC ) color(255 0 255)  iconsprite(\"editor/ai_scripted_moveto\") = ai_scripted_moveto :",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 55,
+     "type": "removed",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "resilient(choices) : \"Reacquire after break\" : 1 : \"If set , once the NPC returns to idling, it'll resume the move-to until reaching the destination, even if it previously broke out of the schedule due to the Interruptability choices.\" =",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "resilient(choices) : \"Reacquire after break\" : 1 : \"If set, if the NPC doesn't complete the movement, it'll retry, even if it previously broke out of the schedule due to the Interruptability choices. Note that by default, the Reacquisition Priority is Low, which means they'll only retry when they're",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "resumepriority(choices) : \"Reacquisition Priority\" : 0 : \"Used to decide when to retry the moveto after it failed. Low means only retry when the NPC is about to idle. High means it should retry any time the NPC selects a schedule, unless the NPC needs to perform a critical schedule (like being requi",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "0 : \"Low\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "1 : \"High\"",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 55,
+     "type": "removed",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "interruptability(choices) : \"Interruptability\" : 0 : \"Sets what kind of events can interrupt an NPC that's performing this move to. Note that when set to 'Everything', NPCs can be easily interrupted by small things like physics impact sounds, or distant combat sounds.\" =",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 55,
+     "type": "added",
+     "file_path": "game/core/ai_defaultnpc.fgd",
+     "text": "interruptability(choices) : \"Interruptability\" : 0 : \"Sets what kind of events can interrupt an NPC that's performing this move to. Note that this only describes events that interrupt the moveto while it's working properly, not whether or not movement itself can fail. So even if this is set to 'Noth",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: definizioni condivise dei nemici (FGD del motore)"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "85c261222e",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CCopyable*",
+     "text": "Famiglia di classi nuova: CCopyable (2 nomi): CCopyableUtlMap, CCopyableUtlOrderedMap",
+     "token": "classfam:ccopyable",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CCopyable\", \"nomi\": [\"CCopyableUtlMap\", \"CCopyableUtlOrderedMap\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "85c261222e",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CZero*",
+     "text": "Famiglia di classi nuova: CZero (2 nomi): CZeroPoseAnimNode, CZeroPoseUpdateNode",
+     "token": "classfam:czero",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CZero\", \"nomi\": [\"CZeroPoseAnimNode\", \"CZeroPoseUpdateNode\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 50,
+     "type": "removed",
+     "file_path": "game/dota/gameinfo.gi",
+     "text": "// There are some known large virtual reservations, such as the SBH, which",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: gameinfo.gi (definizione del gioco)"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "7e011a5768",
+     "score": 50,
+     "type": "removed",
+     "file_path": "game/dota/gameinfo.gi",
+     "text": "// bypass this limit so we can be fairly conservative.",
+     "token": null,
+     "keywords": [
+      "watched_file"
+     ],
+     "context": "file sorvegliato: gameinfo.gi (definizione del gioco)"
+    }
+   ],
+   "seconds": 981
+  },
+  "deck_2019": {
+   "key": "deck_2019",
+   "title": "Steam Deck: Neptune nel client di Steam",
+   "project": "Steam Deck",
+   "announced": "2021-07-15",
+   "repo": "steamclient",
+   "start": "2019-11-01",
+   "end": "2020-01-01",
+   "codes": "neptune|steampal",
+   "commits": 133,
+   "start_sha": "20c7895cb58290e1e0828694982b49800905e953",
+   "end_sha": "72664b54c9cdbd3171400ca0882c9d52513438a5",
+   "learned_at_start": [],
+   "related": [],
+   "related_total": 0,
+   "first_related": null,
+   "alerts_total": 0,
+   "alerts_high": 0,
+   "others_per_month": 0.0,
+   "others_high_per_month": 0.0,
+   "others_sample": [],
+   "seconds": 368
+  }
+ },
+ "generated": "2026-11-04T19:16:30Z"
+}
