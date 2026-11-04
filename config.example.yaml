@@ -310,6 +310,7 @@ class_families:                          # famiglie di classi C++ nuove (CHLX...
   score: 55
   score_high: 80
   ignore: [CUDA, CURL, CLSID]            # famiglie di librerie esterne da non segnalare
+  max_related_names: 5                   # classe sola: contano fino a 5 nomi con la stessa parola senza C (CitadelHudEvent)
 
 full_scan:
   enabled: true

@@ -59,9 +59,10 @@ TESTS: dict[str, dict[str, Any]] = {
     "deadlock_2021": {"title": "Deadlock: le prime classi Citadel in Dota 2", "project": "Deadlock",
                       "announced": "2024-08-23", "repo": "dota2", "start": "2021-03-01", "end": "2021-05-01",
                       "codes": r"citadel",
-                      "nota": "Il 25 marzo 2021 compaiono in Dota 2 CCitadelModifierHandleTyped e CitadelHudEvent: un solo "
-                              "nome della famiglia CCitadel (per un avviso ne servono due) e nessuno nei posti dei nomi di "
-                              "progetto."},
+                      "nota": "Il 25 marzo 2021 compaiono in Dota 2 CCitadelModifierHandleTyped e CitadelHudEvent: una "
+                              "classe e un evento con la stessa parola, abbastanza per un avviso medio sulla famiglia nuova "
+                              "CCitadel. Fino al 4 novembre 2026 contavano solo i nomi con la C e l'avviso non arrivava: "
+                              "la correzione è venuta da questa prova."},
     "deadlock_2022": {"title": "Deadlock: CCitadelUserCmdPB in Dota 2", "project": "Deadlock",
                       "announced": "2024-08-23", "repo": "dota2", "start": "2022-05-15", "end": "2022-07-01",
                       "codes": r"citadel",
@@ -291,7 +292,7 @@ def run(cfg: Config, keys: list[str] | None, workdir: Path, out: Path) -> dict[s
 
 # ------------------------------------------------------------------ sito
 KIND = {"codename": "nome di progetto mai visto", "localization": "testi di localizzazione nuovi",
-        "pulse": "nodo Pulse nuovo", "structure": "cartella nuova"}
+        "pulse": "nodo Pulse nuovo", "structure": "cartella nuova", "class_family": "famiglia di classi nuova"}
 
 
 def load_seed(path: Path = SEED) -> dict[str, Any]:

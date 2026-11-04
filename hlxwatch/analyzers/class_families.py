@@ -11,7 +11,10 @@ CMathCounter_API -> CMath. Si tengono solo nomi di classe veri (almeno due parol
 CALG_AES né frammenti casuali dei binari. Una famiglia è nota se compare in qualunque gioco.
   - prima scansione: impara tutte le famiglie, senza avvisi;
   - poi una famiglia mai vista con almeno `min_names` nomi diversi (2) è una voce; con `names_high` nomi (5) vale di più;
-    una famiglia con un solo nome resta in attesa (non diventa nota) e viene segnalata quando arriva al secondo.
+    una famiglia con un solo nome resta in attesa (non diventa nota) e viene segnalata quando arriva al secondo;
+  - a una famiglia nuova con una classe sola si aggiungono i nomi che iniziano con la stessa parola senza la C
+    (CCitadelModifierHandleTyped + CitadelHudEvent, Deadlock in Dota 2 nel 2021), purché siano al massimo
+    `max_related_names` (5): oltre è una parola comune (Parse...). Trovato con la prova sul passato (backtest.py).
 Provato su CS2 da luglio a fine ottobre 2026: 4 famiglie nuove con almeno 2 nomi (CHLX, e CMath, CTank, CRule delle
 entità di gioco con API di scripting), contro 99 con un filtro grezzo.
 """
@@ -39,7 +42,12 @@ SCHEMA_FILE = re.compile(r"^DumpSource2/schemas/[^/]+/(?P<name>[A-Za-z0-9_]+)\.h
 DEFAULT_EXCLUDE = ["*Qt5*", "*Qt6*", "*OpenImageDenoise*", "*SDL2*", "*SDL3*", "*embree*", "*cairo*", "*d3dcompiler*",
                    "*dbghelp*", "*amd_ags*", "*nvngx*", "*cuda*", "*tbb*", "*libcef*", "*chrome*", "*icu*", "*ffmpeg*",
                    "*avcodec*", "*avformat*", "*avutil*", "*swscale*", "*libcurl*", "*openssl*", "*libcrypto*",
-                   "*libssl*", "*vulkan*", "*dxil*", "*dxcompiler*", "*steam_api*", "*libGLES*", "*libEGL*"]
+                   "*libssl*", "*vulkan*", "*dxil*", "*dxcompiler*", "*steam_api*", "*libGLES*", "*libEGL*",
+                   # strumenti Unity di SteamVR (assembly .NET, Steamworks.NET, runtime Mono), ImageMagick dentro
+                   # imagetool, MFC negli strumenti HTC, Vulkan e Microsoft: dalla prova sul passato, 40 famiglie
+                   # "nuove" in quattro mesi del 2022 venivano tutte da qui
+                   "*_Data/Managed/*", "MonoBleedingEdge/**", "*UnityPlayer*", "*imagetool*", "*vivelink*",
+                   "*AitH264Capture*", "*VkLayer*", "*msdia*", "*mfc*"]
 DEFAULT_IGNORE = ["CUDA", "CURL", "CLSID"]
 
 GitFn = Callable[[list[str]], Any]
@@ -65,6 +73,8 @@ class ClassFamilyTracker:
         self.score_high = int(ccfg.get("score_high", 80))
         self.exclude = list(ccfg.get("exclude_files") or DEFAULT_EXCLUDE)
         self.ignore = set(ccfg.get("ignore") or DEFAULT_IGNORE)
+        self.max_related = int(ccfg.get("max_related_greps", 40))   # ricerche dei nomi senza C, per repository
+        self.max_related_names = int(ccfg.get("max_related_names", 5))
         self.matcher = KeywordMatcher(cfg.keywords)
         # famiglia -> {"names": set, "games": {gioco: repo_cfg}} in questa scansione completa
         self.seen_now: dict[str, dict[str, Any]] = {}
@@ -99,6 +109,34 @@ class ClassFamilyTracker:
         else:
             log.warning("[%s] famiglie di classi: git grep fallito", repo_cfg["name"])
         self.add(repo_cfg["name"], repo_cfg, names)
+        self._related_names(repo_cfg, git, spec, names)
+
+    def _related_names(self, repo_cfg: dict[str, Any], git: GitFn, spec: list[str], names: set[str]) -> None:
+        """Una famiglia nuova con un nome solo cerca altri nomi che iniziano con la stessa parola, senza la C.
+        Il 25 marzo 2021 Deadlock è entrato in Dota 2 con CCitadelModifierHandleTyped e CitadelHudEvent: una sola
+        classe, ma due nomi del progetto Citadel. Solo per parole vere (almeno 4 lettere, con minuscole)."""
+        known = self.known()
+        if known is None:
+            return                              # primo giro: si impara e basta
+        fams = {f for f in (family(n) for n in names) if f and f not in known and f not in self.ignore}
+        checked = 0
+        for fam in sorted(fams):
+            entry = self.seen_now.get(fam)
+            word = fam[1:].lstrip("_")
+            if not entry or len(entry["names"]) != 1 or len(word) < 4 or not re.search(r"[a-z]", word):
+                continue
+            checked += 1
+            if checked > self.max_related:
+                break
+            proc = git(["-c", "grep.threads=4", "grep", "-h", "-o", "-I", "-E", "-e", rf"\b{word}[A-Z][A-Za-z0-9_]+",
+                        "HEAD", "--", *spec])
+            if proc.returncode not in (0, 1):
+                continue
+            related = {t for t in proc.stdout.decode("utf-8", "replace").split() if t}
+            # una parola comune (Parse: ParseAndClassifyIdentifier e altri 20) non è il nome di un progetto
+            if 0 < len(related) <= self.max_related_names:
+                entry["names"].update(sorted(related)[:20])
+                entry.setdefault("related", set()).update(related)
 
     def finish(self) -> list[Finding]:
         if not self.enabled or not self.seen_now:

@@ -70,3 +70,52 @@ def test_family_known_in_another_game_is_not_new(tmp_path):
     t.collect({"name": "dota2", "repo": "x/y"}, fake_git([], ["CCitadelHero", "CCitadelAbility"]))
     assert t.finish() == []                                    # CCitadel è già nota (da CS2)
     db.close()
+
+
+def grep_git(schemas, strings):
+    """Come fake_git, ma la ricerca applica davvero l'espressione (serve per i nomi senza C)."""
+    import re
+
+    def git(args):
+        if args[0] == "ls-tree":
+            return SimpleNamespace(returncode=0, stdout="\n".join(schemas).encode())
+        pattern = args[args.index("-e") + 1]
+        found = re.findall(pattern, "\n".join(strings))
+        return SimpleNamespace(returncode=0 if found else 1, stdout="\n".join(found).encode())
+    return git
+
+
+def test_single_class_with_related_names_is_reported(tmp_path):
+    # Deadlock in Dota 2, 25 marzo 2021: una classe CCitadel... e un evento CitadelHudEvent senza la C
+    cfg, db = make(tmp_path)
+    t = ClassFamilyTracker(cfg, db)
+    t.collect(REPO, grep_git([], ["CDotaHero", "CDotaAbility"]))
+    assert t.finish() == []                                    # prima: impara
+    t = ClassFamilyTracker(cfg, db)
+    t.collect(REPO, grep_git([], ["CDotaHero", "CDotaAbility", "CCitadelModifierHandleTyped<", "CitadelHudEvent"]))
+    found = t.finish()
+    assert [f.token for f in found] == ["classfam:ccitadel"]
+    assert "CitadelHudEvent" in found[0].text
+    # una classe sola, senza altri nomi con la stessa parola: resta in attesa
+    t = ClassFamilyTracker(cfg, db)
+    t.collect(REPO, grep_git([], ["CDotaHero", "CDotaAbility", "CZephyrDoor", "ZephyrineX"]))
+    assert t.finish() == []
+    db.close()
+
+
+def test_third_party_files_are_excluded():
+    from hlxwatch.analyzers.class_families import DEFAULT_EXCLUDE
+    for p in ("*_Data/Managed/*", "MonoBleedingEdge/**", "*UnityPlayer*", "*imagetool*", "*vivelink*"):
+        assert p in DEFAULT_EXCLUDE
+
+
+def test_common_word_is_not_a_project(tmp_path):
+    cfg, db = make(tmp_path)
+    t = ClassFamilyTracker(cfg, db)
+    t.collect(REPO, grep_git([], ["CDotaHero", "CDotaAbility"]))
+    t.finish()
+    t = ClassFamilyTracker(cfg, db)
+    words = [f"Parse{w}Thing" for w in ("And", "Body", "Header", "Value", "Node", "List")]
+    t.collect(REPO, grep_git([], ["CDotaHero", "CDotaAbility", "CParseEXRHeader", *words]))
+    assert t.finish() == []                                    # 6 nomi con Parse: parola comune, in attesa
+    db.close()

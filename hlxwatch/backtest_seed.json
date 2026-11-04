@@ -16,193 +16,11 @@
    "related": [],
    "related_total": 0,
    "first_related": null,
-   "alerts_total": 48,
+   "alerts_total": 6,
    "alerts_high": 0,
-   "others_per_month": 12.0,
+   "others_per_month": 1.5,
    "others_high_per_month": 0.0,
    "others_sample": [
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CAD*",
-     "text": "Famiglia di classi nuova: CAD (7 nomi): CADArgHolder, CADMessageBase, CADMethodCallMessage, CADMethodRef, CADMethodReturnMessage, CADObjRef",
-     "token": "classfam:cad",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CAD\", \"nomi\": [\"CADArgHolder\", \"CADMessageBase\", \"CADMethodCallMessage\", \"CADMethodRef\", \"CADMethodReturnMessage\", \"CADObjRef\", \"CADSerializer\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CCD*",
-     "text": "Famiglia di classi nuova: CCD (5 nomi): CCDAdvance, CCDBones, CCDPass, CCDSweep, CCDWeight",
-     "token": "classfam:ccd",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CCD\", \"nomi\": [\"CCDAdvance\", \"CCDBones\", \"CCDPass\", \"CCDSweep\", \"CCDWeight\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CFX*",
-     "text": "Famiglia di classi nuova: CFX (10 nomi): CFX_AutoDestructShuriken, CFX_AutoRotate, CFX_AutodestructWhenNoChildren, CFX_Demo, CFX_Demo_RandomDir, CFX_Demo_RandomDirectionTranslate",
-     "token": "classfam:cfx",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CFX\", \"nomi\": [\"CFX_AutoDestructShuriken\", \"CFX_AutoRotate\", \"CFX_AutodestructWhenNoChildren\", \"CFX_Demo\", \"CFX_Demo_RandomDir\", \"CFX_Demo_RandomDirectionTranslate\", \"CFX_Demo_RotateCame"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CFriends*",
-     "text": "Famiglia di classi nuova: CFriends (6 nomi): CFriendsEnumerateFollowingList_t_CallResult, CFriendsEnumerateFollowingList_t_RemoveCallResult, CFriendsEnumerateFollowingList_t_SetCallResult, CFriendsGetFollowerCount_t_CallResult, CFriendsGetFollowerCount_t_RemoveCallResult, CFriendsGetFollowerCount_t_",
-     "token": "classfam:cfriends",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CFriends\", \"nomi\": [\"CFriendsEnumerateFollowingList_t_CallResult\", \"CFriendsEnumerateFollowingList_t_RemoveCallResult\", \"CFriendsEnumerateFollowingList_t_SetCallResult\", \"CFriendsGetFoll"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CGS*",
-     "text": "Famiglia di classi nuova: CGS (9 nomi): CGSReputation_t_CallResult, CGSReputation_t_RemoveCallResult, CGSReputation_t_SetCallResult, CGSStatsReceived_t_CallResult, CGSStatsReceived_t_RemoveCallResult, CGSStatsReceived_t_SetCallResult",
-     "token": "classfam:cgs",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CGS\", \"nomi\": [\"CGSReputation_t_CallResult\", \"CGSReputation_t_RemoveCallResult\", \"CGSReputation_t_SetCallResult\", \"CGSStatsReceived_t_CallResult\", \"CGSStatsReceived_t_RemoveCallResult\", "
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CGlobal*",
-     "text": "Famiglia di classi nuova: CGlobal (6 nomi): CGlobalAchievementPercentagesReady_t_CallResult, CGlobalAchievementPercentagesReady_t_RemoveCallResult, CGlobalAchievementPercentagesReady_t_SetCallResult, CGlobalStatsReceived_t_CallResult, CGlobalStatsReceived_t_RemoveCallResult, CGlobalStatsReceived_t_S",
-     "token": "classfam:cglobal",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CGlobal\", \"nomi\": [\"CGlobalAchievementPercentagesReady_t_CallResult\", \"CGlobalAchievementPercentagesReady_t_RemoveCallResult\", \"CGlobalAchievementPercentagesReady_t_SetCallResult\", \"CGlo"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CJK*",
-     "text": "Famiglia di classi nuova: CJK (6 nomi): CJKDaySuff, CJKHourSuff, CJKMinuteSuff, CJKMonthSuff, CJKSecondSuff, CJKYearSuff",
-     "token": "classfam:cjk",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CJK\", \"nomi\": [\"CJKDaySuff\", \"CJKHourSuff\", \"CJKMinuteSuff\", \"CJKMonthSuff\", \"CJKSecondSuff\", \"CJKYearSuff\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CLeaderboard*",
-     "text": "Famiglia di classi nuova: CLeaderboard (12 nomi): CLeaderboardFindResult_t_CallResult, CLeaderboardFindResult_t_RemoveCallResult, CLeaderboardFindResult_t_SetCallResult, CLeaderboardScoreUploaded_t_CallResult, CLeaderboardScoreUploaded_t_RemoveCallResult, CLeaderboardScoreUploaded_t_SetCallResult",
-     "token": "classfam:cleaderboard",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CLeaderboard\", \"nomi\": [\"CLeaderboardFindResult_t_CallResult\", \"CLeaderboardFindResult_t_RemoveCallResult\", \"CLeaderboardFindResult_t_SetCallResult\", \"CLeaderboardScoreUploaded_t_CallRes"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CLobby*",
-     "text": "Famiglia di classi nuova: CLobby (9 nomi): CLobbyCreated_t_CallResult, CLobbyCreated_t_RemoveCallResult, CLobbyCreated_t_SetCallResult, CLobbyEnter_t_CallResult, CLobbyEnter_t_RemoveCallResult, CLobbyEnter_t_SetCallResult",
-     "token": "classfam:clobby",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CLobby\", \"nomi\": [\"CLobbyCreated_t_CallResult\", \"CLobbyCreated_t_RemoveCallResult\", \"CLobbyCreated_t_SetCallResult\", \"CLobbyEnter_t_CallResult\", \"CLobbyEnter_t_RemoveCallResult\", \"CLobby"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CMDI*",
-     "text": "Famiglia di classi nuova: CMDI (6 nomi): CMDIChildWnd, CMDIChildWndEx, CMDIClientAreaWnd, CMDIFrameWnd, CMDIFrameWndEx, CMDITabProxyWnd",
-     "token": "classfam:cmdi",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CMDI\", \"nomi\": [\"CMDIChildWnd\", \"CMDIChildWndEx\", \"CMDIClientAreaWnd\", \"CMDIFrameWnd\", \"CMDIFrameWndEx\", \"CMDITabProxyWnd\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CMFC*",
-     "text": "Famiglia di classi nuova: CMFC (103 nomi): CMFCAutoHideBar, CMFCAutoHideButton, CMFCBaseAccessibleObject, CMFCBaseTabCtrl, CMFCBaseToolBar, CMFCButton",
-     "token": "classfam:cmfc",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CMFC\", \"nomi\": [\"CMFCAutoHideBar\", \"CMFCAutoHideButton\", \"CMFCBaseAccessibleObject\", \"CMFCBaseTabCtrl\", \"CMFCBaseToolBar\", \"CMFCButton\", \"CMFCCaptionBar\", \"CMFCColorBar\", \"CMFCColorButto"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi COle*",
-     "text": "Famiglia di classi nuova: COle (14 nomi): COleCntrFrameWndEx, COleDataSource, COleDispatchException, COleDocIPFrameWnd, COleDocIPFrameWndEx, COleDocument",
-     "token": "classfam:cole",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"COle\", \"nomi\": [\"COleCntrFrameWndEx\", \"COleDataSource\", \"COleDispatchException\", \"COleDocIPFrameWnd\", \"COleDocIPFrameWndEx\", \"COleDocument\", \"COleDropSource\", \"COleDropTarget\", \"COleExce"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CRemote*",
-     "text": "Famiglia di classi nuova: CRemote (48 nomi): CRemoteStorageDeletePublishedFileResult_t_CallResult, CRemoteStorageDeletePublishedFileResult_t_RemoveCallResult, CRemoteStorageDeletePublishedFileResult_t_SetCallResult, CRemoteStorageDownloadUGCResult_t_CallResult, CRemoteStorageDownloadUGCResult_t_Remo",
-     "token": "classfam:cremote",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CRemote\", \"nomi\": [\"CRemoteStorageDeletePublishedFileResult_t_CallResult\", \"CRemoteStorageDeletePublishedFileResult_t_RemoveCallResult\", \"CRemoteStorageDeletePublishedFileResult_t_SetCal"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CSharp*",
-     "text": "Famiglia di classi nuova: CSharp (6 nomi): CSharpCodeGenerator, CSharpCodeProvider, CSharpHelpers, CSharpMemberAttributeConverter, CSharpModifierAttributeConverter, CSharpTypeAttributeConverter",
-     "token": "classfam:csharp",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CSharp\", \"nomi\": [\"CSharpCodeGenerator\", \"CSharpCodeProvider\", \"CSharpHelpers\", \"CSharpMemberAttributeConverter\", \"CSharpModifierAttributeConverter\", \"CSharpTypeAttributeConverter\"], \"gi"
-    },
     {
      "day": "2022-03-31",
      "sha": "a6d5c07698",
@@ -221,78 +39,13 @@
      "sha": "a6d5c07698",
      "score": 55,
      "type": "class_family",
-     "file_path": "classi CAssociate*",
-     "text": "Famiglia di classi nuova: CAssociate (3 nomi): CAssociateWithClanResult_t_CallResult, CAssociateWithClanResult_t_RemoveCallResult, CAssociateWithClanResult_t_SetCallResult",
-     "token": "classfam:cassociate",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CAssociate\", \"nomi\": [\"CAssociateWithClanResult_t_CallResult\", \"CAssociateWithClanResult_t_RemoveCallResult\", \"CAssociateWithClanResult_t_SetCallResult\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
      "file_path": "classi CCallback*",
-     "text": "Famiglia di classi nuova: CCallback (3 nomi): CCallbackBase, CCallbackImpl, CCallbackManual",
+     "text": "Famiglia di classi nuova: CCallback (2 nomi): CCallbackImpl, CCallbackManual",
      "token": "classfam:ccallback",
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CCallback\", \"nomi\": [\"CCallbackBase\", \"CCallbackImpl\", \"CCallbackManual\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CCheck*",
-     "text": "Famiglia di classi nuova: CCheck (4 nomi): CCheckFileSignature_t_CallResult, CCheckFileSignature_t_RemoveCallResult, CCheckFileSignature_t_SetCallResult, CCheckListBox",
-     "token": "classfam:ccheck",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CCheck\", \"nomi\": [\"CCheckFileSignature_t_CallResult\", \"CCheckFileSignature_t_RemoveCallResult\", \"CCheckFileSignature_t_SetCallResult\", \"CCheckListBox\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CClan*",
-     "text": "Famiglia di classi nuova: CClan (3 nomi): CClanOfficerListResponse_t_CallResult, CClanOfficerListResponse_t_RemoveCallResult, CClanOfficerListResponse_t_SetCallResult",
-     "token": "classfam:cclan",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CClan\", \"nomi\": [\"CClanOfficerListResponse_t_CallResult\", \"CClanOfficerListResponse_t_RemoveCallResult\", \"CClanOfficerListResponse_t_SetCallResult\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CCom*",
-     "text": "Famiglia di classi nuova: CCom (2 nomi): CComObjectNoLock, CComObjectRootEx",
-     "token": "classfam:ccom",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CCom\", \"nomi\": [\"CComObjectNoLock\", \"CComObjectRootEx\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CCompute*",
-     "text": "Famiglia di classi nuova: CCompute (3 nomi): CComputeNewPlayerCompatibilityResult_t_CallResult, CComputeNewPlayerCompatibilityResult_t_RemoveCallResult, CComputeNewPlayerCompatibilityResult_t_SetCallResult",
-     "token": "classfam:ccompute",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CCompute\", \"nomi\": [\"CComputeNewPlayerCompatibilityResult_t_CallResult\", \"CComputeNewPlayerCompatibilityResult_t_RemoveCallResult\", \"CComputeNewPlayerCompatibilityResult_t_SetCallResult\""
+     "context": "{\"famiglia\": \"CCallback\", \"nomi\": [\"CCallbackImpl\", \"CCallbackManual\"], \"giochi\": [\"steamvr\"]}"
     },
     {
      "day": "2022-03-31",
@@ -312,208 +65,13 @@
      "sha": "a6d5c07698",
      "score": 55,
      "type": "class_family",
-     "file_path": "classi CDoc*",
-     "text": "Famiglia di classi nuova: CDoc (2 nomi): CDocItem, CDocTemplate",
-     "token": "classfam:cdoc",
+     "file_path": "classi CDesktop*",
+     "text": "Famiglia di classi nuova: CDesktop (4 nomi): CDesktopManagerThread, DesktopManagerThread, DesktopView, DesktopView_",
+     "token": "classfam:cdesktop",
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CDoc\", \"nomi\": [\"CDocItem\", \"CDocTemplate\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CDock*",
-     "text": "Famiglia di classi nuova: CDock (3 nomi): CDockBar, CDockSite, CDockState",
-     "token": "classfam:cdock",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CDock\", \"nomi\": [\"CDockBar\", \"CDockSite\", \"CDockState\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CDockable*",
-     "text": "Famiglia di classi nuova: CDockable (2 nomi): CDockablePane, CDockablePaneAdapter",
-     "token": "classfam:cdockable",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CDockable\", \"nomi\": [\"CDockablePane\", \"CDockablePaneAdapter\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CEncrypted*",
-     "text": "Famiglia di classi nuova: CEncrypted (3 nomi): CEncryptedAppTicketResponse_t_CallResult, CEncryptedAppTicketResponse_t_RemoveCallResult, CEncryptedAppTicketResponse_t_SetCallResult",
-     "token": "classfam:cencrypted",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CEncrypted\", \"nomi\": [\"CEncryptedAppTicketResponse_t_CallResult\", \"CEncryptedAppTicketResponse_t_RemoveCallResult\", \"CEncryptedAppTicketResponse_t_SetCallResult\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CGet*",
-     "text": "Famiglia di classi nuova: CGet (3 nomi): CGetUserItemVoteResult_t_CallResult, CGetUserItemVoteResult_t_RemoveCallResult, CGetUserItemVoteResult_t_SetCallResult",
-     "token": "classfam:cget",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CGet\", \"nomi\": [\"CGetUserItemVoteResult_t_CallResult\", \"CGetUserItemVoteResult_t_RemoveCallResult\", \"CGetUserItemVoteResult_t_SetCallResult\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CHTML*",
-     "text": "Famiglia di classi nuova: CHTML (3 nomi): CHTML_BrowserReady_t_CallResult, CHTML_BrowserReady_t_RemoveCallResult, CHTML_BrowserReady_t_SetCallResult",
-     "token": "classfam:chtml",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CHTML\", \"nomi\": [\"CHTML_BrowserReady_t_CallResult\", \"CHTML_BrowserReady_t_RemoveCallResult\", \"CHTML_BrowserReady_t_SetCallResult\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CJoin*",
-     "text": "Famiglia di classi nuova: CJoin (3 nomi): CJoinClanChatRoomCompletionResult_t_CallResult, CJoinClanChatRoomCompletionResult_t_RemoveCallResult, CJoinClanChatRoomCompletionResult_t_SetCallResult",
-     "token": "classfam:cjoin",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CJoin\", \"nomi\": [\"CJoinClanChatRoomCompletionResult_t_CallResult\", \"CJoinClanChatRoomCompletionResult_t_RemoveCallResult\", \"CJoinClanChatRoomCompletionResult_t_SetCallResult\"], \"giochi\":"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CLR*",
-     "text": "Famiglia di classi nuova: CLR (4 nomi): CLRConfig, CLRInstanceID, CLRLicenseContext, CLRNamespaceMappedMultipleTimes",
-     "token": "classfam:clr",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CLR\", \"nomi\": [\"CLRConfig\", \"CLRInstanceID\", \"CLRLicenseContext\", \"CLRNamespaceMappedMultipleTimes\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CList*",
-     "text": "Famiglia di classi nuova: CList (2 nomi): CListBox, CListCtrl",
-     "token": "classfam:clist",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CList\", \"nomi\": [\"CListBox\", \"CListCtrl\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CMYK*",
-     "text": "Famiglia di classi nuova: CMYK (2 nomi): CMYKCustomColor, CMYKProcessColor",
-     "token": "classfam:cmyk",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CMYK\", \"nomi\": [\"CMYKCustomColor\", \"CMYKProcessColor\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CMod*",
-     "text": "Famiglia di classi nuova: CMod (2 nomi): CModOpt, CModReqd",
-     "token": "classfam:cmod",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CMod\", \"nomi\": [\"CModOpt\", \"CModReqd\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CORE*",
-     "text": "Famiglia di classi nuova: CORE (2 nomi): CORE_DB_MagickCore_, CORE_RL_MagickCore_",
-     "token": "classfam:core",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CORE\", \"nomi\": [\"CORE_DB_MagickCore_\", \"CORE_RL_MagickCore_\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CPane*",
-     "text": "Famiglia di classi nuova: CPane (4 nomi): CPaneContainer, CPaneContainerManager, CPaneDivider, CPaneFrameWnd",
-     "token": "classfam:cpane",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CPane\", \"nomi\": [\"CPaneContainer\", \"CPaneContainerManager\", \"CPaneDivider\", \"CPaneFrameWnd\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CPtr*",
-     "text": "Famiglia di classi nuova: CPtr (2 nomi): CPtrArray, CPtrList",
-     "token": "classfam:cptr",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CPtr\", \"nomi\": [\"CPtrArray\", \"CPtrList\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CPublisher*",
-     "text": "Famiglia di classi nuova: CPublisher (3 nomi): CPublisherOwnedAppDataReady_t_Callback, CPublisherOwnedAppDataReady_t_RemoveCallback, CPublisherOwnedAppDataReady_t_SetCallback",
-     "token": "classfam:cpublisher",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CPublisher\", \"nomi\": [\"CPublisherOwnedAppDataReady_t_Callback\", \"CPublisherOwnedAppDataReady_t_RemoveCallback\", \"CPublisherOwnedAppDataReady_t_SetCallback\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2022-03-31",
-     "sha": "a6d5c07698",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CRC*",
-     "text": "Famiglia di classi nuova: CRC (3 nomi): CRCMessage, CRCMessageEntry, CRCMismatch",
-     "token": "classfam:crc",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CRC\", \"nomi\": [\"CRCMessage\", \"CRCMessageEntry\", \"CRCMismatch\"], \"giochi\": [\"steamvr\"]}"
+     "context": "{\"famiglia\": \"CDesktop\", \"nomi\": [\"CDesktopManagerThread\", \"DesktopManagerThread\", \"DesktopView\", \"DesktopView_\"], \"giochi\": [\"steamvr\"]}"
     },
     {
      "day": "2022-03-31",
@@ -533,16 +91,16 @@
      "sha": "a6d5c07698",
      "score": 55,
      "type": "class_family",
-     "file_path": "classi CSVFX*",
-     "text": "Famiglia di classi nuova: CSVFX (4 nomi): CSVFXCopyBuffer, CSVFXIndirectArgs, CSVFXInitDeadListBuffer, CSVFXZeroInitBuffer",
-     "token": "classfam:csvfx",
+     "file_path": "classi CWin32*",
+     "text": "Famiglia di classi nuova: CWin32 (4 nomi): CWin32EntropyPool, Win32Event, Win32Exception, Win32Mutex",
+     "token": "classfam:cwin32",
      "keywords": [
       "class_family"
      ],
-     "context": "{\"famiglia\": \"CSVFX\", \"nomi\": [\"CSVFXCopyBuffer\", \"CSVFXIndirectArgs\", \"CSVFXInitDeadListBuffer\", \"CSVFXZeroInitBuffer\"], \"giochi\": [\"steamvr\"]}"
+     "context": "{\"famiglia\": \"CWin32\", \"nomi\": [\"CWin32EntropyPool\", \"Win32Event\", \"Win32Exception\", \"Win32Mutex\"], \"giochi\": [\"steamvr\"]}"
     }
    ],
-   "seconds": 1702
+   "seconds": 1855
   },
   "frame_2025": {
    "key": "frame_2025",
@@ -560,9 +118,9 @@
    "related": [],
    "related_total": 0,
    "first_related": null,
-   "alerts_total": 8,
+   "alerts_total": 5,
    "alerts_high": 0,
-   "others_per_month": 1.5,
+   "others_per_month": 0.9,
    "others_high_per_month": 0.0,
    "others_sample": [
     {
@@ -577,32 +135,6 @@
       "class_family"
      ],
      "context": "{\"famiglia\": \"CNFG\", \"nomi\": [\"CNFGBlitImage\", \"CNFGChangeWindowTitle\", \"CNFGClassHint\", \"CNFGClearFrame\", \"CNFGColor\", \"CNFGDepth\", \"CNFGDialogColor\", \"CNFGDisplay\", \"CNFGDrawBox\", \"CNFGDrawText\", \"C"
-    },
-    {
-     "day": "2025-11-11",
-     "sha": "573f14ddfe",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CBU*",
-     "text": "Famiglia di classi nuova: CBU (5 nomi): CBUApplySubpassTransitionBarriersAction, CBUApplyTrackbackStackAction, CBUBatchBarrierOp, CBUNoopBarrierAction, CBUQueueTagOffsetBarrierAction",
-     "token": "classfam:cbu",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CBU\", \"nomi\": [\"CBUApplySubpassTransitionBarriersAction\", \"CBUApplyTrackbackStackAction\", \"CBUBatchBarrierOp\", \"CBUNoopBarrierAction\", \"CBUQueueTagOffsetBarrierAction\"], \"giochi\": [\"stea"
-    },
-    {
-     "day": "2025-11-11",
-     "sha": "573f14ddfe",
-     "score": 80,
-     "type": "class_family",
-     "file_path": "classi CBV*",
-     "text": "Famiglia di classi nuova: CBV (6 nomi): CBVAccessContext, CBVApplyAcquireNextSemaphoreAction, CBVApplySemaphoreBarrierAction, CBVCommandBuffer, CBVDescriptorSetLayoutDef, CBVRenderPass",
-     "token": "classfam:cbv",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CBV\", \"nomi\": [\"CBVAccessContext\", \"CBVApplyAcquireNextSemaphoreAction\", \"CBVApplySemaphoreBarrierAction\", \"CBVCommandBuffer\", \"CBVDescriptorSetLayoutDef\", \"CBVRenderPass\"], \"giochi\": [\""
     },
     {
      "day": "2025-06-03",
@@ -655,22 +187,9 @@
       "class_family"
      ],
      "context": "{\"famiglia\": \"CWinsock\", \"nomi\": [\"CWinsockControlListener\", \"CWinsockImpl\"], \"giochi\": [\"steamvr\"]}"
-    },
-    {
-     "day": "2025-11-11",
-     "sha": "573f14ddfe",
-     "score": 55,
-     "type": "class_family",
-     "file_path": "classi CDia*",
-     "text": "Famiglia di classi nuova: CDia (2 nomi): CDiaEnumXfgTypeHashes, CDiaXfgTypeHash",
-     "token": "classfam:cdia",
-     "keywords": [
-      "class_family"
-     ],
-     "context": "{\"famiglia\": \"CDia\", \"nomi\": [\"CDiaEnumXfgTypeHashes\", \"CDiaXfgTypeHash\"], \"giochi\": [\"steamvr\"]}"
     }
    ],
-   "seconds": 998
+   "seconds": 991
   },
   "deadlock_2021": {
    "key": "deadlock_2021",
@@ -685,10 +204,38 @@
    "start_sha": "a91bd155efa77c74b21fbed7c74266f39da1d834",
    "end_sha": "563649b74fb55fd6d91267b20f02b8aa9f92011e",
    "learned_at_start": [],
-   "related": [],
-   "related_total": 0,
-   "first_related": null,
-   "alerts_total": 35,
+   "related": [
+    {
+     "day": "2021-03-25",
+     "sha": "563649b74f",
+     "score": 55,
+     "type": "class_family",
+     "file_path": "classi CCitadel*",
+     "text": "Famiglia di classi nuova: CCitadel (2 nomi): CCitadelModifierHandleTyped, CitadelHudEvent",
+     "token": "classfam:ccitadel",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CCitadel\", \"nomi\": [\"CCitadelModifierHandleTyped\", \"CitadelHudEvent\"], \"giochi\": [\"dota2\"]}",
+     "anticipo_giorni": 1247
+    }
+   ],
+   "related_total": 1,
+   "first_related": {
+    "day": "2021-03-25",
+    "sha": "563649b74f",
+    "score": 55,
+    "type": "class_family",
+    "file_path": "classi CCitadel*",
+    "text": "Famiglia di classi nuova: CCitadel (2 nomi): CCitadelModifierHandleTyped, CitadelHudEvent",
+    "token": "classfam:ccitadel",
+    "keywords": [
+     "class_family"
+    ],
+    "context": "{\"famiglia\": \"CCitadel\", \"nomi\": [\"CCitadelModifierHandleTyped\", \"CitadelHudEvent\"], \"giochi\": [\"dota2\"]}",
+    "anticipo_giorni": 1247
+   },
+   "alerts_total": 36,
    "alerts_high": 3,
    "others_per_month": 17.4,
    "others_high_per_month": 1.5,
@@ -1149,7 +696,7 @@
      "context": "file sorvegliato: gameinfo.gi (definizione del gioco)"
     }
    ],
-   "seconds": 1432
+   "seconds": 1431
   },
   "deadlock_2022": {
    "key": "deadlock_2022",
@@ -1195,9 +742,9 @@
     "context": "nome di progetto 'citadel' mai visto: messaggio di rete con i comandi del giocatore (UserCmdPB)",
     "anticipo_giorni": 806
    },
-   "alerts_total": 21,
+   "alerts_total": 22,
    "alerts_high": 4,
-   "others_per_month": 12.9,
+   "others_per_month": 13.6,
    "others_high_per_month": 1.9,
    "others_sample": [
     {
@@ -1426,6 +973,19 @@
      "sha": "85c261222e",
      "score": 55,
      "type": "class_family",
+     "file_path": "classi CVehicle*",
+     "text": "Famiglia di classi nuova: CVehicle (3 nomi): CVehicleEntityIO, VehiclePassengerInternalInfo_t, VehiclePassengerState_t",
+     "token": "classfam:cvehicle",
+     "keywords": [
+      "class_family"
+     ],
+     "context": "{\"famiglia\": \"CVehicle\", \"nomi\": [\"CVehicleEntityIO\", \"VehiclePassengerInternalInfo_t\", \"VehiclePassengerState_t\"], \"giochi\": [\"dota2\"]}"
+    },
+    {
+     "day": "2022-06-09",
+     "sha": "85c261222e",
+     "score": 55,
+     "type": "class_family",
      "file_path": "classi CZero*",
      "text": "Famiglia di classi nuova: CZero (2 nomi): CZeroPoseAnimNode, CZeroPoseUpdateNode",
      "token": "classfam:czero",
@@ -1461,7 +1021,7 @@
      "context": "file sorvegliato: gameinfo.gi (definizione del gioco)"
     }
    ],
-   "seconds": 981
+   "seconds": 911
   },
   "deck_2019": {
    "key": "deck_2019",
@@ -1484,8 +1044,8 @@
    "others_per_month": 0.0,
    "others_high_per_month": 0.0,
    "others_sample": [],
-   "seconds": 368
+   "seconds": 353
   }
  },
- "generated": "2026-11-04T19:16:30Z"
+ "generated": "2026-11-04T19:56:50Z"
 }

@@ -106,3 +106,10 @@ def test_new_class_family_found_by_end_scan_and_dated(tmp_path, monkeypatch):
     r = backtest.run_test(make_cfg(tmp_path, repo), "t", TEST, tmp_path / "work")
     fam = [a for a in r["related"] if a["type"] == "class_family"]
     assert fam and fam[0]["day"] == "2022-02-10" and fam[0]["token"] == "classfam:ccitadel"
+
+
+def test_summary_labels():
+    assert backtest.kind({"type": "class_family"}) == "famiglia di classi nuova"
+    assert backtest.kind({"type": "codename"}) == "nome di progetto mai visto"
+    rows = backtest.summary(backtest.load_seed())
+    assert any(r["first"] and r["key"] == "deadlock_2022" for r in rows)
