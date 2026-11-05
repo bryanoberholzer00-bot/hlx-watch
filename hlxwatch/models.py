@@ -44,6 +44,7 @@ class Finding:
     context: str = ""
     old_text: str | None = None
     siblings: list[str] = field(default_factory=list)   # altri file con lo stesso token nello stesso commit (notifiche)
+    note: str = ""         # spiegazione sotto la riga dell'avviso (build: cosa cambia), solo per le notifiche
     # valorizzati dallo storage
     id: int | None = None
     build_id: int | None = None

@@ -85,10 +85,14 @@ def finding_line(finding: Finding, style: str) -> str:
                 f"— {html.escape(where)} ({finding.change_type})")
         if url:
             line += f' <a href="{html.escape(url, quote=True)}">{link_label(url)}</a>'
+        if finding.note:
+            line += f"\n    ↳ <i>{html.escape(finding.note)}</i>"
         return line
     line = f"{icon} **[{finding.score}]** `{label}` — {where} ({finding.change_type})"
     if url:
         line += f" [{link_label(url)}]({url})"
+    if finding.note:
+        line += f"\n    ↳ *{finding.note}*"
     return line
 
 

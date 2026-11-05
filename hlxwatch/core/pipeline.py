@@ -225,6 +225,15 @@ class Pipeline:
                 status["first_seen"] = str(exc)
 
         result.alerts = self.select_alerts(result.findings)
+        if notify and self.notifiers:
+            # build: una riga "cosa cambia" dal commit di SteamTracking (o un messaggio dopo, se il commit è in ritardo)
+            try:
+                from hlxwatch.build_notes import BuildNotes
+                notes = BuildNotes(self.cfg, self.db, self.github.client)
+                notes.annotate(result.alerts)
+                notes.followups(self.notifiers)
+            except Exception:
+                log.exception("Spiegazione delle build non riuscita")
         if result.alerts:
             if notify and self.notifiers:
                 from hlxwatch.announcement import announcement_heading
