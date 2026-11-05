@@ -34,7 +34,7 @@ TITLE_FAIL = "HLX Watch: problemi nel sito"
 TITLE_OK = "HLX Watch: il sito è di nuovo a posto"
 
 REQUIRED = ("index.html", "en.html", "hlx.html", "termometro.html", "search.html", "metodologia.html",
-            "alyx.html", "cronologia.html", "findings.json", "feed.xml", "manifest.webmanifest", "sw.js",
+            "alyx.html", "cronologia.html", "contatore.html", "bot/contatore.json", "findings.json", "feed.xml", "manifest.webmanifest", "sw.js",
             "bot/termometro.json", "bot/termometro_storico.json", "bot/stato.json", "bot/ultime.json",
             "bot/indice.json")
 # pagine con il termometro in alto: devono dire lo stesso numero del widget dell'app

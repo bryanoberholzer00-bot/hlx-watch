@@ -204,6 +204,9 @@ revisione:                               # revisione settimanale con l'AI (revis
   enabled: true                          # al massimo 3 correzioni proposte, ognuna da approvare con ✅ su Telegram
   url: "https://hlx-watch-bot.bryan-oberholzer00.workers.dev/proposte.json"   # scelte registrate dal bot
 
+contatore:                               # contatore di Valve (contatore.py): SourceRevision dei steam.inf di CS2,
+  enabled: true                          # Dota 2 e Deadlock; avviso quando il ritmo supera del 30% l'anno prima
+
 archive_guard:                           # prima di salvare: l'archivio non deve essersi svuotato
   max_drop_percent: 5                    # calo massimo di voci, build o stringhe viste rispetto all'ultimo salvataggio
 

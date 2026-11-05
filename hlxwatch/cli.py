@@ -132,6 +132,12 @@ def cmd_cron(args: argparse.Namespace) -> int:
         run_review(cfg, db, pipeline.notifiers if not args.no_notify else [], send_it=not args.no_notify)
     except Exception:
         log.exception("Revisione settimanale fallita")
+    # contatore di Valve: il numero delle modifiche (Perforce) nei steam.inf di oggi, e l'avviso sulle ondate
+    try:
+        from hlxwatch.contatore import run as run_counter
+        run_counter(cfg, db, pipeline.notifiers, send=not args.no_notify)
+    except Exception:
+        log.exception("Contatore di Valve: aggiornamento fallito")
     # analisi AI: una volta al giorno, nella stessa finestra del report, solo se ci sono novità
     if now_local().strftime("%H:%M") >= report_time:
         try:

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Il contatore di Valve - HLX Watch{% endblock %}
+{% block description %}Quante modifiche al giorno salva Valve nel suo sistema interno, dal 2016 a oggi: {% if a %}{{ a.ora|round|int }} al giorno negli ultimi 60 giorni ({{ pct(a.rapporto) }} rispetto all'anno prima){% endif %}.{% endblock %}
+{% block content %}
+<style>
+ svg.contatore{width:100%;height:auto;color:var(--text)}
+ .leggenda{display:flex;flex-wrap:wrap;gap:.3rem 1.2rem;font-size:.8rem;color:var(--muted);margin:.4rem 0 0}
+ .leggenda i{display:inline-block;width:.9rem;height:.6rem;margin-right:.3rem;vertical-align:middle}
+ .su{color:#2e9d4f;font-weight:600} .giu{color:#e53935;font-weight:600}
+</style>
+<h1>Il contatore di Valve</h1>
+{% if not a %}
+<section><p>Il contatore non ha ancora dati: arrivano al prossimo giro del controllo automatico.</p></section>
+{% else %}
+<section>
+ <p>Ogni modifica che un programmatore di Valve salva nel sistema interno dell'azienda (Perforce) riceve un numero, e
+ il numero sale per tutti i progetti insieme. Ogni build di CS2, Dota 2 e Deadlock porta scritto, nel file pubblico
+ <code>steam.inf</code>, il numero da cui è stata compilata. Quanto cresce tra una build e l'altra dice
+ <b>quanto lavora tutta Valve</b>, compresi i progetti che non sono ancora usciti.</p>
+ <div class="cards">
+  <div class="card"><b>{{ num(a.ora) }}</b><span>modifiche al giorno, ultimi 60 giorni</span></div>
+  <div class="card"><b class="{{ 'su' if (a.rapporto or 1) >= 1 else 'giu' }}">{{ pct(a.rapporto) }}</b><span>rispetto ai 12 mesi prima ({{ num(a.base) }} al giorno)</span></div>
+  <div class="card"><b>{{ pct(a.rapporto_anno) }}</b><span>rispetto agli stessi giorni di un anno fa</span></div>
+  <div class="card"><b>{{ num(a.ultimo.rev) }}</b><span>il contatore oggi ({{ a.ultimo.quando[:10] }}, {{ titles_c.get(a.ultimo.gioco, a.ultimo.gioco) }})</span></div>
+ </div>
+ {% if a.record %}<p><b>È il ritmo più alto da quando ci sono i dati</b> (2016): il massimo di prima, su 60 giorni, era {{ num(a.record_prima) }} al giorno.</p>{% endif %}
+ {% if wave and wave.attiva %}<p class="avviso" style="padding:.5rem .7rem;border-radius:6px">Ondata in corso dal {{ wave.da }}: il ritmo è sopra di oltre il 30% quello dell'anno prima.</p>{% endif %}
+</section>
+
+<section>
+ <h2>Modifiche al giorno, mese per mese</h2>
+ {{ svg|safe }}
+ <p class="leggenda"><span><i style="background:var(--accent)"></i>ultimi 60 giorni</span><span><i style="background:#7a8699;opacity:.6"></i>mesi prima</span>
+ <span><i style="background:none;border-left:2px dashed #2f80ed;width:0"></i> fatti noti (passa sopra la linea per leggerli)</span>
+ <span><i style="background:#e53935;width:.2rem"></i> giorni con una traccia HLX</span></p>
+</section>
+
+<section>
+ <h2>Persone o programmi? Le fasce orarie</h2>
+ <p>Il contatore sale anche per i programmi automatici di Valve, che lavorano a tutte le ore. Le persone lavorano di
+ giorno, dal lunedì al venerdì. Se il salto è nelle ore di lavoro di Seattle, è gente che lavora di più; se cresce di
+ notte e nel fine settimana, è lavoro fuori orario, quello che di solito precede una scadenza.</p>
+ <table>
+  <tr><th>Fascia (ora di Seattle)</th><th>Modifiche all'ora, ultimi 60 giorni</th><th>12 mesi prima</th><th>Differenza</th></tr>
+  {% for k in buckets %}{% set f = a.fasce[k] %}{% set p = a.fasce_prima[k] %}
+  <tr><td>{{ bucket_labels[k] }}</td><td>{{ num(f.ora) if f.ora else "—" }} <small class="muted">({{ f.n }} intervalli)</small></td>
+   <td>{{ num(p.ora) if p.ora else "—" }}</td>
+   <td>{% if f.pochi %}<span class="muted">pochi dati</span>{% else %}<b>{{ pct(f.rapporto) }}</b>{% endif %}</td></tr>
+  {% endfor %}
+ </table>
+ <p class="muted"><small>Si contano solo gli intervalli brevi (al massimo 16 ore) tra due build consecutive che cadono nella
+ stessa fascia. Le build si compilano soprattutto di giorno, quindi di notte e nel fine settimana gli intervalli sono
+ pochi: sotto gli {{ few }} intervalli il numero non si legge.</small></p>
+</section>
+
+<section>
+ <h2>Il lavoro che si vede</h2>
+ {% set v = a.visibile %}
+ {% if v and v.totale %}
+ <p>I progetti noti lasciano tracce pubbliche: ogni aggiornamento finisce nei repository di SteamTracking. Se il
+ contatore cresce molto più di loro, la differenza è lavoro su qualcosa che non è ancora uscito.</p>
+ <table>
+  <tr><th>Progetto</th><th>Aggiornamenti, ultimi 60 giorni</th><th>60 giorni prima</th><th>Stessi giorni, un anno fa</th></tr>
+  {% for r in v.repos %}<tr><td>{{ r.titolo }}</td><td>{{ r.ora if r.ora is not none else "—" }}</td><td>{{ r.prima if r.prima is not none else "—" }}</td><td>{{ r.anno if r.anno is not none else "—" }}</td></tr>{% endfor %}
+  <tr><td><b>Totale</b></td><td><b>{{ v.totale.ora }}</b></td><td>{{ v.totale.prima }}</td><td>{{ v.totale.anno }}</td></tr>
+ </table>
+ <p><b>Contatore {{ pct(a.rapporto_anno) }}, lavoro visibile {{ pct(v.rispetto_anno) }}</b> rispetto a un anno
+ fa{% if a.rapporto_anno and v.rispetto_anno and a.rapporto_anno > v.rispetto_anno * 1.1 %}: una parte della crescita
+ del contatore non si vede negli aggiornamenti pubblici.{% else %}: la crescita del contatore si vede anche negli
+ aggiornamenti pubblici.{% endif %}</p>
+ <p class="muted"><small>Un aggiornamento è un commit di SteamTracking: conta quante volte un progetto è cambiato,
+ non quanto. È un confronto grezzo, utile per vedere le differenze grandi.</small></p>
+ {% else %}<p class="muted">Il conteggio degli aggiornamenti pubblici arriva al prossimo giro.</p>{% endif %}
+</section>
+
+<section>
+ <h2>Lo stesso salto in ogni gioco</h2>
+ <p>Ogni gioco, contato da solo con le sue build, deve dare lo stesso ritmo: è la prova che il contatore è uno solo.</p>
+ <table>
+  <tr><th>Gioco</th><th>Ultimi 60 giorni</th><th>12 mesi prima</th><th>Differenza</th></tr>
+  {% for g in a.giochi %}<tr><td>{{ g.titolo }}</td><td>{{ num(g.ora) }} al giorno</td><td>{{ num(g.prima) }}</td><td>{{ pct(g.rapporto) }}</td></tr>{% endfor %}
+ </table>
+</section>
+
+<section>
+ <h2>Le ondate più forti dal 2017</h2>
+ <p>I 60 giorni con il ritmo più alto rispetto all'anno prima.</p>
+ <table>
+  <tr><th>Periodo</th><th>Modifiche al giorno</th><th>Rispetto all'anno prima</th><th>Cosa succedeva</th></tr>
+  {% for w in a.ondate %}<tr><td>{{ w.da }} → {{ w.a }}</td><td>{{ num(w.ritmo) }}</td><td><b>{{ pct(w.rapporto) }}</b></td>
+   <td><small>{% for e in near_events(w) %}{{ e.testo }} ({{ e.data }}){% if not loop.last %}; {% endif %}{% else %}<span class="muted">—</span>{% endfor %}</small></td></tr>{% endfor %}
+ </table>
+ <p class="muted"><small>"Cosa succedeva": i fatti noti fino a 8 mesi dopo l'inizio dell'ondata.</small></p>
+</section>
+
+<section>
+ <h2>Cosa dice e cosa non dice</h2>
+ <ul>
+  <li>Dice <b>quanto</b> lavora Valve, non <b>su cosa</b>: dentro ci sono Steam, l'hardware, i giochi già usciti e i
+  programmi automatici.</li>
+  <li>Più persone assunte fanno salire il ritmo piano, anno dopo anno (1.470 al giorno nel 2017, circa 2.500 nel 2025):
+  per questo si confronta con i 12 mesi prima, non con il passato lontano.</li>
+  <li>Prima di Alyx il ritmo è salito (aprile-luglio e ottobre 2019, gennaio 2020), ma un'ondata non è la prova di un
+  gioco: è una prova di tipo diverso dalle parole nei file, da leggere insieme alle tracce.</li>
+ </ul>
+ <p class="muted"><small>{{ num(a.n_build) }} build dal {{ a.dal }}: CS2, Dota 2, Deadlock, Artifact, Dota Underlords.
+ Dati aperti: <a href="bot/contatore.json">bot/contatore.json</a>.</small></p>
+</section>
+{% endif %}
+{% endblock %}

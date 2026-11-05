@@ -250,6 +250,26 @@ def present_groups(db: Database, limit: int = 60) -> list[dict[str, Any]]:
     return out[:limit]
 
 
+def write_counter(env: Environment, db: Database, out_dir: Path, hlx_days: list[str]) -> dict[str, Any] | None:
+    """Pagina del contatore di Valve (contatore.html) e i suoi dati aperti (bot/contatore.json)."""
+    from hlxwatch import contatore as c
+    c.load_seed(db)
+    a = c.analyse(db)
+
+    def near_events(w: dict[str, Any]) -> list[dict[str, str]]:
+        start = datetime.fromisoformat(w["da"])
+        return [e for e in c.EVENTS if start <= datetime.fromisoformat(e["data"]) <= start + timedelta(days=240)]
+
+    (out_dir / "contatore.html").write_text(env.get_template("contatore.html").render(
+        a=a, svg=c.chart_svg(a, hlx_days), num=c.num, pct=c.pct, near_events=near_events, buckets=c.BUCKETS,
+        bucket_labels=c.BUCKET_LABELS, few=c.FEW, titles_c=c.GAME_TITLES, wave=c._json_state(db, c.STATE_WAVE)),
+        encoding="utf-8")
+    (out_dir / "bot").mkdir(parents=True, exist_ok=True)
+    (out_dir / "bot" / "contatore.json").write_text(json.dumps(a or {}, ensure_ascii=False, separators=(",", ":")),
+                                                    encoding="utf-8")
+    return a
+
+
 def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 180) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     from hlxwatch.revisione import load
@@ -330,6 +350,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     phase = fase.summary(outcomes, alyx.load_seed())
     (out_dir / "alyx.html").write_text(env.get_template("alyx.html").render(c=cmp, altri=others, prima=before, fase=phase),
                                        encoding="utf-8")
+    write_counter(env, db, out_dir, [t["first"] for t in outcomes["traces"]])
     if not preview_image(brief, out_dir / "anteprima.png", site_url.split("//", 1)[-1].rstrip("/")):
         env.globals["og_image"] = ""
     write_feed(db, out_dir, site_url, ctx)

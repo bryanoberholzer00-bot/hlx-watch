@@ -125,6 +125,15 @@ CREATE TABLE IF NOT EXISTS snapshots (
     content    TEXT,
     updated_at TEXT NOT NULL
 );
+
+-- contatore delle modifiche di Valve (Perforce): SourceRevision dei steam.inf, con l'ora della build (Seattle)
+CREATE TABLE IF NOT EXISTS valve_counter (
+    game     TEXT NOT NULL,
+    rev      INTEGER NOT NULL,
+    built_at TEXT NOT NULL,
+    seen_at  TEXT,
+    PRIMARY KEY (game, rev)
+);
 """
 
 

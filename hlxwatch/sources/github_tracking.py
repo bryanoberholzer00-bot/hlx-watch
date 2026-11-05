@@ -194,6 +194,19 @@ class GitHubClient:
             first["truncated"] = truncated
         return first
 
+    def count_commits(self, repo: str, since: str, until: str) -> int | None:
+        """Quanti commit ha il repository tra due istanti (ISO), con una richiesta sola: si legge il numero
+        dell'ultima pagina con un commit per pagina."""
+        response = self._request(f"{self.api_url}/repos/{repo}/commits",
+                                 params={"since": since, "until": until, "per_page": 1})
+        if response is None:
+            return None
+        try:
+            match = re.search(r'[?&]page=(\d+)>; rel="last"', response.headers.get("Link", ""))
+            return int(match.group(1)) if match else len(response.json() or [])
+        finally:
+            response.close()
+
     def raw_file(self, repo: str, sha: str, path: str, max_bytes: int) -> str | None:
         """Contenuto del file a quel commit. '' se non esiste, None se supera max_bytes."""
         url = f"{self.raw_url}/{repo}/{sha}/{quote(path)}"
