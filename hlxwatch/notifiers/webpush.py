@@ -49,7 +49,7 @@ class WebPushNotifier(Notifier):
             kind = kinds[id(top)]
             what = TAGS[kind][1] if kind else "novità"
             title = f"HLX Watch: {what} in {titles.get(top.game, top.game)}"
-            url = f"{site_url}search.html?q={quote((top.token or top.text)[:60])}"
+            url = top.card or f"{site_url}search.html?q={quote((top.token or top.text)[:60])}"
         else:
             title = f"HLX Watch: {total} novità (max {top.score})"
             url = f"{site_url}search.html?new=1&min=50"

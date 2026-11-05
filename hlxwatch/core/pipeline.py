@@ -243,6 +243,11 @@ class Pipeline:
                 notes.followups(self.notifiers)
             except Exception:
                 log.exception("Spiegazione delle build non riuscita")
+            try:                           # tracce HLX: il link alla loro scheda sul sito
+                from hlxwatch.reports.schede import annotate_cards
+                annotate_cards(self.cfg, self.db, result.alerts)
+            except Exception:
+                log.exception("Link alle schede negli avvisi non riusciti")
         if result.alerts:
             if notify and self.notifiers:
                 from hlxwatch.announcement import announcement_heading

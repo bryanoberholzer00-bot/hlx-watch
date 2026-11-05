@@ -143,3 +143,23 @@ def test_occurrences_only_hlx_rows(tmp_path):
     found = occurrences(db, {"chlxcoverpreviewhelper"})
     assert [r["game"] for r in found["chlxcoverpreviewhelper"]] == ["cs2", "dota2"]
     db.close()
+
+
+def test_alerts_link_to_card(tmp_path):
+    from hlxwatch.notifiers.base import AlertGroup, finding_line
+    from hlxwatch.notifiers.webpush import WebPushNotifier
+    from hlxwatch.reports.schede import annotate_cards
+    cfg, db = make(tmp_path)
+    fill(db)
+    hlx = Finding(game="cs2", source="github", file_path=HAMMER, change_type="added", text="CDummyHLXCover",
+                  token="CDummyHLXCover", score=120, keywords=["hlx_class"])
+    other = Finding(game="cs2", source="github", file_path=HAMMER, change_type="added", text="weapon_x",
+                    token="weapon_x", score=60, keywords=["weapon"])
+    assert annotate_cards(cfg, db, [hlx, other]) == 1
+    assert hlx.card.endswith("/traccia-cdummyhlxcover.html") and hlx.card.startswith("https://") and other.card == ""
+    assert '· <a href="' + hlx.card + '">scheda</a>' in finding_line(hlx, "html")
+    assert f"[scheda]({hlx.card})" in finding_line(hlx, "md") and "scheda" not in finding_line(other, "html")
+    msg = WebPushNotifier.message([AlertGroup("cs2", "Counter-Strike 2", [hlx], 120, 1)], "https://x/")
+    assert msg["url"] == hlx.card                                       # la notifica apre la scheda
+    assert annotate_cards(cfg, db, [other]) == 0
+    db.close()

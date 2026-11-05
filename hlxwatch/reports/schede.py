@@ -254,6 +254,27 @@ def write_cards(env: Any, db: Database, reg: dict[str, Any], ctx: dict[str, Any]
     return len(written)
 
 
+# ------------------------------------------------------------------ link negli avvisi
+def annotate_cards(cfg: Any, db: Database, alerts: list[Any]) -> int:
+    """Mette in ogni avviso su una traccia HLX l'indirizzo della sua scheda. Le voci sono già nell'archivio, quindi
+    anche una traccia nuova ha la sua scheda: il sito si genera e si pubblica subito dopo, nello stesso giro.
+    Restituisce quanti avvisi hanno il link."""
+    hlx = [f for f in alerts if trace_kind(f.token, f.text, f.keywords)]
+    if not hlx:
+        return 0
+    from hlxwatch.outcomes import outcome_register
+    slugs = assign_slugs(outcome_register(cfg, db)["traces"])
+    site = str(cfg.get("general.site_url", "https://bryanoberholzer00-bot.github.io/hlx-watch/"))
+    site = site if site.endswith("/") else site + "/"
+    n = 0
+    for f in hlx:
+        slug = slugs.get(trace_key(f.token, f.text))
+        if slug:
+            f.card = site + page_name(slug)
+            n += 1
+    return n
+
+
 # ------------------------------------------------------------------ righe vicine dal file intero
 STATE_PREFIX = "scheda:vicine:"
 COMMIT = re.compile(r"github\.com/([^/]+/[^/]+)/commit/([0-9a-f]{7,40})")
