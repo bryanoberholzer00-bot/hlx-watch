@@ -255,6 +255,8 @@ def write_counter(env: Environment, db: Database, out_dir: Path, hlx_days: list[
     from hlxwatch import contatore as c
     c.load_seed(db)
     a = c.analyse(db)
+    if a:                                   # le tracce HLX cadono nelle ondate? (nov. 2026: no)
+        a["tracce"] = c.traces_vs_waves(c.Envelope(c.points(db)), hlx_days)
 
     def near_events(w: dict[str, Any]) -> list[dict[str, str]]:
         start = datetime.fromisoformat(w["da"])

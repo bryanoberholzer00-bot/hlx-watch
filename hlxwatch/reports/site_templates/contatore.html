@@ -112,6 +112,21 @@
  arriva un gioco.</small></p>
 </section>
 {% endif %}
+{% if a.tracce %}{% set tr = a.tracce %}
+<section id="tracce">
+ <h2>Le tracce HLX cadono nelle ondate?</h2>
+ <p><b>{{ tr.testo }}</b></p>
+ <table>
+  <tr><th></th><th>Giorni con una traccia HLX ({{ tr.giorni }})</th><th>Tutti i giorni</th></tr>
+  <tr><td>Ritmo rispetto all'anno prima</td><td>{{ (tr.media * 100)|round|int }}%</td><td>{{ (tr.media_tutti * 100)|round|int }}%</td></tr>
+  <tr><td>Giorni in un'ondata (oltre +20%)</td><td>{{ (tr.in_ondata * 100)|round|int }}%</td><td>{{ (tr.in_ondata_tutti * 100)|round|int }}%</td></tr>
+ </table>
+ <p class="muted"><small>Si conta il giorno della prima comparsa di ogni traccia (più tracce nello stesso giorno contano
+ una volta). "Probabilità che sia un caso": quante volte lo stesso numero di giorni presi a caso nello stesso periodo
+ dà una media almeno così alta. Le tracce arrivano nei giochi quando Valve vi unisce il codice comune del motore, e
+ questo succede con qualunque ritmo di lavoro: contatore e tracce sono due prove separate, da non sommare.</small></p>
+</section>
+{% endif %}
 {% set fe = a.feste %}
 <section id="feste">
  <h2>La prova delle feste</h2>

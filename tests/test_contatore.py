@@ -218,3 +218,18 @@ def test_alyx_length_milestone_once(tmp_path):
     assert c.check_wave(db, long, [n], "https://x/") == "come_alyx" and "prima di Half-Life: Alyx" in n.sent[-1][1]
     assert c.check_wave(db, long, [n], "https://x/") is None and len(n.sent) == 2
     db.close()
+
+
+def test_traces_vs_waves(tmp_path):
+    cfg, db = make(tmp_path)
+    c.load_seed(db)
+    env = c.Envelope(c.points(db))
+    days = ["2021-03-04", "2021-03-25", "2021-09-16", "2022-03-26", "2022-06-09", "2023-03-07", "2024-02-07",
+            "2024-08-16", "2025-02-19", "2025-05-17", "2025-07-28", "2026-02-05", "2026-06-25", "2026-09-23"]
+    r = c.traces_vs_waves(env, days, tries=1000)
+    assert r["giorni"] == 14 and not r["legame"] and r["caso"] > 0.2 and "Nessun legame" in r["testo"]
+    # giorni presi tutti nell'ondata di adesso: il legame c'è
+    hot = [(datetime(2026, 9, 20) + timedelta(days=4 * k)).date().isoformat() for k in range(10)]
+    assert c.traces_vs_waves(env, hot, tries=1000)["legame"]
+    assert c.traces_vs_waves(env, days[:3]) is None
+    db.close()

@@ -320,6 +320,43 @@ def precedents(env: Envelope) -> dict[str, Any]:
     return {"lanci": rows, "oggi": today, "testo": text}
 
 
+# ------------------------------------------------------------------ le tracce HLX e le ondate
+def traces_vs_waves(env: Envelope, days: list[str], tries: int = 5000) -> dict[str, Any] | None:
+    """Le tracce HLX compaiono quando Valve lavora più del solito? Il ritmo sull'anno prima nei giorni della prima
+    comparsa, contro tutti i giorni dello stesso periodo, con una prova a caso: quante volte lo stesso numero di
+    giorni presi a caso ha una media almeno così alta. Prova di novembre 2026: 101% contro 103%, nessun legame."""
+    import random
+    import statistics
+    if not env.t:
+        return None
+    end = env.t[-1]
+    unique = sorted({d for d in days if d})
+    vals = [v for v in (ratio_at(env, datetime.fromisoformat(d)) for d in unique
+                        if datetime.fromisoformat(d) <= end) if v]
+    if len(vals) < 5:
+        return None
+    t = datetime.fromisoformat(unique[0]) - timedelta(days=365)
+    every = []
+    while t <= end:
+        v = ratio_at(env, t)
+        if v:
+            every.append(v)
+        t += timedelta(days=1)
+    mean, mean_all = statistics.mean(vals), statistics.mean(every)
+    rng = random.Random(1)
+    p = sum(statistics.mean(rng.sample(every, len(vals))) >= mean for _ in range(tries)) / tries
+    wave = sum(v >= HIGH for v in vals) / len(vals)
+    wave_all = sum(v >= HIGH for v in every) / len(every)
+    linked = p < 0.05 and mean > mean_all
+    return {"giorni": len(vals), "media": mean, "media_tutti": mean_all, "in_ondata": wave, "in_ondata_tutti": wave_all,
+            "caso": p, "legame": linked,
+            "testo": (f"Nei {len(vals)} giorni in cui è comparsa una traccia HLX Valve lavorava al {round(mean * 100)}% "
+                      f"del ritmo dell'anno prima, contro il {round(mean_all * 100)}% di tutti i giorni dello stesso "
+                      f"periodo. " + ("Le tracce compaiono più spesso quando Valve lavora di più."
+                                      if linked else "Nessun legame: le tracce HLX non cadono nelle ondate di lavoro.")
+                      + f" (Probabilità che sia un caso: {round(p * 100)}%.)")}
+
+
 # ------------------------------------------------------------------ la prova delle feste
 FESTE = {"ringraziamento": "settimana del Ringraziamento", "natale": "Natale (22 dicembre - 1 gennaio)"}
 FESTE_DAL = 2017
