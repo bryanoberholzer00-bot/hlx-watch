@@ -93,20 +93,27 @@ def alyx_names() -> set[str]:
     return _alyx_names
 
 
-def alert_kind(token: str | None, text: str | None, keywords: list[str] | None) -> str | None:
-    """'alyx' se è un vecchio nome di Alyx con hlx al posto di hlvr, altrimenti 'gioco' o 'motore'.
-    Solo per le tracce HLX; None se non è HLX o se il tipo non è chiaro (meglio niente che un'etichetta sbagliata)."""
+def trace_kind(token: str | None, text: str | None, keywords: list[str] | None) -> str | None:
+    """Tipo di una traccia HLX: 'alyx' (vecchio nome di Alyx con hlx al posto di hlvr), 'gioco', 'motore',
+    'strumenti' o 'dubbio'. None se la voce non è una traccia HLX."""
     if not HLX_KEYWORDS.intersection(keywords or []):
         return None
     label = (token or text or "").strip().lower()
     names = alyx_names()
     for cand in (label.replace("hlx", "hlvr"), piece_key(label).replace("hlx", "hlvr")):
-        if "hlvr" in cand and cand in names:
+        # "hlvr" da solo è il nome del gioco, non un pezzo: "mod != hlx" non è un'eredità di Alyx
+        if "hlvr" in cand and cand != "hlvr" and cand in names:
             return "alyx"
     kind = classify(token or "")
     if kind == "dubbio" and text:
         kind = classify(text)
-    return kind if kind in ("gioco", "motore") else None
+    return kind
+
+
+def alert_kind(token: str | None, text: str | None, keywords: list[str] | None) -> str | None:
+    """Negli avvisi solo 'alyx', 'gioco' o 'motore': se il tipo non è chiaro, meglio niente che un'etichetta sbagliata."""
+    kind = trace_kind(token, text, keywords)
+    return kind if kind in ("alyx", "gioco", "motore") else None
 
 
 def alert_tag(kind: str | None, with_label: bool = True) -> str:

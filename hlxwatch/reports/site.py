@@ -25,6 +25,7 @@ from hlxwatch.sources.steam_news import SteamNewsSource
 from hlxwatch.outcomes import engine_merge_index, merge_partners, outcome_register
 from hlxwatch.analyzers.codenames import CodenameTracker
 from hlxwatch.links import link_label
+from hlxwatch.fase import trace_kind
 from hlxwatch.reports.site_extras import (AREA_LABELS, AREAS, area_of, evidence_of, hardware_data, schema_url,
                                           fast_status, source_status)
 from hlxwatch.timeutil import local_day, now_local, register_filters, tz_label
@@ -191,6 +192,7 @@ def export_findings(db: Database, limit: int = 25000, ctx: dict[str, Any] | None
     out: list[dict[str, Any]] = []
     for row in rows:
         item = decorate(apply_first_seen(_row(row), days), ctx)
+        kind = trace_kind(item.get("token"), item.get("text"), item.get("keywords"))   # tracce HLX: gioco, motore...
         out.append({
             "id": item["id"], "score": item["score"], "game": item["game"], "source": item["source"],
             "type": item["change_type"], "token": item.get("token"), "text": (item["text"] or "")[:200],
@@ -199,6 +201,7 @@ def export_findings(db: Database, limit: int = 25000, ctx: dict[str, Any] | None
             "url": item.get("build_url"), "ul": link_label(item.get("build_url")), "ref": (item.get("build_ref") or "")[:10], "kw": item["keywords"],
             "area": item["area"], "ev": item["evidence_label"], **({"sx": item["schema_url"]} if item["schema_url"] else {}),
             **({"fm": item["merge"]} if item["merge"] else {}),
+            **({"k": kind} if kind else {}),
         })
     return out
 

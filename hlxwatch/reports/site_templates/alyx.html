@@ -96,6 +96,8 @@
  ({{ (100 * fase.total.gioco / fase.n)|round|int }}%).
  {% set ultimo = fase.rows[-1] %}{% if ultimo.gioco %}Nel {{ ultimo.year }}: {{ ultimo.gioco }} su {{ ultimo.total }}{% if ultimo.gioco == fase.rows|map(attribute="gioco")|max %},
  l'anno con più pezzi di gioco{% endif %}.{% endif %}</p>
+ <p>Le singole righe sono nella Ricerca: <a href="search.html?k=gioco">🎮 pezzi di gioco</a> ·
+ <a href="search.html?k=motore">⚙️ pezzi di motore</a> · <a href="search.html?k=hlx">tutte le tracce HLX</a>.</p>
  <p class="muted"><small>Alyx è un esempio solo: un gioco diverso può lasciare nei file pezzi diversi. È un modo per capire
  che tipo di lavoro si vede, non per prevedere l'annuncio.</small></p>{% endif %}
  <table class="nomi fase">
