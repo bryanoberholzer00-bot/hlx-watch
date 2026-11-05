@@ -52,6 +52,7 @@ EVENTS = [
     {"data": "2019-11-21", "testo": "annuncio di Half-Life: Alyx"},
     {"data": "2020-03-23", "testo": "uscita di Half-Life: Alyx"},
     {"data": "2021-07-15", "testo": "annuncio di Steam Deck"},
+    {"data": "2022-02-25", "testo": "uscita di Steam Deck"},
     {"data": "2023-03-22", "testo": "annuncio di Counter-Strike 2"},
     {"data": "2023-09-27", "testo": "uscita di Counter-Strike 2"},
     {"data": "2024-08-23", "testo": "Deadlock annunciato"},
@@ -259,6 +260,66 @@ def waves(env: Envelope, step_days: int = 15, top: int = 6) -> list[dict[str, An
     return picked
 
 
+# ------------------------------------------------------------------ prima dei lanci
+LAUNCHES = [
+    {"data": "2019-11-21", "nome": "annuncio di Half-Life: Alyx", "tipo": "gioco"},
+    {"data": "2020-03-23", "nome": "uscita di Half-Life: Alyx", "tipo": "gioco"},
+    {"data": "2021-07-15", "nome": "annuncio di Steam Deck", "tipo": "hardware"},
+    {"data": "2022-02-25", "nome": "uscita di Steam Deck", "tipo": "hardware"},
+    {"data": "2023-03-22", "nome": "annuncio di Counter-Strike 2", "tipo": "gioco"},
+    {"data": "2023-09-27", "nome": "uscita di Counter-Strike 2", "tipo": "gioco"},
+    {"data": "2024-08-23", "nome": "Deadlock reso pubblico", "tipo": "gioco"},
+    {"data": "2025-11-12", "nome": "annuncio di Steam Frame e Steam Machine", "tipo": "hardware"},
+]
+HIGH = 1.20                  # una settimana "sopra": il ritmo dei 60 giorni prima è oltre il +20% sull'anno prima
+
+
+def ratio_at(env: Envelope, end: datetime) -> float | None:
+    a = end - timedelta(days=WINDOW)
+    cur, base = env.rate(a, end), env.rate(a - timedelta(days=BASE), a)
+    return cur / base if cur and base else None
+
+
+def year_profile(env: Envelope, end: datetime) -> dict[str, Any] | None:
+    """Le 52 settimane prima di una data: picco del ritmo sull'anno prima e quante settimane sopra il +20%."""
+    weekly = [ratio_at(env, end - timedelta(days=7 * k)) for k in range(52)]
+    weekly = [r for r in weekly if r is not None]
+    if len(weekly) < 40:
+        return None
+    return {"picco": max(weekly), "settimane": sum(r >= HIGH for r in weekly), "al_lancio": weekly[0]}
+
+
+def precedents(env: Envelope) -> dict[str, Any]:
+    """Il ritmo prima dei lanci di Valve, accanto a quello di oggi. Il confronto sulla forma mese per mese non
+    funziona (mesi troppo irregolari, somiglianze tutte deboli): si confrontano intensità e durata. Prima di Alyx
+    l'ondata era lunga (19-27 settimane sopra il +20%), prima degli altri lanci breve o assente (0-8)."""
+    rows = []
+    for item in LAUNCHES:
+        p = year_profile(env, datetime.fromisoformat(item["data"]))
+        if p:
+            rows.append({**item, **p})
+    today = year_profile(env, env.t[-1]) if env.t else None
+    text = ""
+    alyx = [r for r in rows if "Alyx" in r["nome"]]
+    others = [r for r in rows if "Alyx" not in r["nome"]]
+    if today and alyx and others:
+        a_peak, o_peak = max(r["picco"] for r in alyx), max(r["picco"] for r in others)
+        a_weeks = [r["settimane"] for r in alyx]
+        o_weeks = max(r["settimane"] for r in others)
+        cmp_a = ("più alto di" if today["picco"] > a_peak * 1.03 else "come" if today["picco"] >= a_peak * 0.97
+                 else "più basso di")
+        text = (f"Negli ultimi 12 mesi il ritmo ha toccato {pct(today['picco'])} sull'anno prima: {cmp_a} prima di "
+                f"Alyx ({pct(a_peak)})" + (f" e più di prima di tutti gli altri lanci (al massimo {pct(o_peak)})."
+                                            if today["picco"] > o_peak else ".")
+                + f" Per durata, {today['settimane']} settimane sopra il +20%: prima di Alyx erano "
+                + f"{min(a_weeks)}-{max(a_weeks)}, prima degli altri lanci al massimo {o_weeks}.")
+        if today["settimane"] < min(a_weeks) and today["picco"] >= a_peak * 0.97:
+            text += " Intensa come quella di Alyx, ma ancora breve."
+        elif today["settimane"] >= min(a_weeks):
+            text += " Lunga come quella di Alyx."
+    return {"lanci": rows, "oggi": today, "testo": text}
+
+
 # ------------------------------------------------------------------ la prova delle feste
 FESTE = {"ringraziamento": "settimana del Ringraziamento", "natale": "Natale (22 dicembre - 1 gennaio)"}
 FESTE_DAL = 2017
@@ -404,7 +465,7 @@ def analyse(db: Database, visible: dict[str, Any] | None = None) -> dict[str, An
         "finestra": {"da": w0.date().isoformat(), "a": end.date().isoformat()},
         "fasce": hours_now, "fasce_prima": hours_before, "giochi": per_game,
         "ondate": waves(env), "mesi": monthly(env), "visibile": visible, "eventi": EVENTS,
-        "feste": holidays(env),
+        "feste": holidays(env), "lanci": precedents(env),
     }
 
 
@@ -488,6 +549,8 @@ def wave_text(a: dict[str, Any], site_url: str) -> str:
         lines.append(f"Rispetto agli stessi giorni di un anno fa: contatore {pct(a['rapporto_anno'])}, aggiornamenti "
                      f"pubblici dei progetti noti (CS2, Dota 2, Deadlock, SteamVR, TF2, Steam) "
                      f"{pct(vis['rispetto_anno'])}." + (" La differenza è lavoro che non si vede." if gap else ""))
+    if (a.get("lanci") or {}).get("testo"):
+        lines.append(a["lanci"]["testo"])
     lines.append("Il contatore misura il lavoro di tutta Valve: dice quanto, non su cosa.")
     lines.append(f"{site_url}contatore.html")
     return "\n".join(lines)
@@ -506,6 +569,18 @@ def check_wave(db: Database, a: dict[str, Any] | None, notifiers: list, site_url
         db.set_state(STATE_WAVE, json.dumps({"attiva": True, "da": a["finestra"]["a"], "rapporto": a["rapporto"],
                                              "ritmo": a["ora"], "at": iso(utcnow())}))
         return "inizio"
+    la = a.get("lanci") or {}
+    alyx_weeks = [r["settimane"] for r in la.get("lanci") or [] if "Alyx" in r["nome"]]
+    today = la.get("oggi") or {}
+    if (state.get("attiva") and not state.get("come_alyx") and alyx_weeks and fresh
+            and today.get("settimane", 0) >= min(alyx_weeks)):
+        notify_text(notifiers, "HLX Watch: un'ondata lunga come prima di Alyx",
+                    f"Il ritmo di lavoro di Valve è sopra il +20% sull'anno prima da {today['settimane']} settimane "
+                    f"negli ultimi 12 mesi: tanto quanto prima di Half-Life: Alyx ({min(alyx_weeks)}-{max(alyx_weeks)}) "
+                    "e più che prima di qualunque altro lancio di Valve dal 2017.\n" + la.get("testo", "")
+                    + f"\nIl contatore dice quanto lavora Valve, non su cosa.\n{site_url}contatore.html#lanci")
+        db.set_state(STATE_WAVE, json.dumps({**state, "come_alyx": a["finestra"]["a"]}))
+        return "come_alyx"
     if state.get("attiva") and a["rapporto"] < WAVE_OFF:
         notify_text(notifiers, TITLE_CALM,
                     f"Il ritmo delle modifiche di Valve è sceso a {num(a['ora'])} al giorno ({pct(a['rapporto'])} "

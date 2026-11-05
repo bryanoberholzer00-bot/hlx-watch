@@ -190,3 +190,31 @@ def test_holiday_message_once_and_only_recent(tmp_path):
     assert len(c.check_holidays(db, h, [n], "https://x/")) == 1 and c.check_holidays(db, h, [n], "https://x/") == []
     assert len(n.sent) == 1 and "come al solito" in n.sent[0][1] and "scadenza" not in n.sent[0][1]
     db.close()
+
+
+def test_precedents_alyx_long_others_short(tmp_path):
+    cfg, db = make(tmp_path)
+    c.load_seed(db)
+    p = c.precedents(c.Envelope(c.points(db)))
+    by = {r["nome"]: r for r in p["lanci"]}
+    assert by["annuncio di Half-Life: Alyx"]["settimane"] >= 15 and by["uscita di Half-Life: Alyx"]["settimane"] >= 15
+    assert all(r["settimane"] <= 10 for n, r in by.items() if "Alyx" not in n)
+    assert p["oggi"] and "Alyx" in p["testo"] and "settimane" in p["testo"]
+    db.close()
+
+
+def test_alyx_length_milestone_once(tmp_path):
+    cfg, db = make(tmp_path)
+    n = FakeNotifier()
+    now = datetime.now()
+    lanci = {"lanci": [{"nome": "annuncio di Half-Life: Alyx", "settimane": 19}, {"nome": "uscita di CS2", "settimane": 8}],
+             "oggi": {"settimane": 6, "picco": 1.58}, "testo": "confronto"}
+    a = {"rapporto": 1.5, "rapporto_anno": 1.5, "ora": 4000, "base": 2600, "record": True, "lanci": lanci,
+         "ultimo": {"quando": now.isoformat(timespec="minutes")}, "finestra": {"a": now.date().isoformat()},
+         "fasce": {k: {"rapporto": 1.4, "pochi": True} for k in c.BUCKETS}, "visibile": None}
+    assert c.check_wave(db, a, [n], "https://x/") == "inizio"
+    assert c.check_wave(db, a, [n], "https://x/") is None                       # 6 settimane: non ancora
+    long = dict(a, lanci=dict(lanci, oggi={"settimane": 20, "picco": 1.6}))
+    assert c.check_wave(db, long, [n], "https://x/") == "come_alyx" and "prima di Half-Life: Alyx" in n.sent[-1][1]
+    assert c.check_wave(db, long, [n], "https://x/") is None and len(n.sent) == 2
+    db.close()

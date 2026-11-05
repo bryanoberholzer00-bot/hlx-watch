@@ -93,6 +93,25 @@
  <p class="muted"><small>"Cosa succedeva": i fatti noti fino a 8 mesi dopo l'inizio dell'ondata.</small></p>
 </section>
 
+{% set la = a.lanci %}
+{% if la and la.lanci %}
+<section id="lanci">
+ <h2>Prima dei lanci di Valve</h2>
+ <p>Com'era il ritmo nei 12 mesi prima di ogni lancio, accanto a quello degli ultimi 12 mesi. <b>Picco</b>: il
+ punto più alto del ritmo sull'anno prima. <b>Durata</b>: quante settimane su 52 il ritmo è stato oltre il +20%.</p>
+ {% if la.testo %}<p><b>{{ la.testo }}</b></p>{% endif %}
+ <table>
+  <tr><th>Nei 12 mesi prima di…</th><th>Data</th><th>Picco</th><th>Durata (settimane sopra +20%)</th><th>Ritmo al momento</th></tr>
+  {% if la.oggi %}<tr style="font-weight:600"><td>oggi</td><td>{{ a.finestra.a }}</td><td>{{ pct(la.oggi.picco) }}</td><td>{{ la.oggi.settimane }}</td><td>{{ pct(la.oggi.al_lancio) }}</td></tr>{% endif %}
+  {% for r in la.lanci|reverse %}<tr><td>{{ r.nome }}</td><td>{{ r.data }}</td><td>{{ pct(r.picco) }}</td><td>{{ r.settimane }}</td><td>{{ pct(r.al_lancio) }}</td></tr>{% endfor %}
+ </table>
+ <p class="muted"><small>Il confronto della forma del ritmo mese per mese non funziona: i mesi sono troppo
+ irregolari e le somiglianze escono tutte deboli, quindi qui si guardano solo intensità e durata. Tra questi lanci
+ Alyx è l'unico gioco del tutto nuovo (CS2 continua CS:GO, Deadlock si giocava su invito da anni prima di essere
+ reso pubblico), e prima di Alyx l'ondata fu molto più lunga. Un'ondata come quella di Alyx, da sola, non dice che
+ arriva un gioco.</small></p>
+</section>
+{% endif %}
 {% set fe = a.feste %}
 <section id="feste">
  <h2>La prova delle feste</h2>
