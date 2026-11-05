@@ -184,8 +184,14 @@ def _save_proposals(db: Database, items: list[dict[str, Any]]) -> None:
     db.set_state(PROPOSALS, json.dumps(items[-60:], ensure_ascii=False))
 
 
-def validate(cfg: Config, db: Database, raw: list[dict[str, Any]], items: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Le proposte del modello che reggono ai controlli, già nella forma da applicare."""
+def validate(cfg: Config, db: Database, raw: list[dict[str, Any]], items: list[dict[str, Any]],
+             rejected: list[str] | None = None) -> list[dict[str, Any]]:
+    """Le proposte del modello che reggono ai controlli, già nella forma da applicare.
+    In `rejected` (se dato) il motivo di ogni proposta scartata, per il log."""
+    rejected = [] if rejected is None else rejected
+
+    def drop(p: dict[str, Any], why: str) -> None:
+        rejected.append(f"{p.get('azione')} sulla voce {p.get('id')}: {why}")
     from hlxwatch import noise
     by_id = {i["id"]: i for i in items}
     corr = corrections(db)
@@ -195,32 +201,38 @@ def validate(cfg: Config, db: Database, raw: list[dict[str, Any]], items: list[d
         item = by_id.get(p.get("id"))
         why = " ".join(str(p.get("perche") or "").split())[:500]
         if item is None or not why:
+            drop(p, "voce non tra quelle mandate" if item is None else "senza il perché")
             continue
         label = (item["token"] or item["riga"]).strip()
         action = p.get("azione")
         if action == "tipo":
             kind = p.get("tipo")
             if kind not in KIND_LABELS or not item["tipo_assegnato"] or kind == item["tipo_assegnato"]:
+                drop(p, "non è una traccia HLX" if not item["tipo_assegnato"] else f"tipo {kind or 'vuoto'} non valido o uguale")
                 continue
             entry = {"azione": "tipo", "chiave": label.lower()[:200], "tipo": kind, "prima": item["tipo_assegnato"]}
         elif action == "nota":
             esito = " ".join(str(p.get("esito") or "").split())[:60]
             nota = " ".join(str(p.get("nota") or "").split())[:300]
             if not esito or not nota or not item["traccia_hlx"]:
+                drop(p, "nota vuota o voce non HLX")
                 continue
             entry = {"azione": "nota", "chiave": label.lower()[:120], "esito": esito, "nota": nota}
         elif action == "silenzio":
             if item["traccia_hlx"] or "possible_announcement" in item["parole_chiave"]:
-                continue                       # mai le tracce HLX forti né i possibili annunci
+                drop(p, "traccia HLX o possibile annuncio: non si silenzia")   # mai
+                continue
             row = db.conn.execute("SELECT * FROM findings WHERE id = ?", (item["id"],)).fetchone()
             f = _row_finding(row)
             rule = noise.rule_of(f.game, f.change_type, f.keywords, f.file_path)
             if rule in corr["silenzi"] or rule in noise.rules(db):
+                drop(p, "già silenziato (👎 o correzione)")
                 continue
             entry = {"azione": "silenzio", "chiave": rule, "descrizione": noise.describe(cfg, rule)}
         else:
             continue
         if (entry["azione"], entry["chiave"]) in seen:
+            drop(p, "già proposta o applicata")
             continue
         seen.add((entry["azione"], entry["chiave"]))
         entry.update({"voce": item["id"], "esempio": label[:120], "gioco": item["gioco"], "perche": why})
@@ -294,7 +306,13 @@ def run_review(cfg: Config, db: Database, notifiers: list, *, client: Any = None
     content, cost = structured_call(db, analyzer.client, prompt=prompt, schema=SCHEMA, label="Revisione",
                                     effort="high", max_tokens=8000, system=SYSTEM)
     log.info("Revisione: costo %.4f $", cost)
-    found = validate(cfg, db, list((content or {}).get("proposte") or []), items)
+    raw = list((content or {}).get("proposte") or [])
+    rejected: list[str] = []
+    found = validate(cfg, db, raw, items, rejected)
+    log.info("Revisione: %d avvisi rivisti, il modello propone %d correzioni, %d passano i controlli",
+             len(items), len(raw), len(found))
+    for why in rejected:
+        log.info("Revisione: scartata %s", why)
     now = iso(utcnow())
     for n, p in enumerate(found, 1):
         p.update({"pid": f"p{monday:%y%m%d}{n}", "stato": "attesa", "creata": now, "settimana": week})
