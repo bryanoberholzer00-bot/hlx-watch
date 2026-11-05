@@ -1,0 +1,127 @@
+# Registro degli errori: ogni errore corretto diventa un esempio che le regole devono continuare a rispettare.
+# A ogni giro (comando controlla-errori) gli esempi si ricontrollano con le regole di quel momento: se una modifica
+# fa tornare un errore già corretto, arriva un avviso. Gli errori corretti con la revisione settimanale si
+# aggiungono da soli (stato lezioni:imparate); questi sono quelli corretti a mano.
+#
+# controllo:
+#   tipo         il tipo della traccia HLX (fase.trace_kind): gioco, motore, alyx, strumenti, dubbio, nessuno
+#   parola       le parole chiave trovate in una riga di un file (contiene / non_contiene / punteggio_max / _min)
+#   cosa_cambia  la riga "Cosa cambia" sotto gli avvisi delle build (build_notes.describe), per un elenco di file
+lezioni:
+  - id: mod-hlx-motore
+    data: "2026-11-05"
+    errore: "Le righe 'mod != hlx' (impostazioni grafiche) erano segnate come eredità di Alyx: hlvr da solo è il nome del gioco, non un pezzo."
+    controllo: tipo
+    token: "hlx"
+    testo: "mod != hlx || !m_bRefract"
+    parole: [hlx]
+    atteso: motore
+  - id: suppressexpr-hlx-motore
+    data: "2026-11-05"
+    errore: "Stesso errore nella versione commentata della riga, dentro gli schemi delle particelle."
+    controllo: tipo
+    token: "HLX"
+    testo: '// MPropertySuppressExpr = "mod != hlx"'
+    parole: [hlx]
+    atteso: motore
+  - id: alyx-vero-resta-alyx
+    data: "2026-11-05"
+    errore: "Correggendo 'mod != hlx' non bisogna perdere i nomi davvero presi da Alyx (hlvr_ diventato hlx_)."
+    controllo: tipo
+    token: "hlx_combine_barrier_cell_spacing"
+    parole: [hlx_prefix]
+    atteso: alyx
+  - id: demoinfo2-hlvr-hlx-gioco
+    data: "2026-11-05"
+    errore: "'// hlvr/hlx' in demoinfo2.txt era 'da capire': è il titolo dei tipi di gioco di Alyx e HLX (granate, riserva di energia)."
+    controllo: tipo
+    token: "hlvr/hlx"
+    testo: "// hlvr/hlx"
+    parole: [hlx]
+    atteso: gioco
+  - id: usercmd-hlx-da-capire
+    data: "2026-11-05"
+    errore: "CHLXUserCmdPB è un messaggio vuoto con i soli comandi comuni: né gioco né motore, resta da capire."
+    controllo: tipo
+    token: "CHLXUserCmdPB"
+    testo: "message CHLXUserCmdPB {"
+    parole: [hlx_class]
+    atteso: dubbio
+  - id: tipi-hlx-fuori-da-demoinfo2
+    data: "2026-11-05"
+    errore: "I tipi di gioco di HLX elencati in demoinfo2 dal 2021 vanno segnalati se compaiono in un altro file."
+    controllo: parola
+    testo: "ConnectedEnergyReserveType_t"
+    file: "game/csgo/bin/win64/server_strings.txt"
+    contiene: [hlx_game_type]
+    punteggio_min: 100
+  - id: tipi-hlx-non-in-demoinfo2
+    data: "2026-11-05"
+    errore: "In demoinfo2.txt quei tipi ci sono già dal 2021: lì un avviso sarebbe falso."
+    controllo: parola
+    testo: '{ m_Name = "eGrenadeState_t"   m_VarType = "NET_DATA_TYPE_UINT64" },'
+    file: "game/core/tools/demoinfo2/demoinfo2.txt"
+    non_contiene: [hlx_game_type]
+  - id: granate-cs2-non-hlx
+    data: "2026-11-05"
+    errore: "Le granate di CS2 (OnGrenadeStateChanged) non sono il tipo di gioco di HLX."
+    controllo: parola
+    testo: "bool m_bPinPulled (change callbacks: OnGrenadeStateChanged)"
+    file: "DumpSource2/network/server.txt"
+    non_contiene: [hlx_game_type]
+  - id: obiettivi-hl2
+    data: "2026-10-26"
+    errore: "HLX_KILL_* sono obiettivi di Half-Life 2 del 2007, non un gioco nuovo: punteggio basso, mai un avviso."
+    controllo: parola
+    testo: '"HLX_KILL_ENEMIES_WITHPHYSCANNON"'
+    file: "game/hl2/resource/hl2_english.txt"
+    contiene: [hl2_achievement]
+    non_contiene: [hlx, hlx_prefix]
+    punteggio_max: 49
+  - id: shlx-istruzione
+    data: "2026-10-29"
+    errore: "'shlx' è un'istruzione del processore nei dump dei programmi, non HLX."
+    controllo: parola
+    testo: "shlx r8, rax, rcx"
+    file: "game/bin/win64/engine2_strings.txt"
+    non_contiene: [hlx, hlx_fused, hlx_prefix]
+  - id: hlx-dentro-un-nome
+    data: "2026-10-29"
+    errore: "CDummyHLXCover (Hammer di CS2) non veniva preso: HLX attaccato ad altre lettere."
+    controllo: parola
+    testo: "CDummyHLXCover::GenOrientationFlags_t"
+    file: "game/bin/win64/tools/hammer_strings.txt"
+    contiene: [hlx_fused]
+  - id: classe-chlx
+    data: "2026-10-29"
+    errore: "Le classi C++ CHLX... non venivano prese dalle parole 'hlx' e 'hlx_*'."
+    controllo: parola
+    testo: "CHLXBaseProjectileEmitterHelper"
+    file: "game/bin/win64/tools/hammer_strings.txt"
+    contiene: [hlx_class]
+  - id: hardware-valve-non-avvisa
+    data: "2026-10-29"
+    errore: "Un nome in codice dell'hardware Valve in un percorso di SteamVR mandava un avviso falso: i bonus lo portavano sopra 50."
+    controllo: parola
+    testo: '"input_source": "resources/input/controller_neptune.json"'
+    file: "drivers/lighthouse/resources/input/legacy_bindings.json"
+    contiene: [valve_hardware]
+    punteggio_max: 49
+  - id: build-solo-traduzioni
+    data: "2026-11-05"
+    errore: "Una build di Alyx con sole traduzioni sembrava un aggiornamento qualsiasi."
+    controllo: cosa_cambia
+    files:
+      - {filename: "game/hlvr/pak01_dir/panorama/localization/hlvr_french.txt", additions: 98}
+      - {filename: "game/hlvr/pak01_dir/panorama/localization/hlvr_italian.txt", additions: 98}
+      - {filename: "manifests/manifest_546561.txt"}
+    atteso: ["solo traduzioni (2 lingue)", "elenchi dei pacchetti di download"]
+  - id: build-lingue-non-file-del-gioco
+    data: "2026-11-05"
+    errore: "I file di testo delle lingue nell'elenco del pak contavano anche come file del gioco modificati."
+    controllo: cosa_cambia
+    files:
+      - {filename: "game/hlvr/pak01_dir/panorama/localization/hlvr_french.txt", additions: 1}
+      - filename: "game/hlvr/pak01_dir.txt"
+        patch: "-panorama/localization/hlvr_french.txt CRC:001 size:1\n+panorama/localization/hlvr_french.txt CRC:002 size:2"
+    atteso: ["solo traduzioni (1 lingua)"]

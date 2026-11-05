@@ -232,12 +232,13 @@ def wrap_data(data: Any) -> str:
 
 
 def structured_call(db: Database, client: Any, *, prompt: str, schema: dict[str, Any], label: str,
-                    effort: str = "medium", max_tokens: int = 4000) -> tuple[dict[str, Any] | None, float]:
+                    effort: str = "medium", max_tokens: int = 4000,
+                    system: str | None = None) -> tuple[dict[str, Any] | None, float]:
     """Una chiamata a Claude con risposta JSON secondo `schema`: restituisce (contenuto, costo).
     Il costo viene registrato tra le spese extra; rifiuto o JSON non valido danno (None, costo)."""
     response = client.beta.messages.create(
         model=MODEL, max_tokens=max_tokens, betas=["server-side-fallback-2026-07-01"], fallbacks="default",
-        system=SYSTEM_PROMPT,
+        system=system or SYSTEM_PROMPT,
         output_config={"effort": effort, "format": {"type": "json_schema", "schema": schema}},
         messages=[{"role": "user", "content": prompt}],
     )

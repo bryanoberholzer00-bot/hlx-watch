@@ -199,6 +199,10 @@ steam_news:                              # post ufficiali di Valve su Steam (ISt
     - {appid: 593110,  name: steamclient, title: "Client Steam", patchnotes: false}   # di aggiornamento: escono ogni
     - {appid: 1675200, name: steamdeck,   title: "Steam Deck", patchnotes: false}   # settimana
 
+revisione:                               # revisione settimanale con l'AI (revisione.py), dopo il riepilogo del lunedì
+  enabled: true                          # al massimo 3 correzioni proposte, ognuna da approvare con ✅ su Telegram
+  url: "https://hlx-watch-bot.bryan-oberholzer00.workers.dev/proposte.json"   # scelte registrate dal bot
+
 archive_guard:                           # prima di salvare: l'archivio non deve essersi svuotato
   max_drop_percent: 5                    # calo massimo di voci, build o stringhe viste rispetto all'ultimo salvataggio
 

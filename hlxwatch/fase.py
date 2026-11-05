@@ -82,6 +82,14 @@ def summary(reg: dict[str, Any], alyx_seed: dict[str, Any] | None) -> dict[str, 
 HLX_KEYWORDS = {"hlx", "hlx_prefix", "hlx_class", "hlx_fused", "hlx_path", "hlx_game_type"}
 TAGS = {"gioco": ("🎮", "pezzo di gioco"), "motore": ("⚙️", "pezzo di motore"), "alyx": ("🔁", "eredità di Alyx")}
 _alyx_names: set[str] | None = None
+KINDS = ("gioco", "motore", "alyx", "strumenti", "dubbio")
+# correzioni approvate dalla revisione settimanale (revisione.py): token o testo in minuscolo -> tipo
+OVERRIDES: dict[str, str] = {}
+
+
+def set_overrides(items: dict[str, str]) -> None:
+    OVERRIDES.clear()
+    OVERRIDES.update({str(k).strip().lower(): v for k, v in (items or {}).items() if v in KINDS})
 
 
 def alyx_names() -> set[str]:
@@ -99,6 +107,9 @@ def trace_kind(token: str | None, text: str | None, keywords: list[str] | None) 
     if not HLX_KEYWORDS.intersection(keywords or []):
         return None
     label = (token or text or "").strip().lower()
+    for key in (label, (text or "").strip().lower()):
+        if key and key in OVERRIDES:
+            return OVERRIDES[key]
     names = alyx_names()
     for cand in (label.replace("hlx", "hlvr"), piece_key(label).replace("hlx", "hlvr")):
         # "hlvr" da solo è il nome del gioco, non un pezzo: "mod != hlx" non è un'eredità di Alyx

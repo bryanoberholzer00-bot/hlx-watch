@@ -139,6 +139,9 @@ def glance(termo: dict[str, Any], status: dict[str, Any]) -> dict[str, Any]:
     restore = status.get("restore") or {}
     if restore and not restore.get("ok", True):
         problems.append("prova di ripristino non riuscita")
+    lessons = status.get("lezioni") or {}
+    if lessons and not lessons.get("ok", True):
+        problems.append("è tornato un errore già corretto")
     site_check = status.get("site_check") or {}
     if site_check and not site_check.get("ok", True):
         problems.append("problemi nel sito")
@@ -246,6 +249,8 @@ def present_groups(db: Database, limit: int = 60) -> list[dict[str, Any]]:
 
 def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 180) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
+    from hlxwatch.revisione import load
+    load(db)                                  # correzioni approvate: i tipi delle tracce sul sito sono quelli giusti
     env = Environment(loader=FileSystemLoader(str(TEMPLATES)), autoescape=select_autoescape(["html"]))
     titles = {g: ("Steam (nuove app)" if g == "steam" else cfg.game_title(g)) for g in db.stats()["games"]}
     from hlxwatch.announcement import extra_watch
@@ -323,7 +328,13 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
         env.globals["og_image"] = ""
     write_feed(db, out_dir, site_url, ctx)
     kw = cfg.keywords
+    from hlxwatch.lezioni import all_lessons
+    from hlxwatch.revisione import KIND_LABELS, corrections, describe_proposal, proposals
+    review = {"lezioni": sorted(all_lessons(db), key=lambda x: str(x.get("data", "")), reverse=True),
+              "proposte": [dict(p, testo=describe_proposal(p).split("\nPerché:")[0]) for p in proposals(db)][-12:][::-1],
+              "correzioni": corrections(db), "tipi": KIND_LABELS}
     (out_dir / "metodologia.html").write_text(env.get_template("metodologia.html").render(
+        review=review,
         repos=tracked_repos(cfg, db), steam_apps=[a.get("title", a.get("name")) for a in cfg.steam_watch_apps],
         news_apps=[a["title"] for a in SteamNewsSource(cfg, db).apps()],
         full_scan={**{"interval_hours": 24, "min_score": 50, "prefilter": ""}, **(cfg.get("full_scan", {}) or {})},

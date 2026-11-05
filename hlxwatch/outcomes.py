@@ -110,6 +110,15 @@ def destination(prefix: str) -> str:
     return PREFIX_PLACES.get(prefix.lower(), f"prefisso '{prefix}'")
 
 
+def manual_entries(cfg: Config, db: Database | None = None) -> dict[str, dict[str, Any]]:
+    """Esiti scritti a mano: quelli del config (esiti.manuali) e quelli approvati dalla revisione settimanale."""
+    entries = list(((cfg.get("esiti", {}) or {}).get("manuali") or []))
+    if db is not None:
+        from hlxwatch.revisione import corrections
+        entries += corrections(db).get("note") or []
+    return {str(e.get("match", "")).lower(): e for e in entries if e.get("match")}
+
+
 def outcome_register(cfg: Config, db: Database) -> dict[str, Any]:
     present = _present_now(db)
     rows = db.conn.execute(
@@ -149,7 +158,7 @@ def outcome_register(cfg: Config, db: Database) -> dict[str, Any]:
                 if day == min(t["games"].values()):
                     t["file"], t["url"] = r["file_path"], r.get("url") or t["url"]
             t["added"][r["game"]] = max(day, t["added"].get(r["game"], day))
-    manual = {str(e.get("match", "")).lower(): e for e in ((cfg.get("esiti", {}) or {}).get("manuali") or []) if e.get("match")}
+    manual = manual_entries(cfg, db)
     out = []
     for t in traces.values():
         if not t["games"]:

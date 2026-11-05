@@ -15,6 +15,8 @@ import { flushMorning, handlePush } from "./push.js";
 import { FAST_CRON, fastAlerts, fastCheck, fastStatus, fastWatchdog } from "./fast.js";
 import { dispatchRun } from "./dispatch.js";
 import { ensureWebhook, handleCallback, noiseList } from "./noise.js";
+// Pulsanti ✅/❌ sotto le proposte della revisione settimanale e /proposte.json: vedi src/proposte.js
+import { decisionsList, handleProposal, parseProposal } from "./proposte.js";
 
 const DEFAULT_SITE = "https://bryanoberholzer00-bot.github.io/hlx-watch/";
 const REPO = "https://github.com/bryanoberholzer00-bot/hlx-watch";
@@ -224,6 +226,9 @@ export default {
     if (path === "/rumore.json" && request.method === "GET") {
       return noiseList(env);                        // voci segnate con 👎, lette dal giro su GitHub
     }
+    if (path === "/proposte.json" && request.method === "GET") {
+      return decisionsList(env);                    // scelte sulle proposte della revisione, lette dal giro su GitHub
+    }
     if (request.method !== "POST") {
       return new Response("HLX Watch bot: ok", { status: 200 });
     }
@@ -236,6 +241,10 @@ export default {
       update = await request.json();
     } catch {
       return new Response("bad request", { status: 400 });
+    }
+    if (update.callback_query && parseProposal(update.callback_query.data)) {
+      await handleProposal(env, update.callback_query);   // ✅/❌ sotto una proposta della revisione
+      return new Response("ok", { status: 200 });
     }
     if (update.callback_query) {
       await handleCallback(env, update.callback_query);   // pulsante 👎 sotto un avviso

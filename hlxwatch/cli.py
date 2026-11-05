@@ -126,6 +126,12 @@ def cmd_cron(args: argparse.Namespace) -> int:
         maybe_weekly(cfg, db, pipeline.notifiers if not args.no_notify else [], report_time, send=not args.no_notify)
     except Exception:
         log.exception("Riepilogo settimanale fallito")
+    # revisione settimanale: dopo il riepilogo, l'AI propone correzioni agli errori della settimana
+    try:
+        from hlxwatch.revisione import run_review
+        run_review(cfg, db, pipeline.notifiers if not args.no_notify else [], send_it=not args.no_notify)
+    except Exception:
+        log.exception("Revisione settimanale fallita")
     # analisi AI: una volta al giorno, nella stessa finestra del report, solo se ci sono novità
     if now_local().strftime("%H:%M") >= report_time:
         try:
@@ -370,6 +376,37 @@ def cmd_site_check(args: argparse.Namespace) -> int:
     return 0                                 # il run continua: decide il workflow con l'output pubblica
 
 
+def cmd_lessons(args: argparse.Namespace) -> int:
+    """Registro degli errori: gli errori già corretti devono restare corretti."""
+    cfg, db = _open(args)
+    from hlxwatch.lezioni import run_check
+    from hlxwatch.notifiers import load_notifiers
+    try:
+        result = run_check(cfg, db, load_notifiers(cfg) if not args.no_notify else [])
+    except Exception:                        # il controllo stesso non deve fermare il giro
+        log.exception("Registro degli errori non controllato")
+        return 0
+    print(f"{result['n']} esempi, " + ("tutti rispettati" if result["ok"] else f"{len(result['falliti'])} non rispettati:"))
+    for f in result["falliti"]:
+        print(f"- {f['id']}: {f['problema']}")
+    return 0
+
+
+def cmd_review(args: argparse.Namespace) -> int:
+    """Revisione settimanale con l'AI: proposte di correzione (con --invia su Telegram)."""
+    cfg, db = _open(args)
+    from hlxwatch.notifiers import load_notifiers
+    from hlxwatch.revisione import describe_proposal, run_review
+    found = run_review(cfg, db, load_notifiers(cfg) if args.invia else [], force=True, send_it=args.invia, save=args.invia)
+    if found is None:
+        print("Revisione non eseguita (AI disattivata, chiave assente o limite di spesa)")
+        return 0
+    print(f"{len(found)} proposte" + ("" if args.invia else " (anteprima: non salvate né inviate)"))
+    for n, p in enumerate(found, 1):
+        print(f"{n}. {describe_proposal(p)}")
+    return 0
+
+
 def cmd_restore_check(args: argparse.Namespace) -> int:
     """Prova di ripristino dell'ultima copia settimanale (una volta a settimana, salvo --forza)."""
     cfg, db = _open(args)
@@ -508,6 +545,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--site", default="site", help="cartella del sito generato")
     p.add_argument("--no-notify", action="store_true", help="non inviare l'avviso")
     p.set_defaults(func=cmd_site_check)
+
+    p = sub.add_parser("controlla-errori", help="registro degli errori: gli errori già corretti non devono tornare")
+    p.add_argument("--no-notify", action="store_true", help="non inviare l'avviso")
+    p.set_defaults(func=cmd_lessons)
+
+    p = sub.add_parser("revisione", help="revisione con l'AI degli avvisi della settimana: proposte di correzione")
+    p.add_argument("--invia", action="store_true", help="manda le proposte su Telegram con i pulsanti")
+    p.set_defaults(func=cmd_review)
 
     p = sub.add_parser("prova-ripristino", help="scarica l'ultima copia settimanale dell'archivio e verifica che si apra")
     p.add_argument("--forza", action="store_true", help="anche se non è passata una settimana dall'ultima prova")

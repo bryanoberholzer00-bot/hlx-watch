@@ -52,6 +52,10 @@ on:
         description: "Archeologia: cerca le righe HLX in tutta la storia dei repository (una volta sola, circa un'ora)"
         type: boolean
         default: false
+      revisione_anteprima:
+        description: "Anteprima della revisione settimanale con l'AI: proposte solo nel log, niente su Telegram"
+        type: boolean
+        default: false
       archeologia_repo:
         description: "Archeologia solo su questi repository (nomi separati da virgola, es. underlords,artifact)"
         default: ""
@@ -146,6 +150,10 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.analyze == 'true'
         run: python -m hlxwatch analyze --send
 
+      - name: "Anteprima della revisione settimanale (solo nel log)"
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.revisione_anteprima == 'true'
+        run: python -m hlxwatch revisione
+
       - name: Scansione + report giornaliero se è ora
         run: python -m hlxwatch cron
 
@@ -155,6 +163,9 @@ jobs:
       - name: Report delle ultime 24 ore su richiesta
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.send_report == 'true'
         run: python -m hlxwatch report --hours 24 --send
+
+      - name: "Registro degli errori: gli errori già corretti non devono tornare"
+        run: python -m hlxwatch controlla-errori
 
       - name: Genera la dashboard statica
         run: python -m hlxwatch site --out site

@@ -293,6 +293,32 @@
  HLX fino al suo esito: ancora presente, rinominata (e dove è finita), sparita.</p>
 </section>
 
+<section id="errori">
+ <h2>Errori corretti e revisione settimanale</h2>
+ <p>HLX Watch sbaglia, e gli errori si correggono in due modi. Ogni errore corretto diventa un <b>esempio</b> con il
+ risultato giusto (il tipo di una traccia, le parole chiave di una riga, la spiegazione di una build, un esito, un
+ avviso da non mandare). A ogni aggiornamento tutti gli esempi si ricontrollano con le regole di quel momento: se una
+ modifica fa tornare un errore già corretto, il proprietario riceve un avviso e lo stato delle fonti in pagina iniziale
+ lo mostra.</p>
+ <p>Ogni lunedì, dopo il riepilogo, una <b>revisione con l'AI</b> riguarda gli avvisi della settimana e le voci segnate
+ con 👎, con le prove (la riga, il contesto, se il nome esisteva in Alyx, in quali altri giochi c'è la stessa riga), e
+ propone al massimo tre correzioni, ognuna con il perché. Sono possibili solo tre correzioni: il tipo di una traccia,
+ una nota nella pagina <a href="esiti.html">Esiti</a>, oppure niente più avvisi per un tipo di voce di rumore. Le tracce
+ HLX forti e i possibili annunci non si possono mai silenziare. Nessuna correzione si applica da sola: arriva su
+ Telegram con i pulsanti ✅ Applica e ❌ No, e quella approvata entra nell'elenco qui sotto.</p>
+ {% if review.proposte %}<h3>Ultime proposte della revisione</h3>
+ <ul>{% for p in review.proposte %}<li><small class="muted">{{ p.creata[:10] }} ·
+  {{ {"attesa": "in attesa di risposta", "applicata": "applicata", "rifiutata": "non applicata", "scaduta": "scaduta senza risposta"}[p.stato] }}</small><br>
+  {{ p.testo }}<br><small>Perché: {{ p.perche }}</small></li>{% endfor %}</ul>{% endif %}
+ <details><summary>Gli esempi del registro ({{ review.lezioni|length }})</summary>
+ <table>
+  <tr><th>Data</th><th>Errore corretto</th><th>Controllo</th></tr>
+  {% for l in review.lezioni %}<tr><td>{{ l.data }}</td><td>{{ l.errore }}{% if l.revisione %} <small class="muted">(revisione settimanale)</small>{% endif %}</td>
+   <td><small>{{ {"tipo": "tipo della traccia", "parola": "parole chiave di una riga", "cosa_cambia": "spiegazione di una build", "esito": "esito scritto a mano", "avviso": "avviso da non mandare"}.get(l.controllo, l.controllo) }}</small></td></tr>{% endfor %}
+ </table>
+ </details>
+</section>
+
 <section id="confronti">
  <h2>Confronti, tipi di traccia e grafici</h2>
  <p><b>Confronto con Alyx e con gli altri progetti Valve</b> (pagina <a href="alyx.html">HLX e Alyx a confronto</a>).

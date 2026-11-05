@@ -63,11 +63,15 @@ class Pipeline:
         self.notifiers = load_notifiers(cfg)
         from hlxwatch.health import Health
         self.health = Health(cfg, db, self.notifiers)
+        from hlxwatch.revisione import load
+        load(db)                                       # correzioni approvate dalla revisione settimanale
 
     def select_alerts(self, findings: Iterable[Finding]) -> list[Finding]:
         from hlxwatch import noise
         min_score = int(self.cfg.get("general.notify_min_score", 50))
         active = noise.rules(self.db)                  # tipi di voce silenziati con il pulsante 👎 su Telegram
+        from hlxwatch.revisione import corrections
+        active = {**active, **corrections(self.db)["silenzi"]}   # e quelli approvati nella revisione settimanale
         out: list[Finding] = []
         for f in findings:
             if not (f.is_new and f.score >= min_score and f.change_type not in SILENT_CHANGE_TYPES):
@@ -89,6 +93,11 @@ class Pipeline:
         if notify:
             from hlxwatch import noise
             noise.refresh(self.cfg, self.db)            # voti 👎 dal bot: quali tipi di voce non avvisano più
+            try:                                        # proposte della revisione approvate con ✅ su Telegram
+                from hlxwatch.revisione import apply_decisions
+                apply_decisions(self.cfg, self.db, self.notifiers)
+            except Exception:
+                log.exception("Proposte della revisione: scelte non applicate")
 
         status: dict[str, str | None] = result.status      # fonte -> None se ok, altrimenti il primo errore
 

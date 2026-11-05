@@ -72,6 +72,10 @@ class TelegramNotifier(Notifier):
             return False
         return True
 
+    def send_buttons(self, title: str, lines: list[str], markup: dict) -> bool:
+        """Testo semplice con pulsanti sotto (callback gestiti dal bot su Cloudflare)."""
+        return self._send([f"<b>{html.escape(title)}</b>"] + [html.escape(ln) for ln in lines], markup)
+
     def send_text(self, title: str, text: str) -> bool:
         return self._send([f"<b>{html.escape(title)}</b>"] + [html.escape(ln) for ln in text.splitlines()])
 
