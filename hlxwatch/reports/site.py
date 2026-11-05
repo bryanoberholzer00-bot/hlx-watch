@@ -353,6 +353,10 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     phase = fase.summary(outcomes, alyx.load_seed())
     (out_dir / "alyx.html").write_text(env.get_template("alyx.html").render(c=cmp, altri=others, prima=before, fase=phase),
                                        encoding="utf-8")
+    # di cosa è fatto HLX: le tracce per sistema, e la domanda "HLX è un gioco VR?" davanti ai dati
+    from hlxwatch import sistemi
+    (out_dir / "sistemi.html").write_text(env.get_template("sistemi.html").render(
+        s=sistemi.summary(outcomes, alyx.load_seed())), encoding="utf-8")
     write_counter(env, db, out_dir, [t["first"] for t in outcomes["traces"]])
     if not preview_image(brief, out_dir / "anteprima.png", site_url.split("//", 1)[-1].rstrip("/")):
         env.globals["og_image"] = ""

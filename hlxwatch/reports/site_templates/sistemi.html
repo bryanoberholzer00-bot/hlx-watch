@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Di cosa è fatto HLX - HLX Watch{% endblock %}
+{% block description %}Le tracce di HLX nei file pubblici di Valve divise per sistema: particelle, nemici, fisica, suono, armi. E la domanda che fanno tutti, HLX è un gioco VR?, messa davanti ai dati.{% endblock %}
+{% block content %}
+<style>
+ .barre{display:flex;flex-direction:column;gap:.5rem;margin:.6rem 0 1rem}
+ .barra{display:grid;grid-template-columns:16rem 1fr;gap:.6rem;align-items:center;font-size:.9rem}
+ .barra .riga{display:flex;align-items:center;gap:.5rem} .barra i{display:block;height:.9rem;border-radius:3px;background:var(--accent);min-width:2px}
+ .barra .riga b,.barra .riga small{white-space:nowrap;font-size:.85rem}
+ @media(max-width:700px){.barra{grid-template-columns:1fr;gap:.15rem}}
+ table.anni td,table.anni th{text-align:center} table.anni td:first-child,table.anni th:first-child{text-align:left}
+ table.anni td.zero{color:var(--muted)}
+ .sistema{border:1px solid var(--line);border-radius:8px;padding:.6rem .9rem;margin:.6rem 0}
+ .sistema h3{margin:0 0 .3rem;font-size:1rem} .sistema ul{margin:.3rem 0 0;padding-left:1.1rem}
+ .verso{font-weight:600;white-space:nowrap} .verso-vr{color:#8b5cf6} .verso-schermo{color:#2e9d4f} .verso-neutro{color:var(--muted)}
+ .numeri{display:grid;grid-template-columns:1fr 1fr;gap:1rem} @media(max-width:700px){.numeri{grid-template-columns:1fr}}
+ .numeri>div{border:1px solid var(--line);border-radius:8px;padding:.7rem 1rem} .grande{font-size:1.5rem;font-weight:700}
+</style>
+<div class="breve">
+<h1>Di cosa è fatto HLX</h1>
+{% if not s %}<p>Non ci sono ancora tracce HLX nell'archivio.</p></div>{% else %}
+<p class="muted">Le {{ s.n }} tracce diverse di HLX trovate nei file pubblici di Valve, divise per sistema: dove Valve ci
+lavora, da quando, e cosa è comparso di recente. Ogni nome porta alla sua scheda. Ultimo aggiornamento {{ generated }}.</p>
+</div>
+
+<section id="sistemi">
+ <h2>Le tracce per sistema</h2>
+ <div class="barre">
+  {% for x in s.systems %}<div class="barra"><span><a href="#sis-{{ x.key }}">{{ x.name }}</a></span>
+   <span class="riga"><i style="width:{{ x.pct }}%"></i><b>{{ x.n }}</b> <small class="muted">dal {{ x.first[:4] }}</small></span></div>
+  {% endfor %}
+ </div>
+ {% if s.new_last %}<p>Comparso per la prima volta nel {{ s.last_year }}: <b>{{ s.new_last|join(", ") }}</b>.</p>{% endif %}
+
+ <h3>Anno per anno</h3>
+ <table class="anni">
+  <tr><th>Sistema</th>{% for y in s.years %}<th>{{ y }}</th>{% endfor %}</tr>
+  {% for r in s.rows %}<tr><td>{{ r.name }}</td>{% for c in r.cells %}<td class="{{ 'zero' if not c }}">{{ c or "·" }}</td>{% endfor %}</tr>
+  {% endfor %}
+ </table>
+ <p class="muted"><small>Ogni pezzo conta nell'anno della sua prima comparsa. Lo stesso pezzo scritto in modi diversi
+ (per esempio <code>mod != hlx</code> e la sua versione commentata) conta una volta. Le regole sono parole lette nel nome,
+ controllate a mano su tutte le tracce: un nome che non corrisponde a nessuna regola resta "Altro".</small></p>
+
+ {% for x in s.systems %}<div class="sistema" id="sis-{{ x.key }}">
+  <h3>{{ x.name }} <small class="muted">{{ x.n }} {{ "pezzo" if x.n == 1 else "pezzi" }}, {{ x.about }}</small></h3>
+  <ul>{% for p in x["items"] %}<li>{{ p.first[8:10] }}/{{ p.first[5:7] }}/{{ p.first[:4] }}:
+   {% if p.slug %}<a href="traccia-{{ p.slug }}.html"><code>{{ p.label[:90] }}</code></a>{% else %}<code>{{ p.label[:90] }}</code>{% endif %}
+   <small class="muted">{{ p.games|join(", ") }}{% if p.status %}, {{ p.status }}{% endif %}</small></li>{% endfor %}</ul>
+ </div>{% endfor %}
+</section>
+
+{% set v = s.vr %}
+<section id="vr">
+ <h2>HLX è un gioco VR?</h2>
+ <p><b>I dati non lo dicono.</b> Nessuna delle {{ v.hlx_n }} tracce di HLX parla di realtà virtuale (mani, controller,
+ visore, teletrasporto){% if v.hlx_vr %}, tranne {{ v.hlx_vr|length }}{% endif %}. Ma questo da solo non vuol dire niente,
+ e il confronto con Half-Life: Alyx spiega perché.</p>
+ {% if v.alyx %}<div class="numeri">
+  <div><span class="grande">{{ v.alyx.vr }} su {{ v.alyx.n }}</span><br>nomi di Half-Life: Alyx con parole della VR, prima
+   dell'annuncio ({{ v.alyx.announced[8:10] }}/{{ v.alyx.announced[5:7] }}/{{ v.alyx.announced[:4] }}). Erano armi, munizioni,
+   oggetti e intelligenza artificiale: <code>hlvr_weapon_shotgun</code>, <code>item_hlvr_grenade_frag</code>. L'unica cosa che
+   diceva "VR" era il nome del progetto, <b>HLVR</b>.</div>
+  <div><span class="grande">{{ v.hlx_vr|length }} su {{ v.hlx_n }}</span><br>tracce di HLX con parole della VR. Il nome
+   HLX non dice niente: può voler dire "Half-Life X", un progetto come un altro. {% if v.alyx.renamed %}Almeno un pezzo
+   viene però da Alyx: <code>{{ v.alyx.renamed[0].label }}</code> era un nome di Alyx con <code>hlvr</code>.{% endif %}</div>
+ </div>{% endif %}
+ <p>I file pubblici in cui compaiono le tracce (CS2, Dota 2, Deadlock) contengono il motore condiviso: armi, nemici,
+ effetti. Le parti proprie della VR, come i messaggi per le mani e il visore (<code>hl_vr_clientmessages.proto</code> in
+ Alyx), stanno nei file del gioco stesso, e quelli non escono prima dell'annuncio.</p>
+
+ <h3>Gli indizi uno per uno</h3>
+ <table>
+  <tr><th>Quando</th><th>Indizio</th><th>Verso</th></tr>
+  {% for c in v.clues %}<tr><td>{{ c.data[8:10] }}/{{ c.data[5:7] }}/{{ c.data[:4] }}</td>
+   <td><b>{{ c.titolo }}</b><br><small>{{ c.testo }}{% if c.url %} <a href="{{ c.url }}">Fonte</a>{% endif %}</small></td>
+   <td class="verso verso-{{ c.verso }}">{% if c.verso == "vr" %}VR{% elif c.verso == "schermo" %}gioco su schermo{% else %}nessuno{% endif %}{% if c.peso %}<br><small class="muted">{{ c.peso }}</small>{% endif %}</td></tr>
+  {% endfor %}
+ </table>
+ <p>Conto: {{ v.counts.schermo }} {{ 'indizio debole' if v.counts.schermo == 1 else 'indizi deboli' }} verso un gioco su
+ schermo, {{ v.counts.vr }} {{ 'debole' if v.counts.vr == 1 else 'deboli' }} verso la VR, {{ v.counts.neutro }} che non
+ dicono niente. Troppo poco per una risposta: se HLX è in VR, oggi non si vede dai file.</p>
+ {% if v.alyx %}<p class="muted"><small>Un'avvertenza: {{ v.alyx.steamvr }} nomi di Alyx comparivano nei file di SteamVR
+ (lo strumento SteamVR Home), e HLX ci compare {{ v.hlx_steamvr }} volte. Non è un indizio: SteamVR Home è ancora
+ aggiornato, ma con una versione vecchia del motore, in cui mancano anche i pezzi recenti di CS2 e Deadlock.</small></p>{% endif %}
+ <p class="muted"><small>Le parole cercate sono: VR, hand, controller, teleport, haptic, grab, gravity glove, HMD, headset,
+ SteamVR, finger, holster, backpack, wrist, room scale, seated, snap turn, smooth turn, tracked. I conteggi si
+ rifanno a ogni aggiornamento; gli indizi uno per uno sono scritti e controllati a mano.</small></p>
+</section>
+{% endif %}
+{% endblock %}
