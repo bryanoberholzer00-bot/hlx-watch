@@ -262,7 +262,8 @@ def write_counter(env: Environment, db: Database, out_dir: Path, hlx_days: list[
 
     (out_dir / "contatore.html").write_text(env.get_template("contatore.html").render(
         a=a, svg=c.chart_svg(a, hlx_days), num=c.num, pct=c.pct, near_events=near_events, buckets=c.BUCKETS,
-        bucket_labels=c.BUCKET_LABELS, few=c.FEW, titles_c=c.GAME_TITLES, wave=c._json_state(db, c.STATE_WAVE)),
+        bucket_labels=c.BUCKET_LABELS, few=c.FEW, titles_c=c.GAME_TITLES, wave=c._json_state(db, c.STATE_WAVE),
+        feste=c.FESTE, fe_dal=c.FESTE_DAL, alyx_year=c.ALYX_YEAR, this_year=datetime.now().year),
         encoding="utf-8")
     (out_dir / "bot").mkdir(parents=True, exist_ok=True)
     (out_dir / "bot" / "contatore.json").write_text(json.dumps(a or {}, ensure_ascii=False, separators=(",", ":")),

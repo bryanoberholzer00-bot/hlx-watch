@@ -148,3 +148,45 @@ def test_site_page(tmp_path):
     assert data["ultimo"]["rev"] > 11_000_000 and data["mesi"]
     assert not [p for p in check_site(out, need_preview=False) if "contatore" in p["testo"]]
     db.close()
+
+
+def test_thanksgiving_dates():
+    assert [str(c.thanksgiving(y)) for y in (2019, 2025, 2026)] == ["2019-11-28", "2025-11-27", "2026-11-26"]
+    a, b = c.holiday_window("ringraziamento", 2026)
+    assert a == datetime(2026, 11, 23) and b == datetime(2026, 11, 30)
+    assert c.holiday_window("natale", 2026) == (datetime(2026, 12, 22), datetime(2027, 1, 2))
+
+
+def test_holidays_from_history_and_this_year(tmp_path):
+    cfg, db = make(tmp_path)
+    c.load_seed(db)
+    h = c.holidays(c.Envelope(c.points(db)))
+    s = h["riassunto"]
+    assert s["natale"]["max"] < 0.6 and s["natale"]["mediana"] < 0.3          # a Natale Valve quasi si ferma
+    assert 0.6 < s["ringraziamento"]["mediana"] < 0.9 and s["natale"]["alyx"] < 0.3
+    # un Natale 2026 a pieno ritmo: build ogni 6 ore con lo stesso passo delle settimane prima
+    rev = db.conn.execute("SELECT MAX(rev) FROM valve_counter").fetchone()[0]
+    t = datetime(2026, 11, 5, 18)
+    while t < datetime(2027, 1, 5):
+        rev += 700
+        c.add_point(db, "cs2", rev, t.strftime("%Y-%m-%dT%H:%M:%S"))
+        t += timedelta(hours=6)
+    h = c.holidays(c.Envelope(c.points(db)))
+    xmas = next(r for r in h["righe"] if r["festa"] == "natale" and r["anno"] == 2026)
+    assert xmas["stato"] == "completa" and xmas["rapporto"] > 0.9 and xmas["giudizio"] == "mai così tanto lavoro"
+    text = c.holiday_text(xmas, h["riassunto"]["natale"], "https://x/")
+    assert "prima di Alyx" in text and "scadenza" in text and text.endswith("#feste")
+    db.close()
+
+
+def test_holiday_message_once_and_only_recent(tmp_path):
+    cfg, db = make(tmp_path)
+    n = FakeNotifier()
+    today = datetime.now()
+    recent = {"festa": "natale", "anno": today.year, "stato": "completa", "rapporto": 0.2, "ritmo": 500, "build": 3,
+              "a": (today - timedelta(days=2)).date().isoformat(), "giudizio": "come al solito"}
+    old = dict(recent, anno=today.year - 1, a=(today - timedelta(days=300)).date().isoformat())
+    h = {"righe": [recent, old], "riassunto": {"natale": {"min": 0.13, "max": 0.49, "mediana": 0.19, "alyx": 0.17}}}
+    assert len(c.check_holidays(db, h, [n], "https://x/")) == 1 and c.check_holidays(db, h, [n], "https://x/") == []
+    assert len(n.sent) == 1 and "come al solito" in n.sent[0][1] and "scadenza" not in n.sent[0][1]
+    db.close()

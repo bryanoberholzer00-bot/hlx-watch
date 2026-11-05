@@ -24,7 +24,7 @@ import bisect
 import json
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -195,6 +195,23 @@ class Envelope:
         days = (b - a).total_seconds() / 86400
         return (vb - va) / days if va is not None and vb is not None and days > 0 else None
 
+    def interp(self, t: datetime) -> float | None:
+        """Il contatore all'istante t, in linea retta tra la build prima e quella dopo: per periodi brevi, come una
+        settimana di feste con poche build, è più giusto del gradino."""
+        i = bisect.bisect_right(self.t, t)
+        if i == 0 or i >= len(self.t):
+            return None
+        t0, t1, v0, v1 = self.t[i - 1], self.t[i], self.v[i - 1], self.v[i]
+        return v0 + (v1 - v0) * (t - t0).total_seconds() / (t1 - t0).total_seconds()
+
+    def rate_interp(self, a: datetime, b: datetime) -> float | None:
+        va, vb = self.interp(a), self.interp(b)
+        days = (b - a).total_seconds() / 86400
+        return (vb - va) / days if va is not None and vb is not None and days > 0 else None
+
+    def builds(self, a: datetime, b: datetime) -> int:
+        return bisect.bisect_left(self.t, b) - bisect.bisect_left(self.t, a)
+
 
 def bucket(t: datetime) -> str:
     if t.weekday() >= 5:
@@ -240,6 +257,96 @@ def waves(env: Envelope, step_days: int = 15, top: int = 6) -> list[dict[str, An
         if len(picked) >= top:
             break
     return picked
+
+
+# ------------------------------------------------------------------ la prova delle feste
+FESTE = {"ringraziamento": "settimana del Ringraziamento", "natale": "Natale (22 dicembre - 1 gennaio)"}
+FESTE_DAL = 2017
+STATE_FESTE = "contatore:feste:"
+ALYX_YEAR = 2019             # annuncio il 21 novembre 2019, uscita il 23 marzo 2020
+
+
+def thanksgiving(year: int) -> date:
+    """Il quarto giovedì di novembre."""
+    d = date(year, 11, 1)
+    return d + timedelta(days=(3 - d.weekday()) % 7 + 21)
+
+
+def holiday_window(kind: str, year: int) -> tuple[datetime, datetime]:
+    if kind == "ringraziamento":
+        start = datetime.combine(thanksgiving(year) - timedelta(days=3), datetime.min.time())   # dal lunedì
+        return start, start + timedelta(days=7)
+    return datetime(year, 12, 22), datetime(year + 1, 1, 2)
+
+
+def holidays(env: Envelope) -> dict[str, Any]:
+    """Per ogni festa e anno: il ritmo nei giorni di festa diviso per quello delle 3 settimane prima.
+    Valve a Natale quasi si ferma (di solito 13-25% del normale), anche nel 2019 prima di Alyx: un Natale senza
+    calo sarebbe un segnale più forte di quelli di allora. Una festa è "completa" quando c'è una build dopo."""
+    if not env.t:
+        return {"righe": [], "riassunto": {}}
+    last = env.t[-1]
+    rows = []
+    for year in range(FESTE_DAL, last.year + 1):
+        for kind in FESTE:
+            a, b = holiday_window(kind, year)
+            if a > last:
+                continue
+            base = env.rate_interp(a - timedelta(days=21), a)
+            if b <= last:
+                state, now = "completa", env.rate_interp(a, b)
+            else:                                     # in corso: fino all'ultima build
+                state, now = "in_corso", env.rate_interp(a, last) if last > a + timedelta(days=1) else None
+            rows.append({"festa": kind, "anno": year, "da": a.date().isoformat(), "a": (b - timedelta(days=1)).date().isoformat(),
+                         "ritmo": now, "base": base, "rapporto": now / base if now is not None and base else None,
+                         "build": env.builds(a, min(b, last + timedelta(seconds=1))), "stato": state})
+    # la stagione di adesso è l'anno dell'ultima festa cominciata: il Natale 2026 si giudica anche a gennaio 2027
+    season = max((r["anno"] for r in rows), default=last.year)
+    summary = {}
+    for kind in FESTE:
+        past = sorted(r["rapporto"] for r in rows if r["festa"] == kind and r["stato"] == "completa"
+                      and r["rapporto"] is not None and r["anno"] < season)
+        if past:
+            summary[kind] = {"min": past[0], "max": past[-1], "mediana": past[len(past) // 2], "anni": len(past),
+                             "alyx": next((r["rapporto"] for r in rows if r["festa"] == kind and r["anno"] == ALYX_YEAR), None)}
+    for r in rows:
+        s = summary.get(r["festa"])
+        if s and r["rapporto"] is not None and r["anno"] >= season:
+            r["giudizio"] = ("mai così tanto lavoro" if r["rapporto"] > s["max"] else
+                             "più del solito" if r["rapporto"] > (s["mediana"] + s["max"]) / 2 else
+                             "come al solito" if r["rapporto"] >= s["min"] else "meno del solito")
+    return {"righe": rows, "riassunto": summary}
+
+
+def holiday_text(r: dict[str, Any], s: dict[str, Any], site_url: str) -> str:
+    alyx = f" Nel {ALYX_YEAR}, prima di Alyx: {round(s['alyx'] * 100)}%." if s.get("alyx") else ""
+    return (f"{FESTE[r['festa']].capitalize()} {r['anno']}: Valve ha lavorato al {round(r['rapporto'] * 100)}% del "
+            f"ritmo delle tre settimane prima ({num(r['ritmo'])} modifiche al giorno, {r['build']} build).\n"
+            f"Gli anni scorsi: dal {round(s['min'] * 100)}% al {round(s['max'] * 100)}%, di solito "
+            f"{round(s['mediana'] * 100)}%.{alyx}\nGiudizio: {r.get('giudizio', '—')}."
+            + ("\nUna festa senza il solito calo vuol dire di solito una scadenza vicina, ma non dice quale progetto."
+               if r.get("giudizio") in ("più del solito", "mai così tanto lavoro") else "")
+            + f"\n{site_url}contatore.html#feste")
+
+
+def check_holidays(db: Database, h: dict[str, Any], notifiers: list, site_url: str) -> list[str]:
+    """Un messaggio per festa, quando finisce (la prima build dopo), solo per le feste finite da meno di 14 giorni."""
+    from hlxwatch.notifiers import notify_text
+    sent = []
+    for r in h["righe"]:
+        s = h["riassunto"].get(r["festa"])
+        if r["stato"] != "completa" or r["rapporto"] is None or not s or "giudizio" not in r:
+            continue
+        if datetime.now() - datetime.fromisoformat(r["a"]) > timedelta(days=14):
+            continue
+        key = f"{STATE_FESTE}{r['festa']}:{r['anno']}"
+        if db.get_state(key):
+            continue
+        notify_text(notifiers, f"HLX Watch: la prova delle feste ({FESTE[r['festa']].split(' (')[0]} {r['anno']})",
+                    holiday_text(r, s, site_url))
+        db.set_state(key, json.dumps({"rapporto": r["rapporto"], "giudizio": r["giudizio"], "at": iso(utcnow())}))
+        sent.append(key)
+    return sent
 
 
 def monthly(env: Envelope) -> list[dict[str, Any]]:
@@ -297,6 +404,7 @@ def analyse(db: Database, visible: dict[str, Any] | None = None) -> dict[str, An
         "finestra": {"da": w0.date().isoformat(), "a": end.date().isoformat()},
         "fasce": hours_now, "fasce_prima": hours_before, "giochi": per_game,
         "ondate": waves(env), "mesi": monthly(env), "visibile": visible, "eventi": EVENTS,
+        "feste": holidays(env),
     }
 
 
@@ -429,5 +537,7 @@ def run(cfg: Any, db: Database, notifiers: list, client: Any = None, send: bool 
                  "sull'anno prima", num(a["ultimo"]["rev"]), new, num(a["ora"] or 0), WINDOW, pct(a["rapporto"]))
         site = str(cfg.get("general.site_url", "https://bryanoberholzer00-bot.github.io/hlx-watch/"))
         if send and notifiers:            # senza invio lo stato dell'ondata non cambia: l'avviso partirà al giro vero
-            check_wave(db, a, notifiers, site if site.endswith("/") else site + "/")
+            site = site if site.endswith("/") else site + "/"
+            check_wave(db, a, notifiers, site)
+            check_holidays(db, a["feste"], notifiers, site)
     return a

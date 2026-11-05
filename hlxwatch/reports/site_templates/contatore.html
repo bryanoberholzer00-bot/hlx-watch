@@ -93,6 +93,35 @@
  <p class="muted"><small>"Cosa succedeva": i fatti noti fino a 8 mesi dopo l'inizio dell'ondata.</small></p>
 </section>
 
+{% set fe = a.feste %}
+<section id="feste">
+ <h2>La prova delle feste</h2>
+ <p>Ogni anno, nella settimana del Ringraziamento americano e soprattutto a Natale, Valve rallenta: la gente va in
+ ferie. Se in un anno il calo non c'è, di solito c'è una scadenza vicina. Qui il ritmo dei giorni di festa diviso per
+ quello delle tre settimane prima: 100% = nessun calo.</p>
+ {% for kind, label in feste.items() %}{% set s = fe.riassunto.get(kind) %}
+ <h3 style="font-size:1rem;margin:.9rem 0 .4rem">{{ label[:1]|upper }}{{ label[1:] }}</h3>
+ {% if s %}<p class="muted"><small>Dal {{ fe_dal }}: di solito {{ (s.mediana * 100)|round|int }}%, dal {{ (s.min * 100)|round|int }}% al
+ {{ (s.max * 100)|round|int }}%. Nel {{ alyx_year }}, prima di Alyx: {{ (s.alyx * 100)|round|int if s.alyx else "—" }}%.</small></p>{% endif %}
+ <table>
+  <tr><th>Anno</th><th>Giorni</th><th>Ritmo rispetto alle 3 settimane prima</th><th>Build</th></tr>
+  {% if not (fe.righe|selectattr("festa", "equalto", kind)|selectattr("anno", "equalto", this_year)|list) %}
+  <tr><td>{{ this_year }}</td><td colspan="3" class="muted">da misurare: il risultato arriva qui e su Telegram alla prima build dopo la festa</td></tr>{% endif %}
+  {% for r in fe.righe|selectattr("festa", "equalto", kind)|reverse %}
+  <tr{% if r.anno == alyx_year %} style="font-weight:600"{% endif %}><td>{{ r.anno }}{% if r.anno == alyx_year %} <small class="muted">(Alyx)</small>{% endif %}</td>
+   <td><small>{{ r.da }} → {{ r.a }}</small></td>
+   <td>{% if r.rapporto is not none %}<b>{{ (r.rapporto * 100)|round|int }}%</b>{% else %}—{% endif %}
+    {% if r.stato == "in_corso" %} <small class="muted">(in corso)</small>{% endif %}
+    {% if r.giudizio %} · {{ r.giudizio }}{% endif %}</td>
+   <td>{{ r.build }}</td></tr>
+  {% endfor %}
+ </table>
+ {% endfor %}
+ <p class="muted"><small>Con poche build nei giorni di festa il contatore si legge in linea retta tra la build prima e
+ quella dopo. Anche nel 2019, tre mesi prima dell'uscita di Alyx, Valve si è fermata a Natale come gli altri anni:
+ un Natale senza calo sarebbe più insolito di qualunque cosa vista allora.</small></p>
+</section>
+
 <section>
  <h2>Cosa dice e cosa non dice</h2>
  <ul>
