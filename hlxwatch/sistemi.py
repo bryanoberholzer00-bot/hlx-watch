@@ -41,9 +41,18 @@ SYSTEMS: list[tuple[str, str, str, str]] = [
     ("grafica", "Grafica e prestazioni", "impostazioni grafiche e di resa",
      r"fsr|render|tonemap|shader|light|material|\.exr"),
 ]
-NAMES = {k: name for k, name, _, _ in SYSTEMS} | {"altro": "Altro"}
-ABOUT = {k: about for k, _, about, _ in SYSTEMS} | {"altro": "nomi che non si capisce a cosa servano"}
-ORDER = [k for k, _, _, _ in SYSTEMS] + ["altro"]
+# sistemi riconosciuti dal file, prima delle regole sul nome: una traccia nei testi tradotti o nei menu vale più del
+# nome che porta. A novembre 2026 HLX non ne ha: un gioco vicino all'uscita ha bisogno di menu e di frasi tradotte
+PATH_SYSTEMS: list[tuple[str, str, str, str]] = [
+    ("testi", "Testi tradotti", "frasi del gioco nei file delle traduzioni",
+     r"/localization/|_english\.txt$|(^|/)resource/[^/]*_[a-z]+\.txt$"),
+    ("interfaccia", "Interfaccia", "menu e schermate del gioco",
+     r"/panorama/|/webui/|\.(vxml|vcss|vjs|xml)$"),
+]
+STRONG = {"testi", "interfaccia"}
+NAMES = {k: name for k, name, _, _ in PATH_SYSTEMS + SYSTEMS} | {"altro": "Altro"}
+ABOUT = {k: about for k, _, about, _ in PATH_SYSTEMS + SYSTEMS} | {"altro": "nomi che non si capisce a cosa servano"}
+ORDER = [k for k, _, _, _ in PATH_SYSTEMS + SYSTEMS] + ["altro"]
 
 # parole che in un nome parlano di realtà virtuale (mani, controller, visore, modi di muoversi tipici della VR)
 VR_WORDS = re.compile(r"(?<![a-z])vr(?![a-z])|_vr|vr_|hand|controller|teleport|haptic|grab|gravity_?glove|hmd|headset|"
@@ -73,7 +82,10 @@ CLUES: list[dict[str, str]] = [
 ]
 
 
-def system_of(label: str) -> str:
+def system_of(label: str, path: str = "") -> str:
+    for key, _, _, pattern in PATH_SYSTEMS:
+        if path and re.search(pattern, path, re.I):
+            return key
     t = (label or "").strip().lower()
     for key, _, _, pattern in SYSTEMS:
         if re.search(pattern, t):
@@ -86,7 +98,7 @@ def pieces(reg: dict[str, Any]) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     by_key: dict[str, dict[str, Any]] = {}
     for t in sorted(reg.get("traces") or [], key=lambda t: t["first"]):
-        system = system_of(t["label"])
+        system = system_of(t["label"], t.get("file") or "")
         key = f"strumenti:{t['first']}" if system == "strumenti" else piece_key(t["label"])
         label = t["label"].strip()
         games = set(t.get("games") or [])
@@ -121,7 +133,9 @@ def summary(reg: dict[str, Any], alyx_seed: dict[str, Any] | None, db: Any = Non
     rows = [{"key": s["key"], "name": s["name"], "cells": [by_year[y][s["key"]] for y in years]} for s in systems]
     # novità: sistemi che compaiono per la prima volta nell'ultimo anno con tracce
     new_last = [s["name"] for s in systems if s["first"][:4] == years[-1]]
-    return {"n": len(items), "systems": systems, "years": years, "rows": rows, "new_last": new_last,
+    have = {x["key"] for x in systems}
+    empty = [NAMES[k] for k in ORDER if k not in have and k != "altro"]
+    return {"n": len(items), "systems": systems, "years": years, "rows": rows, "new_last": new_last, "empty": empty,
             "last_year": years[-1], "vr": vr_summary(reg, items, alyx_seed), "twins": twins(reg),
             "lists": engine_lists(db) if db is not None else None}
 
@@ -239,3 +253,48 @@ def twins(reg: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         days = (date.fromisoformat(t["twin_first"]) - date.fromisoformat(t["hlx_first"])).days
         out.append({**t, "days": days, "slug": slugs.get(t["hlx"].lower())})
     return out
+
+
+# ------------------------------------------------------------------ avviso: primo pezzo in un sistema nuovo
+SEEN_STATE = "sistemi:visti"
+
+
+def seen_systems(cfg: Any, db: Any) -> set[str]:
+    """I sistemi in cui HLX ha già almeno un pezzo. La prima volta si ricavano dal registro degli esiti, senza avvisi."""
+    import json
+    raw = db.get_state(SEEN_STATE)
+    if raw is not None:
+        return set(json.loads(raw))
+    from hlxwatch.outcomes import outcome_register
+    seen = {p["system"] for p in pieces(outcome_register(cfg, db))} - {"altro"}
+    db.set_state(SEEN_STATE, json.dumps(sorted(seen)))
+    return seen
+
+
+def annotate_new_systems(cfg: Any, db: Any, alerts: list[Any]) -> list[str]:
+    """Negli avvisi su tracce HLX: una nota se la traccia è la prima di HLX in un sistema (interfaccia, testi tradotti,
+    munizioni...). Si chiama dopo che le voci del giro sono già nell'archivio, quindi la prima volta il registro le
+    contiene: si impara senza avvisi, come gli altri rilevatori. Restituisce i sistemi nuovi."""
+    import json
+    from hlxwatch.fase import trace_kind
+    hlx = [f for f in alerts if trace_kind(f.token, f.text, f.keywords)]
+    if not hlx:
+        return []
+    first_time = db.get_state(SEEN_STATE) is None
+    seen = seen_systems(cfg, db)
+    if first_time:
+        return []
+    new: list[str] = []
+    for f in hlx:
+        system = system_of(f.token or f.text or "", f.file_path or "")
+        if system == "altro" or system in seen:
+            continue
+        seen.add(system)
+        new.append(system)
+        note = f"🆕 prima traccia HLX nel sistema «{NAMES[system]}»: finora HLX non aveva pezzi qui"
+        if system in STRONG:
+            note += " (segnale forte: un gioco vicino all'uscita ha bisogno di menu e di testi)"
+        f.note = f"{f.note} · {note}" if getattr(f, "note", None) else note
+    if new:
+        db.set_state(SEEN_STATE, json.dumps(sorted(seen)))
+    return new

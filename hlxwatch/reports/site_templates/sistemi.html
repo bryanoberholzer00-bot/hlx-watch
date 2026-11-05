@@ -31,6 +31,9 @@ lavora, da quando, e cosa è comparso di recente. Ogni nome porta alla sua sched
   {% endfor %}
  </div>
  {% if s.new_last %}<p>Comparso per la prima volta nel {{ s.last_year }}: <b>{{ s.new_last|join(", ") }}</b>.</p>{% endif %}
+ {% if s.empty %}<p>Ancora nessuna traccia: <b>{{ s.empty|join(", ") }}</b>. Quando compare la prima traccia HLX in un
+ sistema nuovo, la notifica lo dice. Interfaccia e testi tradotti sarebbero il segnale più forte: un gioco vicino
+ all'uscita ha bisogno di menu e di frasi tradotte.</p>{% endif %}
 
  <h3>Anno per anno</h3>
  <table class="anni">

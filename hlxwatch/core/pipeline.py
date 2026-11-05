@@ -248,6 +248,11 @@ class Pipeline:
                 annotate_cards(self.cfg, self.db, result.alerts)
             except Exception:
                 log.exception("Link alle schede negli avvisi non riusciti")
+            try:                           # tracce HLX: la prima in un sistema nuovo (interfaccia, testi...) lo dice
+                from hlxwatch.sistemi import annotate_new_systems
+                annotate_new_systems(self.cfg, self.db, result.alerts)
+            except Exception:
+                log.exception("Controllo dei sistemi nuovi negli avvisi non riuscito")
         if result.alerts:
             if notify and self.notifiers:
                 from hlxwatch.announcement import announcement_heading
