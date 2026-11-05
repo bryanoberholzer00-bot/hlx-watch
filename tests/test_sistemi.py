@@ -56,3 +56,34 @@ def test_vr_words():
 
 def test_empty_register():
     assert sistemi.summary({"traces": []}, None) is None
+
+
+def test_engine_lists_counted_in_full_scan_and_merged(tmp_path):
+    from hlxwatch.storage import Database
+    db = Database(tmp_path / "x.sqlite")
+    a = sistemi.EngineLists()
+    for text in ("mod != hlx", '// MPropertySuppressExpr = "mod != hlx"', "mod != hlx || !m_bRefract",
+                 "mod == csgo", "mod != dota && mod != hlx"):
+        a.add("game/core/tools/x.txt", text)
+    a.add("tools/bugreporter/config.txt", '"product"\t\t"HLX"')
+    a.add("tools/bugreporter/config.txt", '"component"\t\t"hlx"')
+    a.add("other.txt", '"product" "Altro"')                         # solo nel file del bug reporter
+    a.save(db, "cs2")
+    b = sistemi.EngineLists()
+    b.add("x.txt", "mod == csgo")
+    b.add("x.txt", "mod != csgo || x")
+    b.save(db, "deadlock")
+    L = sistemi.engine_lists(db)
+    assert {r["mod"]: r["n"] for r in L["mods"]} == {"hlx": 3, "csgo": 2, "dota": 1}   # la versione commentata conta 1
+    assert L["products"] == ["HLX"] and L["components"] == ["hlx"]
+    assert not L["deadlock_in_mods"] and not L["deadlock_in_bug"]
+    assert sistemi.engine_lists(Database(tmp_path / "vuoto.sqlite")) is None
+    db.close()
+
+
+def test_twins_days_and_cards():
+    rows = sistemi.twins({"traces": [{"label": "CHLXUserCmdPB", "slug": "chlxusercmdpb"}]})
+    by = {t["hlx"]: t for t in rows}
+    assert by["CHLXUserCmdPB"]["days"] == 0 and by["CHLXUserCmdPB"]["slug"] == "chlxusercmdpb"
+    assert by["hlx_2d_basic"]["days"] > 900                     # Deadlock lo ha avuto due anni e mezzo dopo
+    assert by["r_hlx_fsr3_min_reactiveness"]["rel"] == "passato da HLX a Deadlock"

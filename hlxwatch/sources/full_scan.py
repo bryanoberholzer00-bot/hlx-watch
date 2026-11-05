@@ -179,10 +179,13 @@ class FullScanSource:
         # al config) non è né "aggiunta" né "tolta" nei file
         present_all: set[str] = set()
         codename_findings: list[Finding] = []
+        from hlxwatch.sistemi import EngineLists
+        lists = EngineLists()                 # opzioni "mod != ..." e prodotti del bug reporter, per la pagina dei sistemi
         for file_path, line_no, text in self.grep(path):
             if any(p.search(file_path) for p in self.ignore_patterns):
                 continue
             present_all.add(line_key(file_path, text))
+            lists.add(file_path, text)
             f = self.codenames.check(text, file_path, game=name, change_type="present")
             if f:
                 f.source, f.line_no = "fullscan", line_no
@@ -193,6 +196,7 @@ class FullScanSource:
             key = f"{file_path}{SEP}{' '.join(text.split())}"
             current.setdefault(key, (file_path, line_no, text.strip(), res))
 
+        lists.save(self.db, name)
         snap_key, all_key = f"fullscan:{name}", f"fullscan_all:{name}"
         previous = self.db.get_snapshot(snap_key)
         old_keys = set((previous[1] or "").splitlines()) if previous else set()

@@ -50,6 +50,46 @@ lavora, da quando, e cosa è comparso di recente. Ogni nome porta alla sua sched
  </div>{% endfor %}
 </section>
 
+<section id="gemelli">
+ <h2>HLX accanto agli altri giochi</h2>
+ <p>Alcuni pezzi di HLX hanno un fratello in un altro gioco, scritto allo stesso modo: lo stesso motore, gli stessi file,
+ la stessa abitudine di mettere il nome del progetto davanti. Per Deadlock e Alyx sappiamo già com'è finita, quindi questi
+ confronti danno un metro di misura.</p>
+ <table>
+  <tr><th>Pezzo di HLX</th><th>Fratello</th><th>Chi prima</th></tr>
+  {% for t in s.twins %}<tr>
+   <td>{% if t.slug %}<a href="traccia-{{ t.slug }}.html"><code>{{ t.hlx }}</code></a>{% else %}<code>{{ t.hlx }}</code>{% endif %}
+    <br><small class="muted">{{ t.hlx_first[8:10] }}/{{ t.hlx_first[5:7] }}/{{ t.hlx_first[:4] }}</small></td>
+   <td><code>{{ t.twin }}</code> <small>({{ t.game }})</small><br><small class="muted">{{ t.twin_first[8:10] }}/{{ t.twin_first[5:7] }}/{{ t.twin_first[:4] }}</small></td>
+   <td><b>{{ t.rel }}</b><br><small>{{ t.note }}</small></td></tr>{% endfor %}
+ </table>
+ <p>Il confronto con Deadlock regge su un pezzo solo: il messaggio con i comandi del giocatore, comparso per HLX e per
+ Deadlock lo stesso giorno, il 9 giugno 2022. Deadlock è stato annunciato 806 giorni dopo; per HLX ne sono passati di più,
+ e l'annuncio non c'è stato. Gli altri gemelli vanno nell'altro senso: pezzi nati con il nome HLX e poi passati a Deadlock
+ o al motore comune, oppure arrivati in HLX molto prima che in Deadlock. Questo dice che il codice di HLX viene usato e
+ spostato tra i giochi, non quando HLX uscirà.</p>
+ {% if s.lists %}{% set L = s.lists %}
+ <h3>HLX negli elenchi dei giochi</h3>
+ <p>L'editor degli effetti, nei file di CS2, Dota 2 e Deadlock, ha opzioni che compaiono solo quando si lavora su un
+ certo gioco: <code>mod != hlx</code> vuol dire "nascondi se il gioco non è HLX". Sono funzioni che usa solo quel gioco.
+ Opzioni diverse per gioco, oggi:</p>
+ <table class="anni">
+  <tr><th>Gioco</th><th>Opzioni riservate</th></tr>
+  {% for r in L.mods %}<tr><td>{{ r.game }} <small class="muted"><code>{{ r.mod }}</code></small></td><td>{{ r.n }}</td></tr>{% endfor %}
+ </table>
+ <p>Nel configuratore dei bug, lo strumento interno con cui in Valve si segnalano i problemi, i prodotti sono:
+ {% for p in L.products %}<code>{{ p }}</code>{% if not loop.last %}, {% endif %}{% endfor %}.
+ HLX sta accanto a giochi usciti (CS2, Dota 2, Half-Life VR cioè Alyx){% if "left4dead3" in L.products %}, ma anche a
+ <code>left4dead3</code>, un progetto che non è mai uscito{% endif %}: un posto nell'elenco non garantisce un gioco.{% if not L.deadlock_in_mods and not L.deadlock_in_bug %} Deadlock invece non c'è né
+ nelle opzioni né nel configuratore, anche se questi file sono anche nei suoi dati: evidentemente non gli servono.
+ Quindi essere in questi elenchi dice che HLX è un progetto con un nome e un posto negli strumenti di Valve, non quanto è
+ avanti.{% endif %}</p>
+ <p class="muted"><small>Conteggi dell'ultima scansione completa ({{ L.when[8:10] }}/{{ L.when[5:7] }}/{{ L.when[:4] }}):
+ ogni espressione diversa conta una volta, anche se compare in più file. Le date dei gemelli vengono dalla storia
+ pubblica dei repository di SteamTracking.</small></p>
+ {% endif %}
+</section>
+
 {% set v = s.vr %}
 <section id="vr">
  <h2>HLX è un gioco VR?</h2>
