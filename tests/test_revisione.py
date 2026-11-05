@@ -153,6 +153,7 @@ def test_review_proposes_checks_and_applies_only_what_is_approved(tmp_path, monk
     data = json.loads(client.prompts[0]["messages"][0]["content"].split("<dati>\n", 1)[1].rsplit("\n</dati>", 1)[0])
     by_id = {a["id"]: a for a in data["avvisi"]}
     assert by_id[ids["rumore"]]["voto_rumore"] is True and by_id[ids["motore"]]["traccia_hlx"] is True
+    assert by_id[ids["rumore"]]["gia_silenziato"] is False
     assert data["errori_gia_corretti"]                                   # il modello vede gli errori già corretti
     title, lines, markup = telegram.sent[0]
     assert "revisione della settimana" in title

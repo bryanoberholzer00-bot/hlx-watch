@@ -63,7 +63,7 @@ Regole:
 preferibile a una proposta debole;
 - ogni proposta indica la voce (campo id) su cui si basa e spiega il perché in italiano semplice, in 1-3 frasi, \
 citando le prove (la riga, il file, gli altri giochi);
-- non proporre di silenziare tracce HLX (campo traccia_hlx vero) né possibili annunci;
+- non proporre di silenziare tracce HLX (campo traccia_hlx vero) né possibili annunci, né voci già silenziate (campo gia_silenziato vero: il proprietario le ha già segnate);
 - per "tipo" scegli tra gioco, motore, alyx, strumenti, dubbio; per "nota" scrivi un esito breve (massimo 6 parole) \
 e una nota (massimo 2 frasi); i campi che non servono alla tua azione lasciali vuoti.
 
@@ -149,6 +149,7 @@ def material(cfg: Config, db: Database, since: datetime, voted: set[int]) -> lis
         (iso(since), MAX_ITEMS))]
     ids += sorted(v for v in voted if v not in ids)[-MAX_ITEMS:]
     names = alyx_names()
+    muted = {**noise.rules(db), **corrections(db)["silenzi"]}
     out = []
     for fid in ids:
         row = db.conn.execute("SELECT f.*, b.url AS build_url FROM findings f LEFT JOIN builds b ON b.id = f.build_id "
@@ -166,7 +167,7 @@ def material(cfg: Config, db: Database, since: datetime, voted: set[int]) -> lis
             "punteggio": f.score, "parole_chiave": f.keywords, "tipo_assegnato": trace_kind(f.token, f.text, f.keywords) or "",
             "traccia_hlx": noise.protected(f.keywords), "nome_alyx": hlvr != "hlvr" and hlvr in names,
             "stessa_riga_in": [cfg.game_title(g) for g in others], "data": str(row["created_at"])[:10],
-            "voto_rumore": f.id in voted, "commit": row["build_url"] or "",
+            "voto_rumore": f.id in voted, "gia_silenziato": noise.muted(f, muted), "commit": row["build_url"] or "",
         })
     return out
 
