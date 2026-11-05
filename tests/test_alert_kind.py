@@ -14,7 +14,8 @@ def test_alert_kind():
     assert fase.alert_kind("hlx_physics_particle_spawner", None, ["hlx_prefix"]) == "motore"
     assert fase.alert_kind("hlx_combine_barrier_cell_spacing", None, ["hlx_prefix"]) == "alyx"   # era hlvr_ in Alyx
     assert fase.alert_kind("Thumper", '"- Thumper (HLX): causes antlions to run away briefly"', ["hlx"]) == "gioco"
-    assert fase.alert_kind("hlvr/hlx", None, ["hlx_path"]) is None                                # tipo non chiaro
+    assert fase.alert_kind("hlvr/hlx", None, ["hlx_path"]) == "gioco"     # titolo dei tipi di gioco di Alyx e HLX
+    assert fase.alert_kind("CHLXUserCmdPB", None, ["hlx_class"]) is None                         # tipo non chiaro
     assert fase.alert_kind("CCitadelWeapon", None, ["codename"]) is None                          # non è HLX
     # "hlvr" da solo è il nome del gioco: "mod != hlx" è un'impostazione del motore, non un'eredità di Alyx
     assert fase.alert_kind("hlx", "mod != hlx || !m_bRefract", ["hlx"]) == "motore"
@@ -22,7 +23,7 @@ def test_alert_kind():
 
 
 def test_trace_kind_for_the_search_page():
-    assert fase.trace_kind("hlvr/hlx", None, ["hlx_path"]) == "dubbio"
+    assert fase.trace_kind("CHLXUserCmdPB", None, ["hlx_class"]) == "dubbio"
     assert fase.trace_kind("hlx", '"product" "hlx"', ["hlx"]) == "strumenti"
     assert fase.trace_kind("CCitadelWeapon", None, ["codename"]) is None
 
@@ -54,3 +55,21 @@ def test_telegram_and_push_show_the_kind():
     one = WebPushNotifier.message([AlertGroup("cs2", "Counter-Strike 2", [f("CHLXCoverPreviewHelper")], 115, 1)],
                                   "https://example.org/")
     assert one["title"] == "HLX Watch: pezzo di gioco in Counter-Strike 2" and "🎮" in one["body"]
+
+
+def test_hlx_game_types_are_watched_outside_demoinfo2():
+    import yaml
+    from hlxwatch.analyzers import KeywordMatcher
+    from hlxwatch.config import PACKAGE_ROOT
+    cfg = yaml.safe_load((PACKAGE_ROOT / "config.actions.yaml").read_text(encoding="utf-8"))
+    m = KeywordMatcher(cfg["keywords"])
+    ids = lambda text, path: [x.keyword.id for x in m.find(text, path)]   # noqa: E731
+    assert "hlx_game_type" in ids("ConnectedEnergyReserveType_t", "game/csgo/bin/win64/server_strings.txt")
+    assert "hlx_game_type" in ids("enum eGrenadeState_t : uint32", "DumpSource2/schemas/server/eGrenadeState_t.h")
+    # in demoinfo2.txt ci sono già dal 2021; e i nomi simili di CS2 e di Alyx non contano
+    assert "hlx_game_type" not in ids('{ m_Name = "eGrenadeState_t" }', "game/core/tools/demoinfo2/demoinfo2.txt")
+    assert "hlx_game_type" not in ids("bool m_bPinPulled (change callbacks: OnGrenadeStateChanged)", "server.txt")
+    assert "hlx_game_type" not in ids("EShotgunGrenadeState", "game/hlvr/bin/win64/server_strings.txt")
+    assert fase.trace_kind("ConnectedEnergyReserveType_t", None, ["hlx_game_type"]) == "gioco"
+    assert fase.trace_kind("eGrenadeState_t", None, ["hlx_game_type"]) == "gioco"
+    assert fase.trace_kind("hlvr/hlx", "// hlvr/hlx", ["hlx"]) == "gioco"

@@ -227,6 +227,12 @@ esiti:                                   # registro degli esiti delle tracce HLX
     - match: "hlx_2d_basic"
       esito: "probabile rinomina"
       nota: "oggi esiste citadel_2d_basic in Deadlock, non nello stesso file di CS2"
+    - match: "hlvr/hlx"
+      esito: "titolo tolto, contenuto ancora presente"
+      nota: "è il titolo del gruppo di tipi di gioco di Alyx e HLX in demoinfo2.txt. Nel 2024 Valve ha riformattato il file e tolto tutti i titoli dei gruppi, ma i tipi ci sono ancora in CS2, Dota 2 e Deadlock: ConnectedEnergyReserveType_t ed eGrenadeState_t, aggiunti il 25/03/2021, non esistono in Alyx né negli altri giochi"
+    - match: "chlxusercmdpb"
+      esito: "spostato in un file di HLX"
+      nota: "nel marzo 2023 Valve ha diviso usercmd.proto in un file per gioco (dota_usercmd.proto, cs_usercmd.proto): il messaggio di HLX sta nei file di HLX, che non sono pubblici. Era vuoto: solo i comandi comuni a tutti i giochi, senza dati del visore"
     # - match: "nome"                    # per una conferma ufficiale: esito "confermato da Valve", nota con il link
 
 archaeology:
@@ -423,6 +429,17 @@ keywords:
       case_sensitive: true
       weight: 110
       description: "HLX dentro un nome (CDummyHLXCover, hlxcoverpreview)"
+    - id: hlx_game_type
+      # tipi di dati di gioco aggiunti il 25/03/2021 in demoinfo2.txt sotto il titolo "// hlvr/hlx": non esistono in
+      # Alyx né nei programmi di CS2, Dota 2 e Deadlock (controllato il 2026-11-05). Se compaiono in un altro file
+      # (programmi, schemi, rete) è codice di gioco di HLX che si sposta. In demoinfo2.txt ci sono già: lì non contano
+      # il match è solo la prima lettera (il nome intero lo ricava il token): i nomi a gobba di cammello interi
+      # verrebbero scartati come sequenze casuali dei dump binari
+      pattern: "(?<![A-Za-z0-9])(?=(?:ConnectedEnergyReserveType|eGrenadeState)(?:_t)?(?![A-Za-z0-9]))[A-Za-z]"
+      case_sensitive: true
+      weight: 110
+      description: "tipi di gioco di HLX elencati in demoinfo2 (riserva di energia collegata, stato delle granate)"
+      path_excludes: ['(?:^|/)demoinfo2\.txt$']
     - id: valve_hardware
       # nomi in codice dell'hardware Valve: Deckard (Steam Frame), Fremont (Steam Machine), Ibex (controller),
       # Galileo e Neptune (Steam Deck), Roy (controller di Deckard). Rari nel client Steam e in SteamVR; "Steam Frame"

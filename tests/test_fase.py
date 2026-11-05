@@ -10,7 +10,8 @@ def test_classify_real_names():
     assert fase.classify("item_hlvr_grenade_xen") == "gioco"
     assert fase.classify("cmarkupvolumetagged_navhlvr") == "gioco"
     assert fase.classify('"product"\t\t"HLX"') == "strumenti"
-    assert fase.classify("hlvr/hlx") == "dubbio"
+    assert fase.classify("hlvr/hlx") == "gioco"           # titolo dei tipi di gioco di Alyx e HLX in demoinfo2
+    assert fase.classify("CHLXUserCmdPB") == "dubbio"
 
 
 def test_same_piece_counts_once():

@@ -21,7 +21,7 @@ from hlxwatch.models import Finding
 from hlxwatch.storage import Database
 
 HLX_NAME = re.compile(r"hlx|half[\s_-]*life|(?<![a-z0-9])hl[\s_-]?3(?![0-9])", re.IGNORECASE)
-HLX_FAMILY = ("hlx", "hlx_prefix", "hlx_class", "hlx_fused", "hlx_path", "hl3", "half_life_3", "half_life",
+HLX_FAMILY = ("hlx", "hlx_prefix", "hlx_class", "hlx_fused", "hlx_path", "hlx_game_type", "hl3", "half_life_3", "half_life",
               "hl_universe", "hl2_achievement")
 KEYWORD = "possible_announcement"
 HEADING = "HLX Watch: POSSIBILE ANNUNCIO di Valve"

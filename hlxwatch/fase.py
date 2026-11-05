@@ -16,7 +16,7 @@ RULES: list[tuple[str, str]] = [
     # strumenti di lavoro di Valve: il progetto esiste, ma non dice a che punto è
     ("strumenti", r'"product"|"component"|bugreport|^"hlx"$'),
     # pezzi di gioco: armi, munizioni, oggetti, nemici, comportamenti dei nemici, elementi del mondo di Half-Life
-    ("gioco", r"weapon|grenade|clip|ammo|item_|crowbar|thumper|antlion|combine|headcrab|zombie|npc|enemy|cover|"
+    ("gioco", r"^hlvr/hlx$|energyreserve|weapon|grenade|clip|ammo|item_|crowbar|thumper|antlion|combine|headcrab|zombie|npc|enemy|cover|"
               r"projectile|nav_?markup|ai_markup|markup_ai|markupvolumetagged_(?:nav|ai)|crafting|battery|health"),
     # pezzi di motore: grafica, materiali, particelle, suono, fisica, impostazioni degli shader
     ("motore", r"hrtf|sound|soundevent|_2d_basic|_3d|material|particle|mod != |suppressexpr|fsr|render|tonemap|"
@@ -79,7 +79,7 @@ def summary(reg: dict[str, Any], alyx_seed: dict[str, Any] | None) -> dict[str, 
 
 # --- negli avvisi: il tipo di una traccia HLX appena trovata, in una parola e un simbolo ---------------------------
 
-HLX_KEYWORDS = {"hlx", "hlx_prefix", "hlx_class", "hlx_fused", "hlx_path"}
+HLX_KEYWORDS = {"hlx", "hlx_prefix", "hlx_class", "hlx_fused", "hlx_path", "hlx_game_type"}
 TAGS = {"gioco": ("🎮", "pezzo di gioco"), "motore": ("⚙️", "pezzo di motore"), "alyx": ("🔁", "eredità di Alyx")}
 _alyx_names: set[str] | None = None
 

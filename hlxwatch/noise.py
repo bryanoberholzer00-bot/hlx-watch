@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 
 STATE = "rumore:regole"
 DEFAULT_URL = "https://hlx-watch-bot.bryan-oberholzer00.workers.dev/rumore.json"
-PROTECTED = {"hlx", "hlx_prefix", "hlx_class", "hlx_fused", "hlx_path", "hl3", "half_life_3", "possible_announcement"}
+PROTECTED = {"hlx", "hlx_prefix", "hlx_class", "hlx_fused", "hlx_path", "hlx_game_type", "hl3", "half_life_3", "possible_announcement"}
 
 
 def protected(keywords: list[str]) -> bool:

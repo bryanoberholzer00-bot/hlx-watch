@@ -25,7 +25,7 @@ from hlxwatch.evidence import area_of, evidence_of
 from hlxwatch.storage import Database
 from hlxwatch.timeutil import local_day
 
-HLX_KEYWORDS = ("hlx", "hlx_prefix", "hlx_class", "hlx_fused", "hlx_path")
+HLX_KEYWORDS = ("hlx", "hlx_prefix", "hlx_class", "hlx_fused", "hlx_path", "hlx_game_type")
 MAIN_GAMES = ("cs2", "dota2", "deadlock")
 MERGE_DAYS = 60
 SEP = "\t"                         # separatore delle righe negli snapshot della scansione completa
