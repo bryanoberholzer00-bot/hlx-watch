@@ -130,7 +130,7 @@ function render() {
     <td data-l="Data:">${r.al ? '<small class="muted">almeno dal</small><br>' : ""}${esc(r.day)}${r.new ? '<br><span class="new" title="La riga non era mai comparsa nell\'archivio, che parte dal 2016">mai vista prima</span>' : ""}<br><small class="muted">vista ${esc(r.seen)}</small></td>
     <td data-l="Gioco:">${esc(TITLES[r.game] || r.game)}<br><small class="muted">${esc(r.source)}</small></td>
     <td data-l="Tipo:">${r.k ? `<span class="kind">${KINDS[r.k]}</span><br>` : ""}${esc(r.type)}<br><small class="muted">${esc(AREAS[r.area] || "")}</small>${r.ev && r.ev !== "altro" ? `<br><small title="Tipo di prova">prova: ${esc(r.ev)}</small>` : ""}${r.fm ? `<br><small class="muted" title="La stessa riga è comparsa anche in questi giochi entro 60 giorni: viaggia con il codice condiviso di Source 2, non indica lavoro nuovo su questo gioco">fusione del motore: anche in ${esc(r.fm.map(g => TITLES[g] || g).join(", "))}</small>` : ""}</td>
-    <td><code>${esc((r.token || r.text).slice(0, 80))}</code>${r.token && r.text !== r.token ? `<br><small class="muted">${esc(r.text.slice(0, 120))}</small>` : ""}</td>
+    <td><code>${esc((r.token || r.text).slice(0, 80))}</code>${r.token && r.text !== r.token ? `<br><small class="muted">${esc(r.text.slice(0, 120))}</small>` : ""}${r.tc ? `<br><a href="traccia-${esc(r.tc)}.html"><small>scheda della traccia</small></a>` : ""}</td>
     <td data-l="File:"><small>${esc(r.file.slice(0, 90))}${r.line ? ":" + r.line : ""}</small>
         ${r.dup > 1 ? `<br><small class="muted" title="${esc(r.files.join("\n"))}">${dupLabel(r)}</small>` : ""}
         ${r.url ? `<br><a href="${esc(r.url)}"><small>${esc(r.ul || "commit")}${r.ul === "commit" ? " " + esc(r.ref.slice(0, 8)) : ""}</small></a>` : ""}

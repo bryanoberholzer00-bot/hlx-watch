@@ -289,6 +289,13 @@ def cmd_site(args: argparse.Namespace) -> int:
     cfg, db = _open(args)
     from hlxwatch.reports.site import build_site
     out = Path(args.out) if args.out else cfg.data_dir / "site"
+    from hlxwatch.reports.schede import fill_neighbours
+    try:                         # righe vicine delle schede: pochi file per giro, scaricati una volta sola
+        n = fill_neighbours(cfg, db)
+        if n:
+            log.info("Schede delle tracce: righe vicine scaricate per %d tracce", n)
+    except Exception as exc:     # noqa: BLE001 - le schede escono lo stesso, senza quelle righe
+        log.warning("Schede delle tracce: righe vicine non scaricate (%s)", exc)
     build_site(db, cfg, out, timeline_days=args.days)
     print(f"Sito generato in {out}")
     return 0

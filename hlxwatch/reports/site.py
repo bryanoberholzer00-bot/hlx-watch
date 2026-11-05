@@ -22,7 +22,7 @@ from hlxwatch.repos import tracked_repos
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, parse_iso, utcnow
 from hlxwatch.sources.steam_news import SteamNewsSource
-from hlxwatch.outcomes import engine_merge_index, merge_partners, outcome_register
+from hlxwatch.outcomes import engine_merge_index, merge_partners, outcome_register, trace_key
 from hlxwatch.analyzers.codenames import CodenameTracker
 from hlxwatch.links import link_label
 from hlxwatch.fase import trace_kind
@@ -192,10 +192,12 @@ def write_feed(db: Database, out_dir: Path, site_url: str, ctx: dict[str, Any], 
 def export_findings(db: Database, limit: int = 25000, ctx: dict[str, Any] | None = None) -> list[dict[str, Any]]:
     rows = db.search_findings(limit=limit, order="created_at", exclude_change_type="baseline")
     days = first_seen_days(db)
+    slugs = (ctx or {}).get("slugs") or {}
     out: list[dict[str, Any]] = []
     for row in rows:
         item = decorate(apply_first_seen(_row(row), days), ctx)
         kind = trace_kind(item.get("token"), item.get("text"), item.get("keywords"))   # tracce HLX: gioco, motore...
+        card = slugs.get(trace_key(item.get("token"), item.get("text"))) if kind else None
         out.append({
             "id": item["id"], "score": item["score"], "game": item["game"], "source": item["source"],
             "type": item["change_type"], "token": item.get("token"), "text": (item["text"] or "")[:200],
@@ -205,6 +207,7 @@ def export_findings(db: Database, limit: int = 25000, ctx: dict[str, Any] | None
             "area": item["area"], "ev": item["evidence_label"], **({"sx": item["schema_url"]} if item["schema_url"] else {}),
             **({"fm": item["merge"]} if item["merge"] else {}),
             **({"k": kind} if kind else {}),
+            **({"tc": card} if card else {}),
         })
     return out
 
@@ -298,8 +301,11 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     (out_dir / "hardware.html").write_text(env.get_template("hardware.html").render(hw=hardware_data(cfg, db)),
                                            encoding="utf-8")
     outcomes = outcome_register(cfg, db)
+    from hlxwatch.reports.schede import assign_slugs, write_cards
+    ctx["slugs"] = assign_slugs(outcomes["traces"])       # una scheda per traccia: Esiti, Alyx e Ricerca la collegano
     (out_dir / "esiti.html").write_text(env.get_template("esiti.html").render(reg=outcomes),
                                         encoding="utf-8")
+    n_cards = write_cards(env, db, outcomes, ctx, out_dir)
     # termometro HLX: valore di adesso e storico giorno per giorno (bot/termometro_storico.json, dati aperti)
     termo = history(cfg, db)
     (out_dir / "bot").mkdir(parents=True, exist_ok=True)
@@ -387,5 +393,6 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
                   {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}],
     }, ensure_ascii=False, indent=1), encoding="utf-8")
     (out_dir / ".nojekyll").touch()
-    log.info("Sito generato in %s: %d voci esportate, %d ad alta rilevanza", out_dir, len(findings), len(high))
+    log.info("Sito generato in %s: %d voci esportate, %d ad alta rilevanza, %d schede delle tracce", out_dir,
+             len(findings), len(high), n_cards)
     return out_dir

@@ -177,7 +177,7 @@ def outcome_register(cfg: Config, db: Database) -> dict[str, Any]:
             if match and (match in t["key"] or any(match in x for x in t["texts"])):
                 status, detail = "manuale", str(entry.get("esito", "")) + (f": {entry['nota']}" if entry.get("nota") else "")
         ev = evidence_of(area_of(t["file"]))
-        out.append({"label": t["label"], "first": min(t["games"].values()), "games": dict(sorted(t["games"].items(),
+        out.append({"key": t["key"], "label": t["label"], "first": min(t["games"].values()), "games": dict(sorted(t["games"].items(),
                     key=lambda kv: kv[1])), "status": status, "status_label": STATUS_LABELS[status], "detail": detail,
                     "evidence": ev[1], "file": t["file"], "url": t["url"], "score": t["score"]})
     out.sort(key=lambda x: x["first"])

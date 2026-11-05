@@ -22,12 +22,13 @@
 
 <section>
  <h2>Tutte le tracce, dalla più vecchia</h2>
+ <p class="muted"><small>Clic su un nome per la sua scheda: giochi, date, righe vicine e ogni comparsa nell'archivio.</small></p>
  <table>
   <tr><th>Prima comparsa</th><th>Traccia</th><th>Giochi</th><th>Esito</th><th>Prova</th></tr>
   {% for t in reg.traces %}
   <tr>
    <td>{{ t.first }}</td>
-   <td><code>{{ t.label }}</code><br><small class="muted">{{ t.file[:80] }}</small>{% if t.url %} <a href="{{ t.url }}"><small>{{ t.url|linklabel }}</small></a>{% endif %}</td>
+   <td>{% if t.slug %}<a href="traccia-{{ t.slug }}.html" title="Scheda della traccia"><code>{{ t.label }}</code></a>{% else %}<code>{{ t.label }}</code>{% endif %}<br><small class="muted">{{ t.file[:80] }}</small>{% if t.url %} <a href="{{ t.url }}"><small>{{ t.url|linklabel }}</small></a>{% endif %}</td>
    <td><small>{% for g, d in t.games.items() %}{{ titles.get(g, g) }} <span class="muted">{{ d }}</span>{% if not loop.last %}<br>{% endif %}{% endfor %}</small></td>
    <td><b>{{ t.status_label }}</b>{% if t.detail %}<br><small>{{ t.detail }}</small>{% endif %}</td>
    <td><small>{{ t.evidence }}</small></td>

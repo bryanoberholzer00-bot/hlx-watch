@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ c.label[:70] }}: traccia HLX - HLX Watch{% endblock %}
+{% block description %}Traccia HLX «{{ c.label[:90] }}»: comparsa il {{ c.first }}{% if c.per_game %} in {% for g in c.per_game %}{{ titles.get(g.game, g.game) }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}. Esito: {{ c.status_label }}. {{ c.kind_label[2:] }}.{% endblock %}
+{% block content %}
+<style>
+ .sk-testa{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:baseline}
+ .sk-testa h1{margin:.2rem 0 .3rem;overflow-wrap:anywhere}
+ .sk-fatti{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.8rem}
+ .sk-fatti div{background:var(--code);border-radius:8px;padding:.6rem .8rem}
+ .sk-fatti b{display:block;font-size:1.05rem;margin:.15rem 0}
+ .sk-fatti p{margin:.2rem 0 0;font-size:.85rem;color:var(--muted)}
+ pre.vicine{background:var(--code);border-radius:6px;padding:.5rem .7rem;font-size:.8rem;line-height:1.45;overflow-x:auto;margin:.4rem 0 1rem}
+ pre.vicine span{display:block;white-space:pre} pre.vicine .p{color:#2e9d4f} pre.vicine .m{color:#e53935}
+ pre.vicine .h{font-weight:700;background:rgba(232,116,59,.18)}
+ ul.insieme{display:flex;flex-wrap:wrap;gap:.35rem .6rem;list-style:none;padding:0;margin:.3rem 0}
+ ul.insieme li{background:var(--code);border-radius:999px;padding:.1rem .6rem;font-size:.85rem}
+ .sk-indietro{font-size:.9rem;margin:0 0 .4rem}
+</style>
+<p class="sk-indietro"><a href="esiti.html">← Tutte le tracce HLX</a></p>
+<section>
+ <div class="sk-testa">
+  <h1><code>{{ c.label }}</code></h1>
+ </div>
+ {% if c.text and c.text != c.label %}<p class="muted"><small>Riga: <code>{{ c.text[:240] }}</code></small></p>{% endif %}
+ <div class="sk-fatti">
+  <div><span class="etichetta">Tipo</span><b>{{ c.kind_label }}</b><p>{{ c.kind_text }}</p></div>
+  <div><span class="etichetta">Esito</span><b>{{ c.status_label }}</b><p>{% if c.detail %}{{ c.detail }}{% else %}{{ c.status_text }}{% endif %}</p></div>
+  <div><span class="etichetta">Prima comparsa</span><b>{{ c.first }}</b><p>{{ titles.get(c.per_game[0].game, c.per_game[0].game) if c.per_game else "" }}{% if c.url %} · <a href="{{ c.url }}">{{ c.url|linklabel }}</a>{% endif %}</p></div>
+  <div><span class="etichetta">Prova</span><b>{{ c.ev_title }}</b>{% if c.ev_text %}<p>{{ c.ev_text }}</p>{% endif %}</div>
+ </div>
+ {% if c.merge %}<p><small class="muted">Fusione del motore: la stessa riga è comparsa anche in {{ c.merge|join(", ") }} entro 60
+ giorni. Viaggia con il codice condiviso di Source 2, quindi non indica lavoro nuovo su un gioco in particolare.</small></p>{% endif %}
+</section>
+
+<section>
+ <h2>In quali giochi</h2>
+ <table>
+  <tr><th>Gioco</th><th>Prima comparsa</th><th>Tolta</th><th>File</th></tr>
+  {% for g in c.per_game %}
+  <tr><td>{{ titles.get(g.game, g.game) }}</td><td>{{ g.first }}</td><td>{{ g.removed or "—" }}</td><td>{{ g.files }}</td></tr>
+  {% endfor %}
+ </table>
+</section>
+
+{% if c.blocks %}
+<section>
+ <h2>Righe vicine, quando è comparsa</h2>
+ {% if c.only_dumps %}<p class="muted"><small>Questi file sono elenchi di stringhe in ordine alfabetico: le righe vicine hanno
+ solo l'iniziale in comune, non sono collegate alla traccia.</small></p>
+ {% else %}<p class="muted"><small>Le righe attorno alla traccia nel commit in cui è comparsa: nei file strutturati (entità, schemi,
+ suoni) sono spesso parti dello stesso oggetto.{% if c.blocks|selectattr('source', 'equalto', 'diff')|list %} + = riga aggiunta in quel commit.{% endif %}</small></p>{% endif %}
+ {% for b in c.blocks %}
+ <p><small><b>{{ titles.get(b.game, b.game) }}</b> · {{ b.day }} · <code>{{ b.file }}</code>{% if b.url %} · <a href="{{ b.url }}">{{ b.url|linklabel }}</a>{% endif %}{% if b.source == 'file' %} · <span class="muted">righe del file a quel commit</span>{% endif %}</small></p>
+ <pre class="vicine">{% for l in b.lines %}<span class="{{ 'p' if l.mark == '+' else 'm' if l.mark == '-' else '' }}{{ ' h' if l.hlx else '' }}">{{ l.mark }} {{ l.text }}</span>{% endfor %}</pre>
+ {% endfor %}
+</section>
+{% endif %}
+
+{% if c.together %}
+<section>
+ <h2>Comparse lo stesso giorno, nello stesso file</h2>
+ <ul class="insieme">{% for o in c.together %}<li><a href="traccia-{{ o.slug }}.html"><code>{{ o.label[:70] }}</code></a></li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+<section>
+ <h2>Ogni comparsa nell'archivio</h2>
+ <table>
+  <tr><th>Data</th><th>Gioco</th><th>Cosa</th><th>File</th></tr>
+  {% for r in c.rows %}
+  <tr>
+   <td>{% if r.al %}<small class="muted">almeno dal</small><br>{% endif %}{{ r.day }}</td>
+   <td>{{ titles.get(r.game, r.game) }}</td>
+   <td>{{ r.change_label }}{% if r.text != c.text %}<br><small class="muted"><code>{{ r.text[:140] }}</code></small>{% endif %}</td>
+   <td><small>{{ r.file_path[:90] }}{% if r.line_no %}:{{ r.line_no }}{% endif %}</small>{% if r.url %}<br><a href="{{ r.url }}"><small>{{ r.url|linklabel }}</small></a>{% endif %}</td>
+  </tr>
+  {% endfor %}
+ </table>
+ {% if c.n_rows > c.rows|length %}<p class="muted"><small>Mostro le prime {{ c.rows|length }} di {{ c.n_rows }}.</small></p>{% endif %}
+ <p><a href="{{ c.search }}">Cerca questa traccia nella Ricerca</a></p>
+</section>
+{% endblock %}

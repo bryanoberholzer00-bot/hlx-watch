@@ -165,6 +165,13 @@
   Telegram, nelle notifiche del sito e nell'app Android; il run completo su GitHub poi lo archivia con i dettagli.
   Se il controllo veloce non riesce da più di 2 ore, il proprietario riceve un avviso; l'ora dell'ultimo giro riuscito è
   nello stato delle fonti, in pagina iniziale.</li>
+  <li id="schede"><b>Una scheda per ogni traccia.</b> Ogni traccia del <a href="esiti.html">registro degli esiti</a> ha
+  la sua pagina: tipo, esito, giochi e date, ogni comparsa nell'archivio con il link al commit, le altre tracce comparse
+  lo stesso giorno nello stesso file e le <i>righe vicine</i>, cioè le righe attorno alla traccia quando è comparsa. Le
+  righe vicine vengono dal diff del commit; per le tracce trovate dall'archeologia, che non hanno il diff, il file viene
+  scaricato una volta sola da raw.githubusercontent.com a quel commit. Nei dump di stringhe le righe vicine non dicono
+  niente, perché quei file sono in ordine alfabetico, e la scheda lo avverte. Una prova su tutto l'archivio ha mostrato
+  che i nomi vicini sono quasi sempre nomi generici del motore, presenti anche altrove: per questo non diventano avvisi.</li>
   <li id="controllo-sito"><b>Controllo automatico del sito.</b> Dopo ogni aggiornamento, prima di pubblicarlo, il sito
   generato viene controllato: i file che servono ci sono, i dati dell'app Android si leggono, ogni pagina è completa e
   senza valori mancanti, i link interni portano a pagine e sezioni che esistono, e il termometro ha lo stesso valore

@@ -116,7 +116,7 @@
   <table class="nomi">
    <tr><th>Data</th><th>Pezzo</th><th>Tipo</th></tr>
    {% for it in fase["items"]|reverse %}<tr><td>{{ it.first[8:10] }}/{{ it.first[5:7] }}/{{ it.first[:4] }}</td>
-    <td><code>{{ it.label[:90] }}</code></td><td class="t-{{ it.kind }}">{{ fase.labels[it.kind] }}</td></tr>{% endfor %}
+    <td>{% if it.slug %}<a href="traccia-{{ it.slug }}.html"><code>{{ it.label[:90] }}</code></a>{% else %}<code>{{ it.label[:90] }}</code>{% endif %}</td><td class="t-{{ it.kind }}">{{ fase.labels[it.kind] }}</td></tr>{% endfor %}
   </table>
  </details>
 </section>

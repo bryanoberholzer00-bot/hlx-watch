@@ -58,7 +58,7 @@ def summary(reg: dict[str, Any], alyx_seed: dict[str, Any] | None) -> dict[str, 
             if len(label) < len(by_key[key]["label"]):
                 by_key[key]["label"] = label
             continue
-        by_key[key] = {"label": label, "first": t["first"], "year": t["first"][:4], "kind": kind}
+        by_key[key] = {"label": label, "first": t["first"], "year": t["first"][:4], "kind": kind, "slug": t.get("slug")}
         items.append(by_key[key])
     years: dict[str, Counter] = {}
     for it in items:
