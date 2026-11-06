@@ -76,7 +76,13 @@ def short_label(label: str) -> str:
         return t
     if " " not in t:                  # un nome solo: si taglia nel mezzo, la fine spesso distingue due nomi simili
         head = (SHORT - 1) // 2
-        return t[:head] + "…" + t[-(SHORT - 1 - head):]
+        a, b = t[:head], t[-(SHORT - 1 - head):]
+        # tagli tra parole intere (hlx_configurable…_body_entity), non a metà parola
+        if "_" in a[4:]:
+            a = a[:a.rindex("_")]
+        if "_" in b[:-4]:
+            b = b[b.index("_"):]
+        return a + "…" + b
     return t[:SHORT - 1] + "…"
 
 
