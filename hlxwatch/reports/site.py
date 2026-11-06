@@ -364,6 +364,10 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     from hlxwatch import segnali
     (out_dir / "segnali.html").write_text(env.get_template("segnali.html").render(s=segnali.summary(db, outcomes)),
                                           encoding="utf-8")
+    # mappa dei collegamenti: i pezzi uniti ai luoghi dove compaiono e agli altri pezzi arrivati insieme
+    from hlxwatch import mappa
+    (out_dir / "mappa.html").write_text(env.get_template("mappa.html").render(m=mappa.summary(db, outcomes)),
+                                        encoding="utf-8")
     write_counter(env, db, out_dir, [t["first"] for t in outcomes["traces"]])
     if not preview_image(brief, out_dir / "anteprima.png", site_url.split("//", 1)[-1].rstrip("/")):
         env.globals["og_image"] = ""

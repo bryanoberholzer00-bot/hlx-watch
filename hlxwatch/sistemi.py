@@ -33,7 +33,7 @@ SYSTEMS: list[tuple[str, str, str, str]] = [
     ("mondo", "Mondo di gioco", "elementi del mondo di Half-Life, come le barriere dei Combine",
      r"barrier|combine|door|elevator"),
     ("fisica", "Fisica", "corpi e oggetti fisici",
-     r"physics|lightweight_body|ragdoll|rope|cloth"),
+     r"physics|lightweight_body|ragdoll|\brope|_rope|cloth"),
     ("suono", "Suono", "suono spaziale e gruppi di suoni",
      r"hrtf|sound|_2d_basic|_3d|voicegraph|audio"),
     ("particelle", "Particelle ed effetti", "opzioni dell'editor degli effetti, rifrazione, texture di prova",
@@ -93,8 +93,9 @@ def system_of(label: str, path: str = "") -> str:
     return "altro"
 
 
-def pieces(reg: dict[str, Any]) -> list[dict[str, Any]]:
-    """Le tracce del registro degli esiti come pezzi diversi, ognuno con il suo sistema."""
+def pieces(reg: dict[str, Any], with_traces: bool = False) -> list[dict[str, Any]]:
+    """Le tracce del registro degli esiti come pezzi diversi, ognuno con il suo sistema. Con `with_traces` ogni pezzo
+    porta anche le chiavi delle tracce che lo compongono (per la mappa dei collegamenti)."""
     items: list[dict[str, Any]] = []
     by_key: dict[str, dict[str, Any]] = {}
     for t in sorted(reg.get("traces") or [], key=lambda t: t["first"]):
@@ -107,9 +108,13 @@ def pieces(reg: dict[str, Any]) -> list[dict[str, Any]]:
             if len(label) < len(p["label"]):
                 p["label"], p["slug"] = label, t.get("slug")
             p["games"] = sorted(set(p["games"]) | games)
+            if with_traces:
+                p["keys"].append(t.get("key") or t["label"])
             continue
         by_key[key] = {"label": label, "first": t["first"], "system": system, "slug": t.get("slug"),
                        "games": sorted(games), "status": t.get("status_label") or t.get("status") or ""}
+        if with_traces:
+            by_key[key]["keys"] = [t.get("key") or t["label"]]
         items.append(by_key[key])
     return items
 

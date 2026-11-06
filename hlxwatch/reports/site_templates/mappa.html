@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Mappa dei collegamenti - HLX Watch{% endblock %}
+{% block description %}I pezzi di HLX trovati nei file pubblici di Valve, collegati ai programmi in cui compaiono (Hammer, l'editor degli effetti, i suoni) e agli altri pezzi arrivati nello stesso aggiornamento.{% endblock %}
+{% block content %}
+<style>
+ .mappa-box{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--card);margin:.6rem 0}
+ .mappa-box svg{display:block;width:100%;min-width:680px;height:auto}
+ .mappa-box .raggio{stroke:var(--muted);stroke-opacity:.45;stroke-width:1.3;fill:none}
+ .mappa-box .insieme path{stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;fill:none}
+ .mappa-box .insieme text{font-size:11px;fill:var(--accent);font-weight:700}
+ .mappa-box .pezzo .anno{fill:var(--muted)}
+ .mappa-box .luogo rect{stroke-width:1.5}
+ .mappa-box .luogo text{font-size:13px;font-weight:700;fill:var(--text)}
+ .mappa-box .k-strumento rect{fill:#e8eefc;stroke:#5b7fd6} .mappa-box .k-gioco rect{fill:#e6f5ea;stroke:#2e9d4f}
+ .mappa-box .k-dati rect{fill:#f5ecfb;stroke:#8b5cf6}
+ @media (prefers-color-scheme: dark){.mappa-box .k-strumento rect{fill:#24304d}.mappa-box .k-gioco rect{fill:#1f3a2a}
+  .mappa-box .k-dati rect{fill:#33284a}}
+ .mappa-box .pezzo circle{fill:var(--accent);stroke:var(--card);stroke-width:2}
+ .mappa-box .pezzo text{font-size:11.5px;fill:var(--text);paint-order:stroke;stroke:var(--card);stroke-width:3px}
+ .mappa-box a.pezzo:hover text,.mappa-box a.pezzo:focus text{fill:var(--accent);font-weight:700}
+ .legenda{display:flex;flex-wrap:wrap;gap:.4rem 1.1rem;font-size:.85rem;color:var(--muted);margin:.3rem 0 .8rem}
+ .legenda span{display:inline-flex;align-items:center;gap:.35rem}
+ .legenda i{display:inline-block;width:.9rem;height:.9rem;border-radius:3px;border:1.5px solid}
+ .legenda .l-strumento{background:#e8eefc;border-color:#5b7fd6} .legenda .l-gioco{background:#e6f5ea;border-color:#2e9d4f}
+ .legenda .l-dati{background:#f5ecfb;border-color:#8b5cf6}
+ .legenda .l-pezzo{border-radius:50%;background:var(--accent);border-color:var(--accent)}
+ .legenda .l-insieme{width:.5rem;height:1rem;border:0;border:2.5px solid var(--accent);border-left:0;border-radius:0}
+ .gruppo{border:1px solid var(--line);border-radius:8px;padding:.6rem .9rem;margin:.6rem 0}
+ .gruppo h3{margin:0 0 .25rem;font-size:1rem} .gruppo ul{margin:.35rem 0 0;padding-left:1.1rem}
+ .gruppo li{margin:.15rem 0} .gruppo code{word-break:break-all}
+ .soli{columns:2;column-gap:2rem;padding-left:1.1rem} @media(max-width:700px){.soli{columns:1}}
+ @media(max-width:700px){.scorri{display:block}} .scorri{display:none}
+</style>
+<div class="breve">
+<h1>Mappa dei collegamenti</h1>
+{% if not m %}<p>Non ci sono ancora tracce HLX nell'archivio.</p></div>{% else %}
+<p class="muted">I {{ m.n }} pezzi di HLX trovati nei file pubblici di Valve, collegati ai {{ m.n_places }} luoghi in cui
+compaiono (il programma o l'insieme di file che li contiene) e agli altri pezzi arrivati nello stesso aggiornamento.
+Una traccia da sola dice poco: messe insieme dicono su quale parte del lavoro Valve si sta concentrando. Ultimo
+aggiornamento {{ generated }}.</p>
+</div>
+
+<section id="disegno">
+ <div class="legenda">
+  <span><i class="l-strumento"></i>strumento di sviluppo</span><span><i class="l-gioco"></i>codice di un gioco</span>
+  <span><i class="l-dati"></i>file di dati</span><span><i class="l-pezzo"></i>pezzo di HLX (porta alla sua scheda)</span>
+  <span><i class="l-insieme"></i>arrivati nello stesso aggiornamento</span>
+ </div>
+ <p class="muted scorri"><small>Il disegno è largo: scorrilo di lato.</small></p>
+ <div class="mappa-box">
+ <svg viewBox="0 0 {{ m.width }} {{ m.height }}" role="img" aria-label="Mappa dei pezzi di HLX e dei luoghi in cui compaiono">
+  {% for pl in m.places %}{% for i in pl.pieces %}{% set n = m.nodes[i] %}{% set mid = (pl.right + n.x) / 2 %}<path class="raggio" d="M{{ pl.right }} {{ pl.y }} C{{ mid }} {{ pl.y }} {{ mid }} {{ n.y }} {{ n.x }} {{ n.y }}"/>
+  {% endfor %}{% endfor %}
+  {% for b in m.brackets %}<g class="insieme"><title>{{ b.n }} pezzi arrivati insieme il {{ b.day[8:10] }}/{{ b.day[5:7] }}/{{ b.day[:4] }}</title>
+   <path d="M{{ b.x }} {{ b.y1 }} V{{ b.y2 }}{% for yy in b.ys %} M{{ b.x - 7 }} {{ yy }} H{{ b.x }}{% endfor %}"/>
+   <text x="{{ b.x + 6 }}" y="{{ (b.y1 + b.y2) / 2 + 4 }}">{{ b.day[8:10] }}/{{ b.day[5:7] }}/{{ b.day[2:4] }}</text></g>
+  {% endfor %}
+  {% for n in m.nodes %}
+  {% if n.slug %}<a class="pezzo" href="traccia-{{ n.slug }}.html">{% else %}<g class="pezzo">{% endif %}<title>{{ n.label }} ({{ n.system_name }}, dal {{ n.first[8:10] }}/{{ n.first[5:7] }}/{{ n.first[:4] }})</title>
+   <circle cx="{{ n.x }}" cy="{{ n.y }}" r="6"/>
+   <text x="{{ n.x + 11 }}" y="{{ n.y + 4 }}">{{ n.icon }} {{ n.short }} <tspan class="anno">{{ n.first[:4] }}</tspan></text>
+  {% if n.slug %}</a>{% else %}</g>{% endif %}
+  {% endfor %}
+  {% for pl in m.places %}<g class="luogo k-{{ pl.kind }}"><title>{{ pl.name }}: {{ pl.about }}</title>
+   <rect x="{{ pl.x - pl.w / 2 }}" y="{{ pl.y - 13 }}" width="{{ pl.w }}" height="26" rx="13"/>
+   <text x="{{ pl.x }}" y="{{ pl.y + 4.5 }}" text-anchor="middle">{{ pl.name }}</text></g>
+  {% endfor %}
+ </svg>
+ </div>
+ <p class="muted"><small>A sinistra i luoghi, a destra i pezzi, gruppo per gruppo e in ordine di data. Ogni pezzo è
+ unito a tutti i luoghi dove compare, in qualunque gioco: un nome che sta in più programmi diventa un ponte tra loro. Le
+ parentesi arancioni uniscono i pezzi comparsi per la prima volta nello stesso aggiornamento.</small></p>
+</section>
+
+<section id="dice">
+ <h2>Cosa dice la mappa</h2>
+ <ul>
+  {% set big = m.groups[0] %}
+  <li><b>Il gruppo più grande ha {{ big.n }} pezzi</b>, intorno a {{ big.places[0].name }}{% if big.places|length > 1 %}
+   (con {{ big.places[1:]|map(attribute='name')|join(", ") }}){% endif %}, dal {{ big.first[:4] }} al {{ big.last[:4] }}.
+   {% if big.places[0].key == "hammer" %}Hammer è il programma con cui si costruiscono i livelli: i pezzi che ci finiscono
+   dentro servono a mettere nelle mappe nemici, coperture e oggetti.{% endif %}</li>
+  <li><b>{{ m.tools }} pezzi su {{ m.n }} stanno solo negli strumenti di sviluppo</b>, non nel codice di un gioco. È
+   quello che ci si aspetta da un gioco non annunciato: gli strumenti sono gli stessi per tutti i giochi di Valve, e
+   quando escono con Dota 2 o Counter-Strike 2 si portano dietro anche il lavoro su HLX.</li>
+  {% if m.biggest %}<li><b>L'aggiornamento più ricco è del {{ m.biggest.day[8:10] }}/{{ m.biggest.day[5:7] }}/{{ m.biggest.day[:4] }}</b>:
+   {{ m.biggest.pieces|length }} pezzi arrivati insieme ({{ m.biggest.pieces|map(attribute='short')|join(", ") }}).
+   {% if m.biggest.url %}<a href="{{ m.biggest.url }}" rel="noopener">Vedi l'aggiornamento</a>.{% endif %}</li>{% endif %}
+  {% if m.bridges %}<li><b>Pezzi ponte:</b> {% for n in m.bridges %}{{ n.short }} (in {{ n.places|length }} luoghi){{ ", " if not loop.last }}{% endfor %}.
+   Un nome che compare in tanti programmi sta nel codice che condividono.</li>{% endif %}
+  <li>{% if m.enemy_linked %}<b>Un nemico è già arrivato insieme ai suoi suoni o ai suoi effetti</b>, nello stesso
+   aggiornamento: è il segno di un pezzo di gioco messo insieme, non solo di uno strumento.{% else %}<b>Nessun nemico è
+   ancora arrivato insieme ai suoi suoni o ai suoi effetti.</b> I suoni e gli effetti di HLX sono comparsi in
+   aggiornamenti diversi da quelli dei nemici: sono prove e opzioni degli strumenti, non ancora pezzi di gioco messi
+   insieme. Se un giorno un nemico, i suoi suoni e i suoi effetti arriveranno nello stesso aggiornamento, la mappa lo
+   mostrerà.{% endif %}</li>
+ </ul>
+</section>
+
+<section id="gruppi">
+ <h2>I gruppi</h2>
+ <p class="muted">Pezzi uniti da un luogo in comune o da un aggiornamento in comune, dal gruppo più grande.</p>
+ {% for g in m.groups if g.n > 1 %}<div class="gruppo">
+  <h3>{{ g.places[0].name }}{% if g.places|length > 1 %} e altri {{ g.places|length - 1 }} luoghi{% endif %}: {{ g.n }} pezzi</h3>
+  <small class="muted">{% for pl in g.places %}<b>{{ pl.name }}</b>: {{ pl.about }}{{ "; " if not loop.last }}{% endfor %}.<br>
+   Dal {{ g.first[8:10] }}/{{ g.first[5:7] }}/{{ g.first[:4] }} al {{ g.last[8:10] }}/{{ g.last[5:7] }}/{{ g.last[:4] }},
+   in {{ g.updates }} aggiornament{{ "o" if g.updates == 1 else "i" }}. Sistemi: {{ g.systems|join(", ") }}.</small>
+  <ul>{% for n in g.pieces %}<li>{{ n.icon }} {% if n.slug %}<a href="traccia-{{ n.slug }}.html"><code>{{ n.label[:90] }}</code></a>{% else %}<code>{{ n.label[:90] }}</code>{% endif %}
+   <small class="muted">{{ n.first[8:10] }}/{{ n.first[5:7] }}/{{ n.first[:4] }} · {{ n.system_name }}{% if n.places|length > 1 %} · in {{ n.places|length }} luoghi{% endif %}</small></li>{% endfor %}</ul>
+ </div>{% endfor %}
+ {% if m.alone %}<h3>Pezzi da soli</h3>
+ <p class="muted">Ognuno nel suo luogo, senza altri pezzi di HLX accanto.</p>
+ <ul class="soli">{% for g in m.alone %}{% set n = g.pieces[0] %}<li>{{ n.icon }} {% if n.slug %}<a href="traccia-{{ n.slug }}.html"><code>{{ n.label[:70] }}</code></a>{% else %}<code>{{ n.label[:70] }}</code>{% endif %}
+  <small class="muted">{{ g.places[0].name }}, {{ n.first[:4] }}</small></li>{% endfor %}</ul>{% endif %}
+ <p class="muted"><small>I luoghi sono riconosciuti dal percorso del file con regole scritte a mano. Le stesse tracce
+ divise per sistema sono nella pagina <a href="sistemi.html">Di cosa è fatto HLX</a>; come si trovano è spiegato nella
+ <a href="metodologia.html">metodologia</a>.</small></p>
+</section>
+{% endif %}
+{% endblock %}
