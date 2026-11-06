@@ -11,6 +11,9 @@ archivio, stesso disegno), e la pagina non ha bisogno di script: luoghi a sinist
 """
 from __future__ import annotations
 
+import hashlib
+import json
+import logging
 import re
 from collections import defaultdict
 from typing import Any
@@ -53,6 +56,11 @@ TOP, ROW, GROUP_GAP, BOTTOM = 26, 24, 22, 14
 PLACE_X, PIECE_X, BRACKET_X = 118, 300, 640
 PLACE_GAP = 30
 SHORT = 34
+
+log = logging.getLogger(__name__)
+STATE_KEY = "mappa:impronta"
+TITLE = "HLX Watch: la mappa dei collegamenti è cambiata"
+MAX_LINES = 8
 
 
 def place_of(path: str) -> str:
@@ -119,7 +127,7 @@ def graph(reg: dict[str, Any], files: dict[str, set[str]]) -> dict[str, Any]:
         nodes.append({"id": f"p{i}", "label": p["label"], "short": short_label(p["label"]), "first": p["first"],
                       "system": p["system"], "system_name": sistemi.NAMES[p["system"]],
                       "icon": ICONS.get(p["system"], "•"), "slug": p.get("slug"), "places": places,
-                      "updates": sorted(updates), "files": sorted(paths)})
+                      "updates": sorted(updates), "files": sorted(paths), "keys": list(p["keys"])})
     # pezzi arrivati nello stesso aggiornamento (stesso commit, stesso giorno)
     together: dict[str, list[int]] = defaultdict(list)
     for i, n in enumerate(nodes):
@@ -256,3 +264,84 @@ def summary(db: Any, reg: dict[str, Any]) -> dict[str, Any] | None:
             "n": len(g["nodes"]), "n_places": len(places), "tools": len(tools), "bridges": bridges,
             "together": len(g["links"]), "alone": [x for x in gr if x["n"] == 1], "biggest": biggest,
             "enemy_linked": enemy_linked}
+
+
+# ------------------------------------------------------------------ avviso quando la mappa cambia
+def _rules_hash() -> str:
+    """Le regole dei luoghi: se cambiano (codice nuovo), cambiano i luoghi di tutti, e non è una novità di Valve."""
+    return hashlib.sha1(json.dumps(PLACES, ensure_ascii=False).encode()).hexdigest()[:12]
+
+
+def fingerprint(g: dict[str, Any], gr: list[dict[str, Any]]) -> dict[str, Any]:
+    """Quello che serve per accorgersi dei cambiamenti: i luoghi di ogni traccia e i gruppi, per chiave di traccia
+    (le chiavi restano uguali anche quando il nome di un pezzo cambia)."""
+    places: dict[str, list[str]] = {}
+    for n in g["nodes"]:
+        for k in n["keys"]:
+            places[k] = n["places"]
+    groups_ = [sorted(k for x in grp["pieces"] for k in x["keys"]) for grp in gr]
+    labels = {k: n["short"] for n in g["nodes"] for k in n["keys"]}
+    return {"regole": _rules_hash(), "luoghi": places, "gruppi": groups_, "nomi": labels}
+
+
+def changes(old: dict[str, Any], new: dict[str, Any]) -> list[str]:
+    """Le frasi dell'avviso: un pezzo già noto che compare in un luogo nuovo, due gruppi che si uniscono, un pezzo
+    nuovo che si attacca a un gruppo esistente. I pezzi nuovi da soli non contano: li segnala già l'avviso delle tracce."""
+    names_old, names_new = old.get("nomi") or {}, new["nomi"]
+    old_places = old.get("luoghi") or {}
+    old_group = {k: i for i, grp in enumerate(old.get("gruppi") or []) for k in grp}
+    lines: list[str] = []
+    seen_pieces: set[str] = set()
+    # luoghi nuovi per pezzi già noti
+    for k, places in new["luoghi"].items():
+        name = names_new.get(k, k)
+        if k not in old_places or name in seen_pieces:
+            continue
+        added = [p for p in places if p not in old_places[k] and p != "altro"]
+        if added:
+            seen_pieces.add(name)
+            lines.append(f"«{name}» ora compare anche in: " + ", ".join(PLACE_NAMES[p] for p in added) + ".")
+    # gruppi che si uniscono, e pezzi nuovi attaccati a un gruppo che c'era già
+    for grp in new["gruppi"]:
+        before = sorted({old_group[k] for k in grp if k in old_group})
+        fresh = sorted({names_new.get(k, k) for k in grp if k not in old_places})
+        if len(before) >= 2:
+            parts = []
+            for i in before[:3]:
+                members = sorted({names_old.get(k, k) for k in (old.get("gruppi") or [])[i]})
+                parts.append(f"«{members[0]}»" + (f" e altri {len(members) - 1}" if len(members) > 1 else ""))
+            lines.append("Si sono uniti gruppi che prima erano separati: " + "; ".join(parts) + ".")
+        elif len(before) == 1 and fresh:
+            members = sorted({names_old.get(k, k) for k in (old.get("gruppi") or [])[before[0]]})
+            lines.append(", ".join(f"«{n}»" for n in fresh[:3]) + (" e altri" if len(fresh) > 3 else "")
+                         + (" è arrivato" if len(fresh) == 1 else " sono arrivati")
+                         + f" nel gruppo di «{members[0]}»" + (f" ({len(members)} pezzi)" if len(members) > 1 else "") + ".")
+    return lines
+
+
+def watch(cfg: Any, db: Any, notifiers: list) -> list[str]:
+    """A ogni giro: confronta la mappa con quella del giro prima e avvisa se ci sono collegamenti nuovi. Il primo
+    giro, o dopo un cambio delle regole dei luoghi, salva la mappa senza avvisare. Ritorna le frasi dell'avviso."""
+    from hlxwatch.notifiers import notify_text
+    from hlxwatch.outcomes import outcome_register
+    g = graph(outcome_register(cfg, db), files_by_trace(db))
+    if not g["nodes"]:
+        return []
+    new = fingerprint(g, groups(g))
+    try:
+        old = json.loads(db.get_state(STATE_KEY) or "null")
+    except ValueError:
+        old = None
+    lines = changes(old, new) if isinstance(old, dict) and old.get("regole") == new["regole"] else []
+    if old != new:
+        db.set_state(STATE_KEY, json.dumps(new, ensure_ascii=False, sort_keys=True))
+    if lines:
+        site = str(cfg.get("general.site_url", "https://bryanoberholzer00-bot.github.io/hlx-watch/")).rstrip("/")
+        extra = len(lines) - MAX_LINES
+        body = "\n".join("• " + x for x in lines[:MAX_LINES])
+        if extra > 0:
+            body += f"\n…e altri {extra} cambiamenti."
+        text = f"🧩 {body}\n\nLa mappa: {site}/mappa.html"
+        notify_text(notifiers, TITLE, text)
+        log.info("Mappa dei collegamenti cambiata: %d novità", len(lines))
+    return lines

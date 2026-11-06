@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}L'orologio di Valve - HLX Watch{% endblock %}
+{% block description %}A che ora e in che giorno lavora Valve, se adesso lavora fuori orario e a che ora arrivano le novità in Italia.{% endblock %}
+{% block content %}
+{% macro it(h) %}{{ "%02d"|format((h + o.scarto) % 24) }}{% endmacro %}
+{% macro perc(x) %}{{ (x * 100)|round|int }}%{% endmacro %}
+<style>
+ .orologio{border-collapse:collapse;font-size:.72rem;margin:.4rem 0}
+ .orologio th,.orologio td{padding:0;text-align:center;border:1px solid var(--card, transparent)}
+ .orologio td{width:1.55rem;height:1.55rem;min-width:1.2rem}
+ .orologio th.g{padding-right:.4rem;text-align:right;font-weight:600}
+ .orologio .h{color:var(--muted);font-weight:400}
+ .orologio td.vuota{background:repeating-linear-gradient(45deg,transparent 0 3px,rgba(127,127,127,.18) 3px 5px)}
+ .scala{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--muted);margin:.2rem 0 .6rem}
+ .scala i{display:inline-block;width:5rem;height:.6rem;border-radius:3px;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 6%,transparent),var(--accent))}
+ .scala b.v{display:inline-block;width:.9rem;height:.6rem;background:repeating-linear-gradient(45deg,transparent 0 3px,rgba(127,127,127,.35) 3px 5px)}
+ svg.barre{width:100%;height:auto;color:var(--text);max-width:820px}
+ .su{color:#e5893b;font-weight:600}
+</style>
+<div class="breve">
+<h1>L'orologio di Valve</h1>
+<p class="muted">A che ora e in che giorno lavora Valve, calcolato dal <a href="contatore.html">contatore delle sue
+modifiche</a>. Le ore sono quelle di Seattle, dove sta Valve: in Italia sono {{ o.scarto if o else 9 }} ore avanti.</p>
+</div>
+{% if not o %}
+<section><p>L'orologio non ha ancora abbastanza dati: arrivano con i prossimi giri.</p></section>
+{% else %}
+{% set h = o.orologio %}
+<section>
+ <div class="cards">
+  {% if h.inizio is not none %}<div class="card"><b>{{ h.inizio }}-{{ h.fine }}</b><span>la giornata di Valve a Seattle, dal lunedì al venerdì (in Italia dalle {{ it(h.inizio) }} alle {{ it(h.fine) }})</span></div>{% endif %}
+  {% if h.picco_ora is not none %}<div class="card"><b>ore {{ h.picco_ora }}</b><span>l'ora di punta a Seattle (in Italia le {{ it(h.picco_ora) }})</span></div>{% endif %}
+  {% if o.anno.sera is not none %}<div class="card"><b>{{ perc(o.anno.sera) }}</b><span>il ritmo della sera (18-22) rispetto al giorno, ultimi 12 mesi</span></div>{% endif %}
+  {% if o.anno.weekend is not none %}<div class="card"><b>{{ perc(o.anno.weekend) }}</b><span>il ritmo del fine settimana rispetto a un giorno feriale</span></div>{% endif %}
+ </div>
+</section>
+
+<section>
+ <h2>La settimana di Valve, ora per ora</h2>
+ <p>Ogni casella è un'ora della settimana negli ultimi 12 mesi: più è scura, più modifiche salva Valve in
+ quell'ora. Le caselle a righe sono le ore senza abbastanza build per dirlo, quasi sempre la notte.</p>
+ <div class="tabwrap" style="overflow-x:auto">
+ <table class="orologio intera" aria-label="Modifiche all'ora per giorno e ora di Seattle">
+  <tr><th></th>{% for x in range(24) %}<th class="h">{{ x }}</th>{% endfor %}</tr>
+  {% for r in h.righe %}
+  <tr><th class="g">{{ r.giorno }}</th>{% for cl in r.celle %}{% if cl.forza is none %}<td class="vuota" title="{{ r.giorno }} ore {{ cl.ora }}: pochi dati"></td>{% else %}<td style="background:color-mix(in srgb,var(--accent) {{ (6 + cl.forza * 94)|round|int }}%,transparent)" title="{{ r.giorno }} ore {{ cl.ora }} (in Italia {{ it(cl.ora) }}): {{ cl.ritmo|round|int }} modifiche all'ora"></td>{% endif %}{% endfor %}</tr>
+  {% endfor %}
+  <tr><th class="g h">Italia</th>{% for x in range(24) %}<th class="h">{{ it(x)|int }}</th>{% endfor %}</tr>
+ </table>
+ </div>
+ <p class="scala"><span>poche</span><i></i><span>{{ h.massimo|round|int }} modifiche all'ora</span> <b class="v"></b><span>pochi dati</span></p>
+ <p>La giornata è quella di un ufficio: si comincia verso le {{ h.inizio }}, il massimo è alle {{ h.picco_ora }} e
+ dopo le {{ h.fine }} il ritmo cala, ma non a zero, perché una parte delle modifiche la salvano programmi automatici.
+ Il fine settimana Valve lavora poco.</p>
+</section>
+
+<section>
+ <h2>Adesso: Valve lavora fuori orario?</h2>
+ {% set a, p = o.adesso, o.prima %}
+ <table>
+  <tr><th></th><th>Ultimi 3 mesi</th><th>12 mesi prima</th><th></th></tr>
+  <tr><td>Di giorno (10-17), modifiche all'ora</td><td>{{ a.giorno|round|int if a.giorno else "—" }}</td><td>{{ p.giorno|round|int if p.giorno else "—" }}</td><td></td></tr>
+  <tr><td>La sera, rispetto al giorno</td><td>{{ perc(a.sera) if a.sera is not none else "—" }}</td><td>{{ perc(p.sera) if p.sera is not none else "—" }}</td>
+   <td>{% if o.adesso_sera %}<b class="{{ 'su' if o.adesso_sera == 'di più' }}">{{ o.adesso_sera }}</b>{% else %}<span class="muted">pochi dati</span>{% endif %}</td></tr>
+  <tr><td>Il fine settimana, rispetto a un giorno feriale</td><td>{{ perc(a.weekend) if a.weekend is not none else "—" }}</td><td>{{ perc(p.weekend) if p.weekend is not none else "—" }}</td>
+   <td>{% if o.adesso_weekend %}<b class="{{ 'su' if o.adesso_weekend == 'di più' }}">{{ o.adesso_weekend }}</b>{% else %}<span class="muted">pochi dati</span>{% endif %}</td></tr>
+ </table>
+ <p>{% if o.adesso_sera == "di più" %}<b>Negli ultimi tre mesi Valve lavora di sera più del solito</b>: la sera arriva al
+ {{ perc(a.sera) }} del ritmo di giorno, contro il {{ perc(p.sera) }} dell'anno prima.{% elif o.adesso_sera == "di meno" %}Negli
+ ultimi tre mesi Valve lavora di sera meno del solito ({{ perc(a.sera) }} del ritmo di giorno, contro il {{ perc(p.sera) }}).{% elif o.adesso_sera %}Di
+ sera Valve lavora come nell'anno prima.{% else %}Negli ultimi tre mesi ci sono troppo poche build di sera per dirlo.{% endif %}
+ {% if a.giorno and p.giorno and a.giorno > p.giorno * 1.1 %}Anche di giorno il ritmo è più alto ({{ a.giorno|round|int }}
+ modifiche all'ora, contro {{ p.giorno|round|int }}).{% endif %}
+ Di sera le build sono poche: in tre mesi le ore di sera con dati sono {{ a.ore_sera|round|int }}, quindi il numero si muove molto.</p>
+</section>
+
+{% if o.alyx %}{% set al = o.alyx %}
+<section>
+ <h2>Prima di Alyx</h2>
+ <p>Si dice spesso che prima di una scadenza si lavora fino a tardi. I dati del 2019 e del 2020 permettono di
+ controllarlo sull'ultimo Half-Life.</p>
+ <table>
+  <tr><th></th><th>La sera, rispetto al giorno</th><th>Il fine settimana</th></tr>
+  <tr><td>Un anno normale (fino ad agosto 2019)</td><td>{{ perc(al.base.sera) if al.base.sera is not none else "—" }}</td><td>{{ perc(al.base.weekend) if al.base.weekend is not none else "—" }}</td></tr>
+  <tr><td>I 3 mesi prima dell'annuncio (21 novembre 2019)</td>
+   <td>{{ perc(al.annuncio.sera) if al.annuncio.sera is not none else "—" }} {% if al.annuncio_sera %}<small>({{ al.annuncio_sera }})</small>{% endif %}</td>
+   <td>{% if al.annuncio_weekend %}{{ perc(al.annuncio.weekend) }} <small>({{ al.annuncio_weekend }})</small>{% else %}<span class="muted">pochi dati</span>{% endif %}</td></tr>
+  <tr><td>I 3 mesi prima dell'uscita (23 marzo 2020)</td>
+   <td>{{ perc(al.uscita.sera) if al.uscita.sera is not none else "—" }} {% if al.uscita_sera %}<small>({{ al.uscita_sera }})</small>{% endif %}</td>
+   <td>{% if al.uscita_weekend %}{{ perc(al.uscita.weekend) }} <small>({{ al.uscita_weekend }})</small>{% else %}<span class="muted">pochi dati{% if al.uscita.weekend is not none %}, {{ perc(al.uscita.weekend) }}{% endif %}</span>{% endif %}</td></tr>
+ </table>
+ <p><b>Il lavoro di sera non annuncia niente.</b>
+ {% if al.annuncio_sera == "di meno" %}Prima dell'annuncio di Alyx Valve lavorava di sera meno del solito.{% elif al.annuncio_sera == "come prima" %}Prima dell'annuncio di Alyx Valve lavorava di sera come sempre.{% elif al.annuncio_sera == "di più" %}Prima dell'annuncio di Alyx Valve lavorava di sera di più.{% endif %}
+ {% if al.uscita_sera == "di più" %}Lo ha fatto dopo, nei tre mesi prima dell'uscita: quella è la scadenza che
+ si vede nell'orologio.{% endif %}
+ Se oggi Valve lavora di più la sera, può voler dire che una scadenza è vicina, ma non quale e non di quale progetto.</p>
+</section>
+{% endif %}
+
+<section>
+ <h2>La sera, trimestre per trimestre</h2>
+ {% set q = o.trimestri %}{% set W, H, L, T = 820, 190, 34, 12 %}{% set bw = (W - L - 8) / (q|length) %}
+ {% set top = [1.0] + q|selectattr("sera")|map(attribute="sera")|list %}{% set top = top|max %}
+ <svg class="barre" viewBox="0 0 {{ W }} {{ H + 28 }}" role="img" aria-label="Il ritmo della sera rispetto al giorno, trimestre per trimestre">
+  {% for g in [0, 0.5, 1.0] %}{% set y = T + (H - T) * (1 - g / top) %}
+  <line x1="{{ L }}" x2="{{ W }}" y1="{{ y|round(1) }}" y2="{{ y|round(1) }}" stroke="currentColor" stroke-opacity=".15"/>
+  <text x="{{ L - 4 }}" y="{{ (y + 4)|round(1) }}" font-size="10" text-anchor="end" fill="currentColor" fill-opacity=".6">{{ (g * 100)|int }}%</text>{% endfor %}
+  {% for r in q %}{% set x = L + 4 + loop.index0 * bw %}
+   {% if r.sera is not none %}{% set y = T + (H - T) * (1 - r.sera / top) %}
+   <rect x="{{ x|round(1) }}" y="{{ y|round(1) }}" width="{{ (bw - 2)|round(1) }}" height="{{ (H - y)|round(1) }}"
+    fill="{{ 'var(--accent)' if r.alyx else '#7a8699' }}" fill-opacity="{{ '.35' if r.pochi_sera else '.9' }}"><title>{{ r.da }} - {{ r.a }}: {{ perc(r.sera) }} ({{ r.ore_sera|round|int }} ore di dati{{ ', pochi' if r.pochi_sera }})</title></rect>
+   {% endif %}
+   {% if loop.first or r.da[:4] != loop.previtem.da[:4] %}<text x="{{ (x + bw / 2)|round(1) }}" y="{{ H + 14 }}" font-size="10" text-anchor="middle" fill="currentColor" fill-opacity=".7">{{ r.da[:4] }}</text>{% endif %}
+  {% endfor %}
+ </svg>
+ <p class="leggenda" style="font-size:.8rem;color:var(--muted)"><span style="color:var(--accent)">■</span> i trimestri di Alyx, dall'annuncio all'uscita; gli altri in grigio ·
+ barre chiare: meno di {{ o.pochi_ore|int }} ore di sera con dati</p>
+</section>
+
+{% set ar = o.arrivi %}
+{% if ar.n %}
+<section>
+ <h2>Quando arrivano le novità in Italia</h2>
+ <p>Gli aggiornamenti pubblici di Counter-Strike 2, Dota 2, Deadlock, Half-Life: Alyx e SteamVR, cioè i posti dove
+ compaiono le tracce HLX, negli ultimi 12 mesi ({{ ar.n }} aggiornamenti), per ora italiana. <b>Metà arriva tra le
+ {{ ar["metà_da"] }} e le {{ ar["metà_a"] }}</b>, cioè nel pomeriggio di Seattle, e il giorno con più arrivi è il
+ {{ {"lun": "lunedì", "mar": "martedì", "mer": "mercoledì", "gio": "giovedì", "ven": "venerdì", "sab": "sabato", "dom": "domenica"}[ar.giorno_top] }}.
+ HLX Watch le legge al giro dopo, al massimo mezz'ora più tardi.</p>
+ {% set W, H, T = 820, 150, 10 %}{% set bw = (W - 8) / 24 %}
+ <svg class="barre" viewBox="0 0 {{ W }} {{ H + 22 }}" role="img" aria-label="Aggiornamenti per ora italiana">
+  {% for b in ar.ore %}{% set x = 4 + b.ora * bw %}{% set y = T + (H - T) * (1 - b.forza) %}
+   <rect x="{{ x|round(1) }}" y="{{ y|round(1) }}" width="{{ (bw - 3)|round(1) }}" height="{{ (H - y)|round(1) }}" fill="var(--accent)"><title>ore {{ b.ora }}: {{ b.n }} aggiornamenti</title></rect>
+   <text x="{{ (x + bw / 2)|round(1) }}" y="{{ H + 14 }}" font-size="10" text-anchor="middle" fill="currentColor" fill-opacity=".7">{{ b.ora }}</text>
+  {% endfor %}
+ </svg>
+ <p>Gli stessi aggiornamenti per giorno della settimana (ora italiana):</p>
+ <table>
+  <tr>{% for d in ar.giorni %}<th>{{ d.giorno }}</th>{% endfor %}</tr>
+  <tr>{% for d in ar.giorni %}<td>{{ d.n }}</td>{% endfor %}</tr>
+ </table>
+</section>
+{% endif %}
+
+<section>
+ <h2>Come si calcola</h2>
+ <p class="muted"><small>Ogni build di CS2, Dota 2 e Deadlock porta il numero del contatore di Valve e l'ora di Seattle in
+ cui è stata compilata. Tra due build vicine (al massimo {{ o.gap }} ore) le modifiche salvate da tutta Valve si
+ dividono in parti uguali sulle ore che le separano; sommando tutte le coppie si ottiene il ritmo di ogni ora. Il
+ contatore è uno solo per tutta Valve: l'orologio misura il lavoro di tutti i progetti insieme, non solo di HLX. Una
+ casella con meno di {{ o.min_ore|int }} ore di dati resta vuota; un confronto di sera o di fine settimana con meno di
+ {{ o.pochi_ore|int }} ore di dati è segnato come "pochi dati". Le differenze contano da 10 punti in su. Ultima build: {{ o.ultimo|replace("T", " ") }} (Seattle).</small></p>
+</section>
+{% endif %}
+{% endblock %}

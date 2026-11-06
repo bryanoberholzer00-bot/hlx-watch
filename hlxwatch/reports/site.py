@@ -373,6 +373,11 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     (out_dir / "mappa.html").write_text(env.get_template("mappa.html").render(m=mappa.summary(db, outcomes)),
                                         encoding="utf-8")
     write_counter(env, db, out_dir, [t["first"] for t in outcomes["traces"]])
+    # l'orologio di Valve: a che ora lavora Valve e a che ora arrivano le novità in Italia (dopo il contatore, che
+    # carica lo storico delle build)
+    from hlxwatch import orologio
+    (out_dir / "orologio.html").write_text(env.get_template("orologio.html").render(o=orologio.summary(db)),
+                                           encoding="utf-8")
     if not preview_image(brief, out_dir / "anteprima.png", site_url.split("//", 1)[-1].rstrip("/")):
         env.globals["og_image"] = ""
     write_feed(db, out_dir, site_url, ctx)

@@ -133,6 +133,12 @@ def cmd_cron(args: argparse.Namespace) -> int:
         watch_bot(db, pipeline.notifiers if not args.no_notify else [], fast_status(cfg))
     except Exception:
         log.exception("Controllo del bot su Cloudflare non riuscito")
+    # mappa dei collegamenti: avviso quando un pezzo di HLX compare in un posto nuovo o due gruppi si uniscono
+    try:
+        from hlxwatch.mappa import watch as watch_map
+        watch_map(cfg, db, pipeline.notifiers if not args.no_notify else [])
+    except Exception:
+        log.exception("Mappa dei collegamenti: controllo non riuscito")
     # revisione settimanale: dopo il riepilogo, l'AI propone correzioni agli errori della settimana
     try:
         from hlxwatch.revisione import run_review

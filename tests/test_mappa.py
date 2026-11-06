@@ -110,3 +110,99 @@ def test_enemy_linked_only_when_arrived_in_the_same_update():
     assert mappa.summary(_Db(), r)["enemy_linked"] is False
     r["traces"].append(tr("hlx_2d_basic_sound", "2026-09-23", HAMMER, U1))
     assert mappa.summary(_Db(), r)["enemy_linked"] is True
+
+
+# ------------------------------------------------------------------ avviso quando la mappa cambia
+def _fp(r, files=None):
+    g = mappa.graph(r, files or {})
+    return mappa.fingerprint(g, mappa.groups(g))
+
+
+def test_same_map_no_changes():
+    fp = _fp(reg())
+    assert mappa.changes(fp, fp) == []
+
+
+def test_known_piece_in_a_new_place():
+    old = _fp(reg())
+    # la chiave della traccia è il nome in minuscolo (vedi tr): il pezzo di rete ora compare anche nella base comune
+    new = _fp(reg(), {"chlxusercmdpb": {"game/bin/win64/toolframework2_strings.txt"}})
+    lines = mappa.changes(old, new)
+    assert any("CHLXUserCmdPB" in x and "Base comune degli strumenti" in x for x in lines)
+
+
+def test_two_groups_joined():
+    old = _fp(reg())
+    # il pezzo di rete, prima da solo, compare anche in Hammer: il suo gruppo si unisce a quello di Hammer
+    new = _fp(reg(), {"chlxusercmdpb": {HAMMER}})
+    lines = mappa.changes(old, new)
+    assert any(x.startswith("Si sono uniti gruppi") for x in lines)
+
+
+def test_new_piece_joining_a_group_is_told_new_piece_alone_is_not():
+    r = reg()
+    old = _fp(r)
+    r2 = reg()
+    r2["traces"].append(tr("CHLXNuovoHelper", "2026-11-06", HAMMER, "u9"))
+    assert any("CHLXNuovoHelper" in x and "nel gruppo di" in x for x in mappa.changes(old, _fp(r2)))
+    r3 = reg()
+    r3["traces"].append(tr("CHLXIsolato", "2026-11-06", "qualcosa/di/strano.bin", "u10"))
+    assert mappa.changes(old, _fp(r3)) == []
+
+
+class _StateDb:
+    def __init__(self):
+        self.s = {}
+
+    def get_state(self, key, default=None):
+        return self.s.get(key, default)
+
+    def set_state(self, key, value):
+        self.s[key] = value
+
+
+class _Rec:
+    name = "prova"
+
+    def __init__(self):
+        self.sent = []
+
+    def send_text(self, title, text):
+        self.sent.append((title, text))
+        return True
+
+    def send_groups(self, heading, groups):
+        return True
+
+
+class _Cfg:
+    def get(self, key, default=None):
+        return default
+
+
+def test_watch_first_run_silent_then_warns_once(monkeypatch):
+    import hlxwatch.outcomes as outcomes
+    state = {"reg": reg(), "files": {}}
+    monkeypatch.setattr(outcomes, "outcome_register", lambda cfg, db: state["reg"])
+    monkeypatch.setattr(mappa, "files_by_trace", lambda db: state["files"])
+    db, n = _StateDb(), _Rec()
+    assert mappa.watch(_Cfg(), db, [n]) == [] and n.sent == []          # primo giro: salva e basta
+    assert mappa.watch(_Cfg(), db, [n]) == []
+    state["files"] = {"chlxusercmdpb": {HAMMER}}
+    assert mappa.watch(_Cfg(), db, [n])
+    assert len(n.sent) == 1 and n.sent[0][0] == mappa.TITLE and "mappa.html" in n.sent[0][1]
+    assert mappa.watch(_Cfg(), db, [n]) == [] and len(n.sent) == 1    # niente doppioni
+
+
+def test_watch_rules_changed_is_silent(monkeypatch):
+    import hlxwatch.outcomes as outcomes
+    monkeypatch.setattr(outcomes, "outcome_register", lambda cfg, db: reg())
+    monkeypatch.setattr(mappa, "files_by_trace", lambda db: {})
+    db, n = _StateDb(), _Rec()
+    mappa.watch(_Cfg(), db, [n])
+    import json
+    old = json.loads(db.get_state(mappa.STATE_KEY))
+    old["regole"] = "vecchie"
+    old["luoghi"] = {k: [] for k in old["luoghi"]}
+    db.set_state(mappa.STATE_KEY, json.dumps(old))
+    assert mappa.watch(_Cfg(), db, [n]) == [] and n.sent == []

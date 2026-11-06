@@ -139,6 +139,7 @@
      <a href="segnali.html">Prima di un annuncio</a>
      <a href="alyx.html">HLX e Alyx a confronto</a>
      <a href="contatore.html">Il contatore di Valve</a>
+     <a href="orologio.html">L'orologio di Valve</a>
      <a href="analisi.html">Analisi AI</a>
     </div>
     <div class="gruppo"><span class="gtit">Elenchi delle voci</span>
@@ -188,7 +189,8 @@
 </script>
 <main>{% block content %}{% endblock %}</main>
 <script>
-// sul telefono, le tabelle più larghe dello schermo diventano schede (la Ricerca ha le sue, fatte dal suo script)
+// sul telefono, le tabelle più larghe dello schermo diventano schede (la Ricerca ha le sue, fatte dal suo script;
+// le tabelle con la classe "intera", come l'orologio di Valve, restano tabelle e scorrono di lato)
 (function(){
  if(!window.matchMedia('(max-width:700px)').matches)return;
  function check(t){
@@ -201,7 +203,7 @@
   });
   t.classList.add('schede');
  }
- function all(root){[].forEach.call(root.querySelectorAll('table:not(#results)'),check);}
+ function all(root){[].forEach.call(root.querySelectorAll('table:not(#results):not(.intera)'),check);}
  all(document.querySelector('main'));
  // le tabelle dentro un riquadro chiuso si misurano quando lo si apre
  document.querySelectorAll('main details').forEach(function(d){d.addEventListener('toggle',function(){if(d.open)all(d);});});
