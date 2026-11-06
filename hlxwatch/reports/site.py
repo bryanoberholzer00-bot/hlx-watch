@@ -343,7 +343,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     from hlxwatch.reports.brief import brief_data, preview_image
     brief = brief_data(cfg, termo_current, termo, outcomes)
     for name in ("hlx.html", "en.html"):
-        (out_dir / name).write_text(env.get_template(name).render(b=brief), encoding="utf-8")
+        (out_dir / name).write_text(env.get_template(name).render(b=brief, r=risposte), encoding="utf-8")
     # confronto con Half-Life: Alyx (storia chiusa in alyx_seed.json) accanto alle tracce HLX di oggi
     from hlxwatch import alyx
     cmp = alyx.compare(alyx.load_seed(), outcomes, stamp.date().isoformat(), cfg.game_title)

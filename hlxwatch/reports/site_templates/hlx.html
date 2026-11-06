@@ -58,6 +58,41 @@
  <ul class="giochi">{% for g in b.games %}<li><b>{{ g.n }}</b> {{ g.it }}</li>{% endfor %}</ul>
 </section>
 
+{% if r %}
+{% if r.sistemi %}<section>
+ <h2>Di cosa è fatto HLX?</h2>
+ <p>Le {{ r.sistemi.n }} tracce diverse toccano {{ r.sistemi.count }} sistemi del gioco. Quelli con più tracce:
+ {% for x in r.sistemi.top %}<b>{{ x.name|lower }}</b> ({{ x.n }}){% if not loop.last %}, {% endif %}{% endfor %}.
+ {% if r.sistemi.empty %}Ancora nessuna traccia: {{ r.sistemi.empty|join(" e ")|lower }}, cioè le parti che servono quando un
+ gioco si avvicina all'uscita.{% endif %} <a href="sistemi.html">Tutti i sistemi, anno per anno</a></p>
+</section>{% endif %}
+
+{% if r.vr %}<section>
+ <h2>È un gioco VR?</h2>
+ <p><b>I dati non lo dicono.</b> Nessuna delle {{ r.vr.hlx_n }} tracce parla di realtà virtuale (mani, controller,
+ visore){% if r.vr.alyx_n %}, ma nemmeno i {{ r.vr.alyx_n }} nomi di Half-Life: Alyx lo facevano prima del suo annuncio:
+ l'unica cosa che diceva "VR" era il nome del progetto, HLVR{% endif %}. <a href="sistemi.html#vr">Gli indizi uno per uno</a></p>
+</section>{% endif %}
+
+{% if r.segnali %}<section>
+ <h2>Cosa manca prima di un annuncio?</h2>
+ <p>Prima degli annunci di Alyx, CS2, Steam Deck, Deadlock e Steam Frame si sono visti fino a 6 tipi di segnali nei file
+ pubblici. Per HLX ce ne sono <b>{{ r.segnali.have }} su {{ r.segnali.total }}</b>; mancano {{ r.segnali.missing|join(", ")|lower|replace("steamtracking", "SteamTracking") }}.
+ Gli unici arrivati poche settimane prima di un annuncio sono il sito del gioco (Deadlock: 79 giorni prima) e un
+ archivio nuovo su SteamTracking (14 giorni prima): HLX Watch li controlla tutti e due. <a href="segnali.html">I segnali, gioco per gioco</a></p>
+ <p>Un confronto diretto: il messaggio con i comandi del giocatore di HLX e quello di Deadlock sono comparsi nei file lo
+ stesso giorno, il 9 giugno 2022. Deadlock è stato annunciato 806 giorni dopo, HLX non ancora.
+ <a href="sistemi.html#gemelli">HLX accanto agli altri giochi</a></p>
+</section>{% endif %}
+
+{% if r.passato %}<section>
+ <h2>Questo sistema funziona davvero?</h2>
+ <p>HLX Watch è stato fatto girare sui file del passato, senza conoscere i nomi dei progetti. Avrebbe dato un avviso
+ {% for p in r.passato %}su <b>{{ p.project }}</b> {{ p.days }} giorni prima dell'annuncio{% if not loop.last %}, {% endif %}{% endfor %}.
+ Non vuol dire che vedrà tutto: molti segnali arrivano senza un nome chiaro. <a href="metodologia.html#passato">La prova sul passato</a></p>
+</section>{% endif %}
+{% endif %}
+
 <section>
  <h2>Come si fa a saperlo, se Valve non dice niente?</h2>
  <p>Ogni aggiornamento dei giochi su Steam porta con sé file pubblici: testi, nomi di classi del motore Source 2,

@@ -58,6 +58,49 @@ The rest of the site is in Italian; the entries themselves (code strings, file n
  <ul class="giochi">{% for g in b.games %}<li><b>{{ g.n }}</b> {{ g.en }}</li>{% endfor %}</ul>
 </section>
 
+{% if r %}
+{% set sys_en = {"Particelle ed effetti": "particles and effects", "Nemici e intelligenza artificiale": "enemies and AI",
+   "Fisica": "physics", "Suono": "sound", "Strumenti di lavoro": "Valve's work tools", "Comandi del giocatore e rete": "player input and networking",
+   "Armi, proiettili e oggetti": "weapons, projectiles and items", "Mondo di gioco": "game world", "Grafica e prestazioni": "graphics and performance",
+   "Testi tradotti": "translated text", "Interfaccia": "user interface", "Altro": "other"} %}
+{% set sig_en = {"Nome in codice nei file": "code name in the files", "Primo avviso di HLX Watch": "first HLX Watch alert",
+   "Menu o schermate": "menus or screens", "Testi tradotti": "translated text", "Sito nei certificati": "website in the certificates",
+   "Repository nuovo su SteamTracking": "new SteamTracking repository"} %}
+{% if r.sistemi %}<section>
+ <h2>What is HLX made of?</h2>
+ <p>Its {{ r.sistemi.n }} distinct traces touch {{ r.sistemi.count }} parts of a game. The ones with the most traces:
+ {% for x in r.sistemi.top %}<b>{{ sys_en.get(x.name, x.name) }}</b> ({{ x.n }}){% if not loop.last %}, {% endif %}{% endfor %}.
+ {% if r.sistemi.empty %}No traces yet in {% for e in r.sistemi.empty %}{{ sys_en.get(e, e) }}{% if not loop.last %} or {% endif %}{% endfor %},
+ the parts a game needs when it gets close to release.{% endif %} <a href="sistemi.html">All the systems, year by year</a> (in Italian)</p>
+</section>{% endif %}
+
+{% if r.vr %}<section>
+ <h2>Is it a VR game?</h2>
+ <p><b>The data doesn't say.</b> Not a single trace ({{ r.vr.hlx_n }} in all) mentions virtual reality (hands, controllers,
+ headset){% if r.vr.alyx_n %}, but neither did the {{ r.vr.alyx_n }} Half-Life: Alyx names before it was announced: the only
+ thing that said "VR" was the project name, HLVR{% endif %}. <a href="sistemi.html#vr">The clues one by one</a> (in Italian)</p>
+</section>{% endif %}
+
+{% if r.segnali %}<section>
+ <h2>What is still missing before an announcement?</h2>
+ <p>Before Valve announced Alyx, CS2, Steam Deck, Deadlock and Steam Frame, up to 6 kinds of signals showed up in the
+ public files. HLX has <b>{{ r.segnali.have }} of {{ r.segnali.total }}</b>; still missing:
+ {% for m in r.segnali.missing %}{{ sig_en.get(m, m) }}{% if not loop.last %}, {% endif %}{% endfor %}. The only ones that came
+ a few weeks before an announcement were the game's website (Deadlock: 79 days before) and a new SteamTracking repository
+ (14 days before). HLX Watch watches both. <a href="segnali.html">The signals, game by game</a> (in Italian)</p>
+ <p>A direct comparison: HLX's player input message and Deadlock's appeared in the files on the same day, June 9, 2022.
+ Deadlock was announced 806 days later; HLX hasn't been yet.</p>
+</section>{% endif %}
+
+{% if r.passato %}<section>
+ <h2>Does this actually work?</h2>
+ <p>HLX Watch was run on past files without knowing the projects' names. It would have raised an alert
+ {% for p in r.passato %}on <b>{{ p.project }}</b> {{ p.days }} days before the announcement{% if not loop.last %}, {% endif %}{% endfor %}.
+ That doesn't mean it will catch everything: many signals come without a clear name.
+ <a href="metodologia.html#passato">The backtest</a> (in Italian)</p>
+</section>{% endif %}
+{% endif %}
+
 <section>
  <h2>How can anyone know, if Valve says nothing?</h2>
  <p>Every game update on Steam ships public files: text strings, Source 2 engine class names, resource lists.
