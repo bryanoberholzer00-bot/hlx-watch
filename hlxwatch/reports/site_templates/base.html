@@ -29,7 +29,12 @@
  .more{position:relative} .more-btn{background:transparent;color:#fff;opacity:.85;border:0;cursor:pointer;font:inherit}
  .more .menu{display:none;position:absolute;right:0;top:100%;margin-top:.3rem;background:#262c39;border:1px solid #3a4152;
   border-radius:8px;padding:.3rem;min-width:13rem;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.35)}
- .more.open .menu{display:flex;flex-direction:column} .more .menu a{padding:.45rem .7rem}
+ .more.open .menu{display:grid;grid-template-columns:repeat(3,auto);gap:0 .4rem} .more .menu a{padding:.45rem .7rem;white-space:nowrap}
+ .more .gruppo{display:flex;flex-direction:column} .more .gruppo+.gruppo{border-left:1px solid #3a4152;padding-left:.4rem}
+ .more .gtit{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:#9aa3b2;padding:.5rem .7rem .25rem;white-space:nowrap}
+ /* su schermi larghi la barra si allinea al contenuto, che è centrato e largo al massimo 1250 pixel */
+ @media(min-width:1300px){header{padding-left:calc((100% - 1250px)/2 + 1rem);padding-right:calc((100% - 1250px)/2 + 1rem)}}
+ @media(max-width:700px){.more .gruppo+.gruppo{border-left:0;padding-left:0;border-top:1px solid #3a4152;margin-top:.3rem}}
  .navbtn{display:none;background:transparent;border:1px solid #4b5366;color:#fff;font-size:1.15rem;line-height:1;padding:.3rem .55rem}
  header .updated{margin-left:auto;font-size:.8rem;color:#9aa3b2}
  @media(max-width:1000px){header .updated{display:none} #push-btn{margin-left:auto}}
@@ -127,20 +132,26 @@
   <div class="more">
    <button class="more-btn" aria-expanded="false" aria-haspopup="true">Altro &#9662;</button>
    <div class="menu">
-    <a href="hlx.html">HLX in breve</a>
-    <a href="alyx.html">HLX e Alyx a confronto</a>
-    <a href="sistemi.html">Di cosa è fatto HLX</a>
-    <a href="segnali.html">Prima di un annuncio</a>
-    <a href="contatore.html">Il contatore di Valve</a>
-    <a href="analisi.html">Analisi AI</a>
-    <a href="search.html?min=100">Alta rilevanza</a>
-    <a href="search.html?new=1&min=50">Nuove</a>
-    <a href="reports/report-1d.html">Ultime 24 ore</a>
-    <a href="reports/report-7d.html">Ultimi 7 giorni</a>
-    <a href="reports/report-30d.html">Ultimi 30 giorni</a>
-    <a href="metodologia.html">Metodologia</a>
-    <a href="en.html" lang="en">English</a>
-    <a href="https://github.com/bryanoberholzer00-bot/hlx-watch/releases/download/android-latest/hlx-watch.apk">App Android</a>
+    <div class="gruppo"><span class="gtit">Capire HLX</span>
+     <a href="hlx.html">HLX in breve</a>
+     <a href="sistemi.html">Di cosa è fatto HLX</a>
+     <a href="segnali.html">Prima di un annuncio</a>
+     <a href="alyx.html">HLX e Alyx a confronto</a>
+     <a href="contatore.html">Il contatore di Valve</a>
+     <a href="analisi.html">Analisi AI</a>
+    </div>
+    <div class="gruppo"><span class="gtit">Elenchi delle voci</span>
+     <a href="search.html?min=100">Alta rilevanza</a>
+     <a href="search.html?new=1&min=50">Nuove</a>
+     <a href="reports/report-1d.html">Ultime 24 ore</a>
+     <a href="reports/report-7d.html">Ultimi 7 giorni</a>
+     <a href="reports/report-30d.html">Ultimi 30 giorni</a>
+    </div>
+    <div class="gruppo"><span class="gtit">Su HLX Watch</span>
+     <a href="metodologia.html">Metodologia</a>
+     <a href="en.html" lang="en">English</a>
+     <a href="https://github.com/bryanoberholzer00-bot/hlx-watch/releases/download/android-latest/hlx-watch.apk">App Android</a>
+    </div>
    </div>
   </div>
  </nav>
