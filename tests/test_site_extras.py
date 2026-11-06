@@ -80,7 +80,8 @@ def test_source_status_and_hardware(tmp_path):
 
     out = build_site(db, cfg, tmp_path / "site")
     index = (out / "index.html").read_text(encoding="utf-8")
-    assert "Stato delle fonti" in index and "fermo da più di due settimane" in index
+    assert "Stato delle fonti" in index and 'href="stato.html"' in index
+    assert "fermo da più di due settimane" in (out / "stato.html").read_text(encoding="utf-8")
     hardware = (out / "hardware.html").read_text(encoding="utf-8")
     assert "deckard" in hardware and "2AES4" in hardware and "EV3" in hardware
     metodo = (out / "metodologia.html").read_text(encoding="utf-8")

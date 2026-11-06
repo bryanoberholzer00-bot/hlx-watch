@@ -327,6 +327,10 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
         analysis=analyses[0] if analyses else None, status=status, r=risposte,
     )
     (out_dir / "index.html").write_text(index_html, encoding="utf-8")
+    # stato di HLX Watch: giri su GitHub e bot letti dal browser, le fonti dall'ultimo giro
+    (out_dir / "stato.html").write_text(env.get_template("stato.html").render(
+        status=status, repo=str(cfg.get("general.repo", "") or "bryanoberholzer00-bot/hlx-watch"),
+        bot_url=str((cfg.get("fast_check", {}) or {}).get("status_url") or "")), encoding="utf-8")
     (out_dir / "hardware.html").write_text(env.get_template("hardware.html").render(hw=hardware_data(cfg, db)),
                                            encoding="utf-8")
     (out_dir / "esiti.html").write_text(env.get_template("esiti.html").render(reg=outcomes),

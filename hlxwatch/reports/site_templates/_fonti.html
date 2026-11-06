@@ -1,0 +1,25 @@
+{# stato delle fonti: incluso nella pagina Stato (variabile status) #}
+ <p class="muted"><small>Tutto dipende da SteamTracking, mantenuto da una sola persona, e da Steam. Se una fonte tace si vede qui,
+ invece di sembrare "nessuna novità". Ultimo controllo {{ status.last_scan|local if status.last_scan else 'mai' }};
+ ultima scansione completa {{ status.last_fullscan|local if status.last_fullscan else 'mai' }};
+ ultima prova di ripristino della copia settimanale: {% if status.restore %}{{ status.restore.at|local }}{% if status.restore.ok %} (riuscita){% else %} (<b>NON riuscita</b>: {{ status.restore.problemi|join('; ') }}){% endif %}{% else %}mai{% endif %};
+ <a href="metodologia.html#errori">registro degli errori</a>: {% if status.lezioni %}{{ status.lezioni.n }} esempi{% if status.lezioni.ok %}, tutti rispettati{% else %}, <b>{{ status.lezioni.falliti|length }} non rispettati</b>: {{ status.lezioni.falliti|map(attribute="problema")|join('; ') }}{% endif %}{% else %}mai controllato{% endif %};
+ ultimo <a href="metodologia.html#controllo-sito">controllo automatico del sito</a>: {% if status.site_check %}{{ status.site_check.at|local }}{% if status.site_check.ok %} (tutto a posto){% else %} (<b>{{ status.site_check.problemi|length }} problem{{ 'a' if status.site_check.problemi|length == 1 else 'i' }}</b>: {{ status.site_check.problemi|join('; ') }}){% endif %}{% else %}mai{% endif %};
+ ultima <a href="metodologia.html#prova">prova generale dell'annuncio</a>: {% if status.drill %}{{ status.drill.at|local }}{% if not status.drill.ok %} (invio non riuscito){% endif %}{% else %}mai{% endif %}.</small></p>
+ <table>
+  <tr><th>Repository</th><th>Ultimo commit</th><th>Ultimo riassunto AI</th></tr>
+  {% for r in status.repos %}
+  <tr{% if r.stale %} class="high"{% endif %}><td><a href="https://github.com/{{ r.repo }}/commits">{{ r.title }}</a></td>
+   <td>{% if r.last_commit %}{{ r.last_commit }} <small class="muted">({{ r.days }} giorni fa)</small>{% else %}<span class="muted">nessuno</span>{% endif %}
+       {% if r.stale %}<br><small>fermo da più di due settimane</small>{% endif %}</td>
+   <td>{{ r.summary or '—' }}</td></tr>
+  {% endfor %}
+ </table>
+ {% if status.fast %}<p><small>Controllo veloce dell'annuncio (ogni 10 minuti, sul bot):
+ {% if status.fast.irraggiungibile %}<b>il bot non risponde</b>{% elif status.fast.fermo %}<b>fermo</b>{% if status.fast.ultimo_ok %}, ultimo giro riuscito {{ status.fast.ultimo_ok|local }}{% endif %}{% else %}ultimo giro riuscito {{ status.fast.ultimo_ok|local }}{% endif %}.
+ {% if status.fast.avvio %}Giro completo: {% if status.fast.avvio.attivo %}avviato dal bot ogni 30 minuti{% if status.fast.avvio.scadenza %} (token valido fino al {{ status.fast.avvio.scadenza[8:10] }}/{{ status.fast.avvio.scadenza[5:7] }}/{{ status.fast.avvio.scadenza[:4] }}){% endif %}{% elif status.fast.avvio.token %}<b>il bot non riesce più ad avviarlo</b> (token rifiutato da GitHub), restano i run pianificati{% else %}solo i run pianificati di GitHub (irregolari, anche ogni 4-5 ore){% endif %}.{% endif %}</small></p>{% endif %}
+ {% if status.changes_gap_recent %}<p><small>Steam ha saltato l'elenco delle app cambiate il {{ status.changes_gap|local }}, anche se dal giro precedente erano passate solo {{ status.changes_gap_hours }} ore: le app private vengono ricontrollate.</small></p>{% endif %}
+ {% if status.rumore %}<p><small>Tipi di voce silenziati con il pulsante 👎 su Telegram (niente avvisi, ma restano qui e nella ricerca):
+ {% for r in status.rumore.values() %}{{ r.descrizione }} (es. <code>{{ r.esempio[:50] }}</code>){% if not loop.last %}; {% endif %}{% endfor %}.
+ Per annullare, ripremi il pulsante sotto il messaggio.</small></p>{% endif %}
+ {% if status.problems %}<p><small><b>Fonti con errori:</b> {% for p in status.problems %}{{ p.source }} ({{ p.fails }} run di fila{% if p.last_ok %}, ultimo ok {{ p.last_ok }}{% endif %}){% if not loop.last %}; {% endif %}{% endfor %}</small></p>{% endif %}

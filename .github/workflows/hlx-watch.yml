@@ -190,8 +190,8 @@ jobs:
 
       - name: Salva il database per il prossimo run
         if: always() && steps.guard.outputs.ok != 'false'
-        # il 6/11/2026 questo passo si è bloccato per 20 minuti e avrebbe fermato i giri per 5 ore: la copia
-        # permanente è comunque nel ramo data, salvata più avanti
+        # se la cache di GitHub non risponde, dopo 10 minuti si va avanti invece di aspettare il limite del lavoro
+        # (300 minuti, con i giri successivi in coda): la copia permanente è comunque nel ramo data, salvata più avanti
         timeout-minutes: 10
         continue-on-error: true
         uses: actions/cache/save@v6

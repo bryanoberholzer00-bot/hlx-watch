@@ -104,10 +104,10 @@ def test_site_renders_fast_check_status(tmp_path, monkeypatch):
     import hlxwatch.reports.site as site
     cfg, db = make(tmp_path)
     monkeypatch.setattr(site, "fast_status", lambda cfg: {"ultimo_ok": "2026-10-30T17:30:00Z", "minuti": 5, "fermo": False})
-    html = (build_site(db, cfg, tmp_path / "a") / "index.html").read_text(encoding="utf-8")
+    html = (build_site(db, cfg, tmp_path / "a") / "stato.html").read_text(encoding="utf-8")
     assert "Controllo veloce dell'annuncio" in html and "ultimo giro riuscito 2026-10-30 18:30" in html
     monkeypatch.setattr(site, "fast_status", lambda cfg: {"ultimo_ok": None, "minuti": None, "fermo": True,
                                                           "irraggiungibile": True})
-    html = (build_site(db, cfg, tmp_path / "b") / "index.html").read_text(encoding="utf-8")
+    html = (build_site(db, cfg, tmp_path / "b") / "stato.html").read_text(encoding="utf-8")
     assert "il bot non risponde" in html
     db.close()

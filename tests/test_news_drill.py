@@ -171,7 +171,7 @@ def test_drill_sends_marks_state_and_reaches_the_app(tmp_path):
     assert first["a"] == 1 and first["p"] == 1 and first["u"] == "https://example/metodologia.html#prova"
 
     site = build_site(db, cfg, tmp_path / "site")
-    assert "prova generale dell'annuncio</a>: 20" in (site / "index.html").read_text(encoding="utf-8")
+    assert "prova generale dell'annuncio</a>: 20" in (site / "stato.html").read_text(encoding="utf-8")
     assert 'id="prova"' in (site / "metodologia.html").read_text(encoding="utf-8")
     assert "Annunci di Steam" in (site / "metodologia.html").read_text(encoding="utf-8")
 

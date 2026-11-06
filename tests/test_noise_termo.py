@@ -71,7 +71,7 @@ def test_vote_mutes_the_same_kind_but_never_hlx(tmp_path):
         def get(self, *a, **k):
             raise OSError("giù")
     assert noise.refresh(cfg, db, session=Down()) is None and noise.rules(db)
-    html = (build_site(db, cfg, tmp_path / "site") / "index.html").read_text(encoding="utf-8")
+    html = (build_site(db, cfg, tmp_path / "site") / "stato.html").read_text(encoding="utf-8")
     assert "silenziati con il pulsante 👎" in html and "Deadlock" in html
     db.close()
 

@@ -84,7 +84,7 @@ def test_good_copy_passes_and_shows_on_site(tmp_path):
     assert result["ok"] and result["file"] == "hlxwatch-2026-W44.sqlite.gz"
     assert result["conteggi"]["findings"] == 20 and n.sent == []
     assert check.run([n]) is None                               # una volta a settimana
-    html = (build_site(db, cfg, tmp_path / "site") / "index.html").read_text(encoding="utf-8")
+    html = (build_site(db, cfg, tmp_path / "site") / "stato.html").read_text(encoding="utf-8")
     assert "ultima prova di ripristino della copia settimanale" in html and "(riuscita)" in html
     db.close()
 

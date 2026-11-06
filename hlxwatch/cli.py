@@ -126,6 +126,13 @@ def cmd_cron(args: argparse.Namespace) -> int:
         maybe_weekly(cfg, db, pipeline.notifiers if not args.no_notify else [], report_time, send=not args.no_notify)
     except Exception:
         log.exception("Riepilogo settimanale fallito")
+    # il bot su Cloudflare avvia i giri e li sorveglia: qui si controlla che sia vivo (hlxwatch/stato.py)
+    try:
+        from hlxwatch.reports.site_extras import fast_status
+        from hlxwatch.stato import watch_bot
+        watch_bot(db, pipeline.notifiers if not args.no_notify else [], fast_status(cfg))
+    except Exception:
+        log.exception("Controllo del bot su Cloudflare non riuscito")
     # revisione settimanale: dopo il riepilogo, l'AI propone correzioni agli errori della settimana
     try:
         from hlxwatch.revisione import run_review

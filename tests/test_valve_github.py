@@ -108,7 +108,7 @@ def test_site_says_whether_the_bot_starts_the_runs(tmp_path, monkeypatch):
              ({"attivo": False, "token": False, "errore": None}, "solo i run pianificati di GitHub")]
     for i, (avvio, text) in enumerate(cases):
         monkeypatch.setattr(site, "fast_status", lambda cfg, a=avvio: {**base, "avvio": a})
-        html = (build_site(db, cfg, tmp_path / f"s{i}") / "index.html").read_text(encoding="utf-8")
+        html = (build_site(db, cfg, tmp_path / f"s{i}") / "stato.html").read_text(encoding="utf-8")
         assert text in html
     met = (tmp_path / "s0" / "metodologia.html").read_text(encoding="utf-8")
     assert "ValveSoftware" in met

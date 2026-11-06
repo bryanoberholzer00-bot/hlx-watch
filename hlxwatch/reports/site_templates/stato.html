@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Stato di HLX Watch{% endblock %}
+{% block description %}Se HLX Watch sta funzionando: l'ultimo giro su GitHub, il prossimo, il bot che li avvia e lo stato di ogni fonte.{% endblock %}
+{% block content %}
+<style>
+ .verdetto{display:flex;gap:.7rem;align-items:flex-start;border:1px solid var(--line);border-left:6px solid var(--muted);
+  border-radius:8px;padding:.8rem 1rem;margin:.6rem 0 1rem;background:var(--card)}
+ .verdetto b{font-size:1.1rem} .verdetto p{margin:.2rem 0 0}
+ .verdetto.ok{border-left-color:#2e9d4f} .verdetto.attenzione{border-left-color:#e5893b} .verdetto.guasto{border-left-color:#d64545}
+ .verdetto .pallino{font-size:1.3rem;line-height:1.2;color:var(--muted)} .verdetto.ok .pallino{color:#2e9d4f}
+ .verdetto.attenzione .pallino{color:#e5893b} .verdetto.guasto .pallino{color:#d64545}
+ .numeri{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin:.4rem 0 1rem}
+ @media(max-width:700px){.numeri{grid-template-columns:1fr}}
+ .numeri>div{border:1px solid var(--line);border-radius:8px;padding:.6rem .9rem}
+ .numeri .etichetta{display:block;font-size:.8rem;color:var(--muted)} .numeri .valore{font-size:1.15rem;font-weight:700}
+ table.giri td,table.giri th{font-size:.88rem;white-space:nowrap} .tabwrap{overflow-x:auto}
+ .esito-ok{color:#2e9d4f;font-weight:600} .esito-ko{color:#d64545;font-weight:600} .esito-corso{color:#e5893b;font-weight:600}
+ .sorveglianza li{margin:.3rem 0}
+</style>
+<div class="breve">
+<h1>Stato di HLX Watch</h1>
+<p class="muted">Se HLX Watch sta funzionando adesso: l'ultimo giro su GitHub, il prossimo, il bot che li avvia e lo
+stato di ogni fonte. La prima parte si aggiorna ogni volta che apri la pagina; le fonti sono quelle dell'ultimo giro. Pagina generata
+{{ generated }}.</p>
+</div>
+
+<section id="adesso">
+ <div class="verdetto" id="verdetto"><span class="pallino">&#9679;</span><div><b id="verdetto-titolo">Controllo in corso…</b>
+  <p id="verdetto-testo" class="muted">Leggo i giri da GitHub e lo stato del bot.</p></div></div>
+ <div class="numeri">
+  <div><span class="etichetta">Ultimo giro riuscito</span><span class="valore" id="n-ultimo">—</span></div>
+  <div><span class="etichetta">Prossimo giro</span><span class="valore" id="n-prossimo">—</span></div>
+  <div><span class="etichetta">Bot su Cloudflare</span><span class="valore" id="n-bot">—</span></div>
+ </div>
+ <h2>Ultimi giri</h2>
+ <div class="tabwrap"><table class="giri" id="giri"><tr><th>Partito</th><th>Durata</th><th>Esito</th><th>Avvio</th></tr>
+  <tr><td colspan="4" class="muted">Caricamento…</td></tr></table></div>
+ <p class="muted"><small>I giri vengono dalla scheda Actions del repository su GitHub; un giro normale dura un paio di minuti, la scansione completa di più.</small></p>
+</section>
+
+<section id="fonti">
+ <h2>Le fonti</h2>
+ {% include "_fonti.html" %}
+</section>
+
+<section id="sorveglianza">
+ <h2>Chi sorveglia chi</h2>
+ <ul class="sorveglianza">
+  <li><b>Il bot sorveglia i giri.</b> Ogni 10 minuti il bot su Cloudflare guarda gli ultimi giri su GitHub, ne avvia
+   uno nuovo ogni 30 minuti e avvisa su Telegram se un giro è bloccato da più di 75 minuti, se gli ultimi due sono
+   falliti o se non ne parte nessuno da più di 80 minuti. Un avviso per guasto, e uno quando tutto torna a posto.</li>
+  <li><b>I giri sorvegliano il bot.</b> A ogni giro HLX Watch legge lo stato del bot: se non risponde, o se non segna
+   un giro riuscito da più di due ore e mezza, avvisa. Così un guasto del bot non resta nascosto.</li>
+  <li><b>Il bot sorveglia il sito.</b> Ogni 6 ore controlla quando il sito è stato aggiornato, e avvisa se è fermo da
+   12 ore.</li>
+  <li><b>Il token che avvia i giri</b> ha una scadenza: il bot avvisa 7 giorni e 1 giorno prima.</li>
+  <li><b>Il salvataggio dell'archivio</b> non può più bloccare tutto: dopo 10 minuti si va avanti, e la copia
+   permanente resta nel ramo <code>data</code>.</li>
+ </ul>
+</section>
+
+<script>
+(function(){
+ var REPO={{ repo|tojson }}, BOT={{ bot_url|tojson }}, OGNI=30;
+ function $(id){return document.getElementById(id);}
+ function min(ms){return Math.round(ms/60000);}
+ function fa(m){ if(m<1) return "adesso"; if(m<60) return m+" min fa"; var h=Math.floor(m/60); if(h<48) return h+" h "+(m%60)+" min fa"; return Math.floor(h/24)+" giorni fa"; }
+ function ora(d){ return d.toLocaleString("it-IT",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Rome"}); }
+ function verdetto(cls,titolo,testo){ var v=$("verdetto"); v.className="verdetto "+cls; $("verdetto-titolo").textContent=titolo; $("verdetto-testo").textContent=testo; }
+ function leggi(url){ return fetch(url,{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); }); }
+ var runsUrl="https://api.github.com/repos/"+REPO+"/actions/workflows/hlx-watch.yml/runs?per_page=10";
+ Promise.all([leggi(runsUrl).catch(function(){return null;}), BOT ? leggi(BOT).catch(function(){return {irraggiungibile:true};}) : Promise.resolve(null)])
+ .then(function(res){
+  var runs=res[0]&&res[0].workflow_runs, bot=res[1], now=Date.now();
+  // bot
+  var botOk=null;
+  if(bot){ botOk=!bot.irraggiungibile && !bot.fermo; $("n-bot").textContent = bot.irraggiungibile ? "non risponde" : (bot.fermo ? "fermo" : "attivo"); }
+  else { $("n-bot").textContent="non configurato"; }
+  var guasto = bot && bot.avvio && bot.avvio.giri;
+  if(!runs){
+   verdetto("attenzione","Non riesco a leggere i giri da GitHub","GitHub non risponde a questa pagina adesso (o hai fatto troppe richieste in un'ora): riprova tra poco. Lo stato delle fonti qui sotto è quello dell'ultimo giro.");
+   var t0=$("giri"); t0.rows[1].cells[0].textContent="Non disponibili in questo momento."; return;
+  }
+  // tabella
+  var tab=$("giri"); while(tab.rows.length>1) tab.deleteRow(1);
+  var lastOk=null, busy=null;
+  runs.forEach(function(r){
+   var start=new Date(r.run_started_at||r.created_at), end=new Date(r.updated_at), row=tab.insertRow(-1);
+   var c0=row.insertCell(-1), a=document.createElement("a"); a.href=r.html_url; a.textContent=ora(new Date(r.created_at)); a.rel="noopener"; c0.appendChild(a);
+   var c1=row.insertCell(-1), c2=row.insertCell(-1), c3=row.insertCell(-1);
+   if(r.status==="completed"){
+    c1.textContent=Math.max(1,min(end-start))+" min";
+    var lab={success:["riuscito","esito-ok"],failure:["fallito","esito-ko"],cancelled:["annullato",""],timed_out:["scaduto","esito-ko"],skipped:["saltato",""]}[r.conclusion]||[r.conclusion||"?",""];
+    c2.textContent=lab[0]; if(lab[1]) c2.className=lab[1];
+    if(r.conclusion==="success" && !lastOk) lastOk=r;
+   } else {
+    c1.textContent="—"; c2.textContent=(r.status==="queued"?"in coda da ":"in corso da ")+min(now-new Date(r.created_at))+" min"; c2.className="esito-corso";
+    if(!busy) busy=r;
+   }
+   c3.textContent=r.event==="schedule"?"pianificato":(r.event==="workflow_dispatch"?"bot o a mano":r.event);
+  });
+  // numeri
+  var okAge = lastOk ? min(now-new Date(lastOk.updated_at)) : null;
+  $("n-ultimo").textContent = lastOk ? fa(okAge) : "nessuno tra gli ultimi";
+  var attivo = bot && bot.avvio && bot.avvio.attivo;
+  if(busy){ $("n-prossimo").textContent="in corso adesso"; }
+  else if(attivo){ var last=new Date(runs[0].created_at), next=new Date(last.getTime()+OGNI*60000);
+   $("n-prossimo").textContent = next.getTime()<=now ? "a momenti" : "verso le "+next.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit",timeZone:"Europe/Rome"}); }
+  else { $("n-prossimo").textContent="quando GitHub ha posto"; }
+  // verdetto
+  var testi={bloccato:"Un giro è bloccato: finché non finisce, i successivi aspettano e il sito non si aggiorna.",
+   falliti:"Gli ultimi due giri sono falliti: il sito resta fermo all'ultimo giro riuscito.",
+   fermo:"Il bot dovrebbe avviare un giro ogni 30 minuti, ma GitHub non ne fa partire."};
+  if(guasto){ verdetto("guasto","Guasto: "+({bloccato:"giro bloccato",falliti:"giri falliti",fermo:"nessun giro"}[guasto.tipo]||guasto.tipo), (testi[guasto.tipo]||"")+" Il proprietario è già stato avvisato."); }
+  else if(busy && min(now-new Date(busy.created_at))>75){ verdetto("guasto","Un giro è in corso da "+min(now-new Date(busy.created_at))+" minuti",testi.bloccato); }
+  else if(okAge===null || okAge>80){ verdetto("attenzione","Nessun giro riuscito "+(okAge===null?"tra gli ultimi":"da "+fa(okAge).replace(" fa","")),"Di solito ce n'è uno ogni 30 minuti. Se dura, il proprietario riceve un avviso."); }
+  else if(bot && !botOk){ verdetto("attenzione","Il bot su Cloudflare "+(bot.irraggiungibile?"non risponde":"è fermo"),"I giri su GitHub continuano, ma più di rado, e gli avvisi veloci dell'annuncio non partono."); }
+  else { verdetto("ok","Tutto funziona","Ultimo giro riuscito "+fa(okAge)+". Un giro ogni 30 minuti, sorvegliato dal bot."); }
+ });
+})();
+</script>
+{% endblock %}

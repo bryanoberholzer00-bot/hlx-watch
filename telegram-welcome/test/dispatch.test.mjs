@@ -42,7 +42,7 @@ test("senza token non fa niente", async () => {
     const r = await dispatchRun({ SUBS: new FakeKV() }, async () => {}, now);
     assert.equal(r.done, false);
     assert.equal(calls.length, 0);
-    assert.deepEqual(await dispatchStatus({ SUBS: new FakeKV() }), { attivo: false, token: false, errore: null, scadenza: null });
+    assert.deepEqual(await dispatchStatus({ SUBS: new FakeKV() }), { attivo: false, token: false, errore: null, scadenza: null, giri: null });
   } finally {
     globalThis.fetch = realFetch;
   }
@@ -75,7 +75,7 @@ test("avvia il run, e avvisa una volta sola se il token viene rifiutato", async 
     assert.equal((await dispatchRun(env, tg, now)).done, true);
     assert.equal(sent.length, 2);
     assert.match(sent[1], /di nuovo/);
-    assert.deepEqual(await dispatchStatus(env), { attivo: true, token: true, errore: null, scadenza: null });
+    assert.deepEqual(await dispatchStatus(env), { attivo: true, token: true, errore: null, scadenza: null, giri: null });
   } finally {
     globalThis.fetch = realFetch;
   }

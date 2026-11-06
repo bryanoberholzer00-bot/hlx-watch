@@ -9,6 +9,8 @@
 // salvato come segreto del Worker: wrangler secret put GH_DISPATCH_TOKEN. Senza token il modulo non fa niente.
 // Se GitHub rifiuta il token (scaduto o revocato) il proprietario riceve un solo avviso; un altro quando riparte.
 
+import { runsStatus, watchRuns } from "./giri.js";
+
 export const REPO = "bryanoberholzer00-bot/hlx-watch";
 export const WORKFLOW = "hlx-watch.yml";
 const BRANCH = "main";
@@ -104,6 +106,12 @@ export async function dispatchRun(env, sendTelegram, now = Date.now()) {
   console.log("scadenza del token secondo GitHub:", expiryHeader || "nessuna (token senza scadenza?)");
   await checkExpiry(env, expiryHeader, sendTelegram, now);
   const runs = ((await list.json()).workflow_runs || []);
+  // la stessa lista dice anche se un giro è bloccato, se falliscono o se non ne parte nessuno (src/giri.js)
+  try {
+    await watchRuns(env, runs, sendTelegram, now);
+  } catch (err) {
+    console.log("sorveglianza dei giri non riuscita:", String(err));
+  }
   const decision = shouldDispatch(runs, now);
   if (!decision.go) {
     await recovered(env, sendTelegram);
@@ -129,5 +137,5 @@ export async function dispatchStatus(env) {
   const error = env.SUBS ? await env.SUBS.get(ERROR_KEY) : null;
   const expiry = env.SUBS ? await env.SUBS.get(EXPIRY_KEY) : null;
   return { attivo: Boolean(env.GH_DISPATCH_TOKEN) && !error, token: Boolean(env.GH_DISPATCH_TOKEN), errore: error || null,
-    scadenza: env.GH_DISPATCH_TOKEN ? expiry || null : null };
+    scadenza: env.GH_DISPATCH_TOKEN ? expiry || null : null, giri: await runsStatus(env) };
 }
