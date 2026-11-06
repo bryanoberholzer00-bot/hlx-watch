@@ -66,7 +66,7 @@ def visit_data(db: Any, reg: dict[str, Any], days: int = 120) -> dict[str, Any]:
             else:
                 found.setdefault(key, r["created_at"] or "")
     traces: list[dict[str, Any]] = []
-    for t in sorted(reg.get("traces") or [], key=lambda t: t["first"], reverse=True):
+    for t in sorted(reg.get("traces") or [], key=lambda t: t.get("first", ""), reverse=True):
         when = found.get(t.get("key") or trace_key(None, t["label"]))
         if when:
             traces.append({"p": piece_key(t["label"]), "l": t["label"].strip()[:80], "s": t.get("slug") or "",

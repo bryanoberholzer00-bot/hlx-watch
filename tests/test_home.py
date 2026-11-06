@@ -35,7 +35,7 @@ def test_visit_data_uses_first_inserted_row(tmp_path):
     later = Finding(game="cs2", source="github", file_path="a", change_type="added", text="CHLXCoverPreviewHelper",
                     score=120, keywords=["hlx_class"], token="CHLXCoverPreviewHelper")
     db.add_finding(later, bid, created_at=datetime(2026, 9, 23, tzinfo=timezone.utc))   # riga datata al commit
-    v = home.visit_data(db, {"traces": [{"key": "chlxcoverpreviewhelper", "label": "CHLXCoverPreviewHelper",
+    v = home.visit_data(db, {"traces": [{"key": "chlxcoverpreviewhelper", "label": "CHLXCoverPreviewHelper", "first": "2026-09-23",
                                          "slug": "c"}]})
     assert v["tracce"][0]["f"].startswith("2026-10-29")
     db.close()
