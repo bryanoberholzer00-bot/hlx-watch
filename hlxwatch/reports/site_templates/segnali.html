@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Prima di un annuncio - HLX Watch{% endblock %}
+{% block description %}Quali segnali sono comparsi nei file pubblici prima degli annunci di Half-Life: Alyx, Counter-Strike 2, Steam Deck, Deadlock e Steam Frame, con quanti giorni di anticipo, e quali ci sono già per HLX.{% endblock %}
+{% block content %}
+<style>
+ table.segnali td,table.segnali th{vertical-align:top;font-size:.88rem} table.segnali td small{display:block}
+ table.segnali th.hlxcol,table.segnali td.hlxcol{border-left:3px solid var(--accent)}
+ .si{color:#2e9d4f;font-weight:600} .no{color:var(--muted)} .vicino{color:#e5893b;font-weight:600}
+ .tabwrap{overflow-x:auto}
+</style>
+<div class="breve">
+<h1>Prima di un annuncio</h1>
+<p class="muted">Cinque prodotti di Valve già annunciati: quali segnali si potevano vedere nei file pubblici prima
+dell'annuncio, e con quanti giorni di anticipo. Nell'ultima colonna, a che punto è HLX. Ultimo aggiornamento {{ generated }}.</p>
+</div>
+
+<section>
+ <div class="tabwrap"><table class="segnali">
+  <tr><th>Segnale</th>{% for p in s.projects %}<th>{{ p.title }} <br><small class="muted">(annuncio {{ p.announced[8:10] }}/{{ p.announced[5:7] }}/{{ p.announced[:4] }})</small></th>{% endfor %}<th class="hlxcol">HLX</th></tr>
+  {% macro cella(c, hlx=False) %}{% if c.day %}<span class="{{ 'vicino' if c.days is defined and c.days is not none and c.days <= 90 else 'si' }}">{{ c.day[8:10] }}/{{ c.day[5:7] }}/{{ c.day[:4] }}</span>
+   {% if c.days is defined and c.days is not none %}<small>{{ "almeno " if c.almeno }}{{ c.days }} giorni prima</small>{% elif c.almeno %}<small>almeno da allora</small>{% endif %}
+   {% if c.fonte %}<small class="muted">{{ c.fonte }}</small>{% endif %}{% else %}<span class="no">{{ c.no }}</span>{% endif %}{% endmacro %}
+  {% for r in s.rows %}<tr><td><b>{{ r.label }}</b><small class="muted">{{ r.about }}</small></td>
+   {% for c in r.cells %}<td>{{ cella(c) }}</td>{% endfor %}<td class="hlxcol">{{ cella(r.hlx, True) }}</td></tr>{% endfor %}
+ </table></div>
+ <p class="muted"><small>In arancione i segnali arrivati negli ultimi 90 giorni prima dell'annuncio. "Almeno": la data è
+ l'inizio degli archivi di SteamTracking (dicembre 2016), il nome poteva esserci da prima.</small></p>
+</section>
+
+<section>
+ <h2>Cosa dicono</h2>
+ <ul>
+  <li><b>Il nome in codice arriva anni prima.</b> Da un anno e otto mesi (Steam Deck) a quasi quattro anni
+   (Counter-Strike 2) prima dell'annuncio. Per HLX il nome c'è da anni: è normale, e non dice quando.</li>
+  <li><b>I testi tradotti non sono mai usciti prima di un annuncio</b>, in nessuno dei cinque casi. Che manchino per HLX
+   non vuol dire niente.</li>
+  <li><b>Menu e schermate</b> si sono visti solo per l'hardware (Steam Deck e Steam Frame), che passa dal client di Steam
+   e da SteamVR. Per i giochi no.</li>
+  <li><b>I segnali vicini all'annuncio sono pochi, e tutti di Deadlock:</b> il sito playdeadlock.com, 79 giorni prima, e
+   il repository di SteamTracking, 14 giorni prima. HLX Watch li segue già tutti e due: un dominio nuovo con un nome
+   Half-Life o un repository nuovo diventano un avviso "possibile annuncio".</li>
+ </ul>
+ <p>Per HLX mancano: <b>{{ s.missing|join(", ") }}</b>.{% if "Sito nei certificati" in s.missing and "Repository nuovo su SteamTracking" in s.missing %}
+ Tra questi, il sito e il repository sono gli unici che in passato sono arrivati poche settimane prima di un annuncio.{% endif %}</p>
+ <p class="muted"><small>Un caso solo (Deadlock) non fa una regola: Alyx è stato annunciato senza sito nuovo e senza
+ repository, e un annuncio può arrivare senza nessuno di questi segnali. Le date dei progetti passati vengono da
+ SteamTracking (prime comparse dei nomi), dalla <a href="metodologia.html#passato">prova sul passato</a> e dai registri
+ pubblici dei certificati; la colonna di HLX si aggiorna da sola. Il confronto dei nomi, anno per anno, è nella pagina
+ <a href="alyx.html">HLX e Alyx a confronto</a>.</small></p>
+</section>
+{% endblock %}

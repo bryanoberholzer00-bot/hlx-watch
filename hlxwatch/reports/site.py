@@ -357,6 +357,10 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     from hlxwatch import sistemi
     (out_dir / "sistemi.html").write_text(env.get_template("sistemi.html").render(
         s=sistemi.summary(outcomes, alyx.load_seed(), db)), encoding="utf-8")
+    # prima di un annuncio: i segnali dei progetti passati accanto a quelli di HLX
+    from hlxwatch import segnali
+    (out_dir / "segnali.html").write_text(env.get_template("segnali.html").render(s=segnali.summary(db, outcomes)),
+                                          encoding="utf-8")
     write_counter(env, db, out_dir, [t["first"] for t in outcomes["traces"]])
     if not preview_image(brief, out_dir / "anteprima.png", site_url.split("//", 1)[-1].rstrip("/")):
         env.globals["og_image"] = ""
