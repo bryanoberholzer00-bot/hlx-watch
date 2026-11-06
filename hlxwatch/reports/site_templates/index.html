@@ -32,9 +32,16 @@
  .tracce{list-style:none;padding:0;margin:.3rem 0 0} .tracce li{display:grid;grid-template-columns:5.6rem 1.5rem 1fr;gap:.5rem;
   padding:.4rem 0;border-bottom:1px solid var(--line);align-items:baseline} .tracce li:last-child{border-bottom:0}
  .tracce code{word-break:break-all} @media(max-width:560px){.tracce li{grid-template-columns:4.8rem 1.3rem 1fr}}
+ .visita{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;
+  padding:.55rem .9rem;margin:0 0 1rem;font-size:.92rem} .visita.calma{border-left-color:var(--line)}
+ .tracce li.nuova{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+ .etichetta-nuova{font-size:.68rem;font-weight:700;color:#fff;background:var(--accent);border-radius:3px;padding:0 .3rem;margin-left:.3rem}
  details.tecnici>summary{cursor:pointer;list-style:none} details.tecnici>summary h2{display:inline}
  details.tecnici>summary::after{content:" ▸";color:var(--muted)} details.tecnici[open]>summary::after{content:" ▾"}
 </style>
+
+<div id="visita" class="visita" hidden></div>
+{% if r and r.visita %}<script type="application/json" id="visita-dati">{{ r.visita|tojson }}</script>{% endif %}
 
 {% if r %}<div class="risposte">
  {% if r.sistemi %}<a class="risposta" href="sistemi.html">
@@ -101,7 +108,7 @@
 {% if r and r.traces %}<section>
  <h2>Ultime tracce HLX</h2>
  <ul class="tracce">
-  {% for p in r.traces %}<li><span class="muted">{{ p.first[8:10] }}/{{ p.first[5:7] }}/{{ p.first[:4] }}</span>
+  {% for p in r.traces %}<li data-p="{{ p.pk }}"><span class="muted">{{ p.first[8:10] }}/{{ p.first[5:7] }}/{{ p.first[:4] }}</span>
    <span title="{{ p.system_name }}">{{ p.icon }}</span>
    <span>{% if p.slug %}<a href="traccia-{{ p.slug }}.html"><code>{{ p.label[:80] }}</code></a>{% else %}<code>{{ p.label[:80] }}</code>{% endif %}
     <small class="muted">{{ p.system_name }} &middot; {% for g in p.games %}{{ titles.get(g, g) }}{% if not loop.last %}, {% endif %}{% endfor %}</small></span></li>{% endfor %}
@@ -221,6 +228,57 @@
 </section>
 </div>
 </details>
+<script>
+ // "Dalla tua ultima visita": tutto nel browser di chi legge (localStorage), niente account e niente dati inviati.
+ // Durante la stessa sessione il riferimento resta quello di quando si è aperto il sito, anche ricaricando la pagina.
+ (function(){
+  var box=document.getElementById('visita'), el=document.getElementById('visita-dati');
+  if(!box||!el)return;
+  var dati; try{dati=JSON.parse(el.textContent);}catch(e){return;}
+  var adesso=new Date(), prima=null;
+  try{
+   prima=sessionStorage.getItem('hlxw:dal');
+   if(!prima){ prima=localStorage.getItem('hlxw:visita'); sessionStorage.setItem('hlxw:dal', prima||''); }
+   localStorage.setItem('hlxw:visita', adesso.toISOString());
+  }catch(e){return;}
+  if(!prima){ box.className='visita calma'; box.hidden=false;
+   box.innerHTML='Benvenuto! Quando tornerai, qui vedrai cosa è cambiato dalla tua visita precedente.'; return; }
+  var dal=new Date(prima); if(isNaN(dal))return;
+  function utc(s){return new Date(s+'Z');}
+  var nuovi={}, nomi=[];
+  // un pezzo per nome (CHLXCoverPreviewHelper e GetAttributeTable_CHLXCoverPreviewHelper sono lo stesso): il nome più corto
+  (dati.tracce||[]).forEach(function(t){ if(utc(t.f)>dal && (!nuovi[t.p] || t.l.length<nuovi[t.p].l.length)) nuovi[t.p]=t; });
+  for(var k in nuovi)nomi.push(nuovi[k]);
+  nomi.sort(function(a,b){return a.f<b.f?1:-1;});      // le più recenti per prime
+  var alte=(dati.alte||[]).filter(function(s){return utc(s)>dal;}).length;
+  var ore=(adesso-dal)/36e5, quando;
+  if(ore<1)quando='poco fa'; else if(ore<24)quando=Math.round(ore)+(Math.round(ore)==1?' ora fa':' ore fa');
+  else{var g=Math.round(ore/24); quando=g==1?'ieri':g+' giorni fa';}
+  var data=dal.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})+' alle '+dal.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  var parti=[];
+  function scheda(t){ var c='<code>'+t.l.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</code>';
+   return t.s ? '<a href='+JSON.stringify('traccia-'+t.s+'.html')+'>'+c+'</a>' : c; }   // href costruito: il controllo del sito legge solo link scritti per intero
+  if(nomi.length){ var es=nomi.slice(0,3).map(scheda).join(', ');
+   parti.push('<b>'+nomi.length+(nomi.length==1?' traccia HLX nuova':' tracce HLX nuove')+'</b> ('+es+(nomi.length>3?'…':'')+')'); }
+  if(alte)parti.push(alte+(alte==1?' voce nuova':' voci nuove')+' ad alta rilevanza (<a href="search.html?min=100">vedi</a>)');
+  function scrivi(termo){
+   if(termo)parti.push(termo);
+   box.hidden=false;
+   if(!parti.length){ box.className='visita calma'; box.innerHTML='Niente di nuovo dalla tua ultima visita ('+quando+', '+data+').'; return; }
+   box.innerHTML='Dalla tua ultima visita ('+quando+', '+data+'): '+parti.join(' &middot; ')+'.';
+  }
+  document.querySelectorAll('.tracce li[data-p]').forEach(function(li){
+   if(nuovi[li.getAttribute('data-p')]){ li.classList.add('nuova');
+    var c=li.querySelector('code'); if(c)c.insertAdjacentHTML('afterend','<span class="etichetta-nuova">nuova</span>'); } });
+  // il termometro di allora: dallo storico giorno per giorno, già pubblicato come dato aperto
+  var ora=parseInt((document.querySelector('.termo b')||{}).textContent,10);
+  fetch('bot/termometro_storico.json').then(function(r){return r.json();}).then(function(h){
+   var giorno=dal.toISOString().slice(0,10), allora=null;
+   (h.serie||[]).forEach(function(p){ if(p.giorno<=giorno)allora=p.indice; });
+   scrivi(allora!==null && !isNaN(ora) && allora!==ora ? 'termometro da '+allora+' a '+ora : '');
+  }).catch(function(){ scrivi(''); });
+ })();
+</script>
 <script>
  // "dettagli" nello stato delle fonti e i link diretti (#fonti, #dettagli) aprono la parte chiusa
  (function(){
