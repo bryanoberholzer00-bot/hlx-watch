@@ -18,6 +18,50 @@
  </div>
 </section>
 
+<style>
+ .risposte{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin:0 0 1.2rem}
+ @media(max-width:1000px){.risposte{grid-template-columns:1fr 1fr}} @media(max-width:560px){.risposte{grid-template-columns:1fr}}
+ .risposta{display:flex;flex-direction:column;gap:.35rem;background:var(--card);border:1px solid var(--line);border-radius:8px;
+  padding:.75rem .9rem;color:inherit;text-decoration:none} .risposta:hover{border-color:var(--accent)}
+ .risposta .domanda{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+ .risposta .grande{font-size:1.35rem;font-weight:700;line-height:1.2} .risposta small{color:var(--muted)}
+ .risposta .vai{margin-top:auto;font-size:.85rem;color:var(--accent)}
+ .minibar{display:grid;grid-template-columns:1.2rem 1fr 1.5rem;gap:.35rem;align-items:center;font-size:.85rem}
+ .minibar i{display:block;height:.55rem;border-radius:3px;background:var(--accent)} .minibar b{text-align:right}
+ .analisi-breve .riassunto{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+ .tracce{list-style:none;padding:0;margin:.3rem 0 0} .tracce li{display:grid;grid-template-columns:5.6rem 1.5rem 1fr;gap:.5rem;
+  padding:.4rem 0;border-bottom:1px solid var(--line);align-items:baseline} .tracce li:last-child{border-bottom:0}
+ .tracce code{word-break:break-all} @media(max-width:560px){.tracce li{grid-template-columns:4.8rem 1.3rem 1fr}}
+ details.tecnici>summary{cursor:pointer;list-style:none} details.tecnici>summary h2{display:inline}
+ details.tecnici>summary::after{content:" ▸";color:var(--muted)} details.tecnici[open]>summary::after{content:" ▾"}
+</style>
+
+{% if r %}<div class="risposte">
+ {% if r.sistemi %}<a class="risposta" href="sistemi.html">
+  <span class="domanda">Di cosa è fatto HLX</span>
+  <span><b>{{ r.sistemi.n }} pezzi</b> <small>in {{ r.sistemi.count }} sistemi</small></span>
+  {% for x in r.sistemi.top %}<span class="minibar"><span>{{ x.icon }}</span><span title="{{ x.name }}"><i style="width:{{ x.pct }}%"></i><small>{{ x.name }}</small></span><b>{{ x.n }}</b></span>{% endfor %}
+  {% if r.sistemi.empty %}<small>Ancora niente: {{ r.sistemi.empty|join(", ")|lower }}</small>{% endif %}
+  <span class="vai">Tutti i sistemi &rarr;</span></a>{% endif %}
+ {% if r.segnali %}<a class="risposta" href="segnali.html">
+  <span class="domanda">Prima di un annuncio</span>
+  <span class="grande">{{ r.segnali.have }} segnali su {{ r.segnali.total }}</span>
+  <small>Mancano: {{ r.segnali.missing|join(", ") }}.</small>
+  <small>Prima di Deadlock: sito 79 giorni prima, repository 14.</small>
+  <span class="vai">I segnali, gioco per gioco &rarr;</span></a>{% endif %}
+ {% if r.vr %}<a class="risposta" href="sistemi.html#vr">
+  <span class="domanda">HLX è un gioco VR?</span>
+  <span class="grande">I dati non lo dicono</span>
+  <small>{{ r.vr.hlx_vr }} parole della VR su {{ r.vr.hlx_n }} tracce{% if r.vr.alyx_n %}. Ma anche Alyx, prima dell'annuncio:
+   {{ r.vr.alyx_vr }} su {{ r.vr.alyx_n }}{% endif %}.</small>
+  <span class="vai">Gli indizi uno per uno &rarr;</span></a>{% endif %}
+ {% if r.passato %}<a class="risposta" href="metodologia.html#passato">
+  <span class="domanda">Funziona davvero?</span>
+  <span class="grande">Prova sul passato</span>
+  {% for p in r.passato %}<small><b>{{ p.project }}</b>: avviso {{ p.days }} giorni prima dell'annuncio</small>{% endfor %}
+  <span class="vai">Come è stata fatta &rarr;</span></a>{% endif %}
+</div>{% endif %}
+
 {% if analysis %}
 <section class="analisi-breve">
  <p class="muted" style="margin:0 0 .2rem;font-size:.8rem">Analisi AI del {{ analysis.created_at|local }}
@@ -28,15 +72,6 @@
  <a href="analisi.html">Leggi l'analisi completa &rarr;</a>
 </section>
 {% endif %}
-
-<div class="cards">
- <div class="card"><b>{{ stats.findings }}</b><span>voci totali</span></div>
- <div class="card"><b>{{ stats.findings_new }}</b><span>stringhe mai viste</span></div>
- <div class="card"><b>{{ stats.findings_high }}</b><span>alta rilevanza (&ge;100)</span></div>
- <div class="card"><b>{{ stats.builds }}</b><span>build / commit</span></div>
- <div class="card"><b>{{ stats.steam_builds }}</b><span>build Steam</span></div>
- <div class="card"><b>{{ stats.steam_apps_flagged }}</b><span>app Steam sospette</span></div>
-</div>
 
 <section>
  <h2>Scoperte giorno per giorno (ultimi {{ timeline_days }} giorni)</h2>
@@ -62,6 +97,30 @@
  })();
  </script>
 </section>
+
+{% if r and r.traces %}<section>
+ <h2>Ultime tracce HLX</h2>
+ <ul class="tracce">
+  {% for p in r.traces %}<li><span class="muted">{{ p.first[8:10] }}/{{ p.first[5:7] }}/{{ p.first[:4] }}</span>
+   <span title="{{ p.system_name }}">{{ p.icon }}</span>
+   <span>{% if p.slug %}<a href="traccia-{{ p.slug }}.html"><code>{{ p.label[:80] }}</code></a>{% else %}<code>{{ p.label[:80] }}</code>{% endif %}
+    <small class="muted">{{ p.system_name }} &middot; {% for g in p.games %}{{ titles.get(g, g) }}{% if not loop.last %}, {% endif %}{% endfor %}</small></span></li>{% endfor %}
+ </ul>
+ <p class="muted"><small>Una riga per pezzo, alla sua prima comparsa. Tutte le voci: <a href="search.html?min=100">Ricerca</a>
+  &middot; <a href="cronologia.html">Cronologia</a> &middot; <a href="esiti.html">Esiti</a>.</small></p>
+</section>{% endif %}
+
+<details class="tecnici" id="dettagli">
+<summary><h2>Dettagli tecnici</h2> <small class="muted">voci, contatori, stato delle fonti, build</small></summary>
+
+<div class="cards" style="margin-top:.8rem">
+ <div class="card"><b>{{ stats.findings }}</b><span>voci totali</span></div>
+ <div class="card"><b>{{ stats.findings_new }}</b><span>stringhe mai viste</span></div>
+ <div class="card"><b>{{ stats.findings_high }}</b><span>alta rilevanza (&ge;100)</span></div>
+ <div class="card"><b>{{ stats.builds }}</b><span>build / commit</span></div>
+ <div class="card"><b>{{ stats.steam_builds }}</b><span>build Steam</span></div>
+ <div class="card"><b>{{ stats.steam_apps_flagged }}</b><span>app Steam sospette</span></div>
+</div>
 
 <section>
  <h2>Alta rilevanza ({{ high|length }} voci)</h2>
@@ -161,4 +220,14 @@
  {% endif %}
 </section>
 </div>
+</details>
+<script>
+ // "dettagli" nello stato delle fonti e i link diretti (#fonti, #dettagli) aprono la parte chiusa
+ (function(){
+  var d=document.getElementById('dettagli'); if(!d)return;
+  function apri(){ if(location.hash==='#fonti'||location.hash==='#dettagli'){ d.open=true;
+   var t=document.getElementById(location.hash.slice(1)); if(t)t.scrollIntoView(); } }
+  window.addEventListener('hashchange',apri); apri();
+ })();
+</script>
 {% endblock %}

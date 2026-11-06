@@ -311,6 +311,12 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     from hlxwatch.reports.termometro import compute as termo_now, history, history_svg
     termo_current = termo_now(cfg, db)
     status = source_status(cfg, db, fast_status(cfg))
+    # registro delle tracce HLX prima della pagina iniziale: i riquadri delle risposte e le ultime tracce lo usano
+    outcomes = outcome_register(cfg, db)
+    from hlxwatch.reports.schede import assign_slugs, write_cards
+    ctx["slugs"] = assign_slugs(outcomes["traces"])       # una scheda per traccia: Esiti, Alyx e Ricerca la collegano
+    from hlxwatch import alyx as _alyx, home
+    risposte = home.answers(db, outcomes, _alyx.load_seed())
     index_html = env.get_template("index.html").render(
         stats=stats, high=bundle_rows(high), recent=bundle_rows(recent)[:40], glance=glance(termo_current, status),
         chart=timeline_svg(timeline_rows(db, timeline_days, days), timeline_days, link="search.html?since={day}&until={day}",
@@ -318,14 +324,11 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
         timeline_days=timeline_days, tokens=[dict(r) for r in db.top_tokens(25)],
         builds=with_summaries(db, [dict(r) for r in db.recent_builds(15)]), apps=[dict(r) for r in db.flagged_apps(20)],
         steam_builds=[dict(r) for r in db.steam_builds(12)], present=present_groups(db),
-        analysis=analyses[0] if analyses else None, status=status,
+        analysis=analyses[0] if analyses else None, status=status, r=risposte,
     )
     (out_dir / "index.html").write_text(index_html, encoding="utf-8")
     (out_dir / "hardware.html").write_text(env.get_template("hardware.html").render(hw=hardware_data(cfg, db)),
                                            encoding="utf-8")
-    outcomes = outcome_register(cfg, db)
-    from hlxwatch.reports.schede import assign_slugs, write_cards
-    ctx["slugs"] = assign_slugs(outcomes["traces"])       # una scheda per traccia: Esiti, Alyx e Ricerca la collegano
     (out_dir / "esiti.html").write_text(env.get_template("esiti.html").render(reg=outcomes),
                                         encoding="utf-8")
     n_cards = write_cards(env, db, outcomes, ctx, out_dir)
