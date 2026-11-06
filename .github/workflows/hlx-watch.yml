@@ -97,6 +97,9 @@ jobs:
 
       - name: Ripristina il database dall'ultimo run
         id: db
+        # la cache di GitHub a volte si blocca: dopo 10 minuti si va avanti e il passo dopo ripristina dal ramo data
+        timeout-minutes: 10
+        continue-on-error: true
         uses: actions/cache/restore@v6
         with:
           path: data/hlxwatch.sqlite
@@ -187,6 +190,10 @@ jobs:
 
       - name: Salva il database per il prossimo run
         if: always() && steps.guard.outputs.ok != 'false'
+        # il 6/11/2026 questo passo si è bloccato per 20 minuti e avrebbe fermato i giri per 5 ore: la copia
+        # permanente è comunque nel ramo data, salvata più avanti
+        timeout-minutes: 10
+        continue-on-error: true
         uses: actions/cache/save@v6
         with:
           path: data/hlxwatch.sqlite
