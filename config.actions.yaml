@@ -498,8 +498,7 @@ keywords:
     - id: hl_nomi_attaccati
       # nomi di Half-Life scritti attaccati e nemici nuovi che hl_universe non vede: g_vXenAnimation,
       # info_combine_gunship_bomb_target, CRangerTrapCableHelper, ai_flyer_flanking_route_hint (aggiornamenti di fine
-      # ottobre 2026, verificati nei file di CS2 il 7/11). "Xen" solo seguito da una maiuscola e da minuscole (XenAnimation sì, i codici casuali
-      # del client di Steam come _3XenXoJ5 no): boxEntity non conta.
+      # ottobre 2026, verificati nei file di CS2 il 7/11). "Xen" solo seguito da una maiuscola: boxEntity non conta.
       # Maiuscole esatte e senza flag interni (spegnerebbero il filtro veloce); si cattura solo la parte con le
       # maiuscole normali ("Ranger" di RangerTrap), perché le parole con maiuscole mescolate vengono scartate.
       # "gunship" da solo prende i vecchi suoni di Half-Life 2 nel motore (chopper/gunship): solo la bomba.
