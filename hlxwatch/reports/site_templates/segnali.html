@@ -27,6 +27,44 @@ dell'annuncio, e con quanti giorni di anticipo. Nell'ultima colonna, a che punto
  l'inizio degli archivi di SteamTracking (dicembre 2016), il nome poteva esserci da prima.</small></p>
 </section>
 
+{% if sil %}
+<section id="silenzio">
+ <h2>Il silenzio</h2>
+ <p>Da quanti giorni non compare un nome HLX mai visto prima nei file pubblici (un nome già noto che ricompare in un altro
+ gioco non conta), accanto alle pause di HLX e a quelle di Alyx prima del suo annuncio.</p>
+ {% set top = [sil.giorni, sil.massima.giorni if sil.massima else 0, sil.alyx.prima_annuncio if sil.alyx else 0]|max %}
+ {% macro barra(etichetta, giorni, classe="", nota="") %}<div class="sil-riga"><span class="sil-et">{{ etichetta }}</span>
+  <span class="sil-bar"><i class="{{ classe }}" style="width:{{ (100 * giorni / top)|round(1) }}%"></i></span>
+  <b>{{ giorni }}</b>{% if nota %}<small class="muted">{{ nota }}</small>{% endif %}</div>{% endmacro %}
+ <div class="sil">
+  {{ barra("HLX oggi", sil.giorni, "oggi", "dal " ~ sil.ultimo) }}
+  {% if sil.massima %}{{ barra("HLX, la pausa più lunga", sil.massima.giorni, "", sil.massima.da ~ " → " ~ sil.massima.a) }}
+  {{ barra("HLX, la pausa tipica", sil.tipica) }}{% endif %}
+  {% if sil.alyx %}{{ barra("Alyx, prima dell'annuncio", sil.alyx.prima_annuncio, "alyx", "dal " ~ sil.alyx.ultimo ~ " all'annuncio") }}
+  {{ barra("Alyx, la pausa più lunga prima", sil.alyx.massima, "alyx-chiaro") }}
+  {{ barra("Alyx, la pausa tipica", sil.alyx.tipica, "alyx-chiaro") }}{% endif %}
+ </div>
+ <p>{% if sil.record %}<b>È il silenzio più lungo della storia di HLX.</b> Con Alyx era successo prima dell'annuncio{% else %}<b>Per HLX
+ è una pausa normale</b>: ne ha avute {{ sil.pause }}, di solito di {{ sil.tipica }} giorni e al massimo di {{ sil.massima.giorni }}.
+ Con Alyx la pausa più lunga era arrivata prima dell'annuncio{% endif %}{% if sil.alyx %}: {{ sil.alyx.prima_annuncio }} giorni, più di
+ tutte quelle di prima (al massimo {{ sil.alyx.massima }}), e dopo l'annuncio altri {{ sil.alyx.dopo }}; in tutto {{ sil.alyx.totale }}
+ giorni senza nomi nuovi.{% else %}.{% endif %}</p>
+ <p class="muted"><small>È un caso solo. Il silenzio dice che il lavoro non passa più dai giochi pubblici (Alyx a un certo punto
+ è diventato un progetto a parte), non che l'annuncio è vicino. Se HLX supera la sua pausa più lunga, HLX Watch manda un
+ avviso. Un nome conta dal giorno in cui è comparso nei file di Valve.</small></p>
+</section>
+<style>
+ .sil{display:flex;flex-direction:column;gap:.35rem;margin:.6rem 0}
+ .sil-riga{display:grid;grid-template-columns:13rem 1fr 3rem;gap:.2rem .6rem;align-items:center}
+ .sil-riga small{grid-column:2/4;font-size:.75rem;margin-top:-.25rem}
+ .sil-et{font-size:.85rem} .sil-riga b{text-align:right}
+ .sil-bar{height:.8rem;background:var(--line);border-radius:4px;overflow:hidden}
+ .sil-bar i{display:block;height:100%;background:#7a8699} .sil-bar i.oggi{background:var(--accent)}
+ .sil-bar i.alyx{background:#2f80ed} .sil-bar i.alyx-chiaro{background:#2f80ed;opacity:.5}
+ @media(max-width:700px){.sil-riga{grid-template-columns:1fr 3rem}.sil-et{grid-column:1/3}.sil-riga small{grid-column:1/3}}
+</style>
+{% endif %}
+
 <section>
  <h2>Cosa dicono</h2>
  <ul>

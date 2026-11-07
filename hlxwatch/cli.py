@@ -127,10 +127,12 @@ def cmd_cron(args: argparse.Namespace) -> int:
     except Exception:
         log.exception("Riepilogo settimanale fallito")
     # il bot su Cloudflare avvia i giri e li sorveglia: qui si controlla che sia vivo (hlxwatch/stato.py)
+    fast = None
     try:
         from hlxwatch.reports.site_extras import fast_status
         from hlxwatch.stato import watch_bot
-        watch_bot(db, pipeline.notifiers if not args.no_notify else [], fast_status(cfg))
+        fast = fast_status(cfg)
+        watch_bot(db, pipeline.notifiers if not args.no_notify else [], fast)
     except Exception:
         log.exception("Controllo del bot su Cloudflare non riuscito")
     # mappa dei collegamenti: avviso quando un pezzo di HLX compare in un posto nuovo o due gruppi si uniscono
@@ -139,6 +141,13 @@ def cmd_cron(args: argparse.Namespace) -> int:
         watch_map(cfg, db, pipeline.notifiers if not args.no_notify else [])
     except Exception:
         log.exception("Mappa dei collegamenti: controllo non riuscito")
+    # il silenzio: avviso se HLX supera la sua pausa più lunga, e in modalità annuncio quando ricompaiono nomi nuovi
+    try:
+        from hlxwatch.silenzio import watch as watch_silence
+        watch_silence(cfg, db, pipeline.notifiers if not args.no_notify else [],
+                      fast if fast and not fast.get("irraggiungibile") else None)
+    except Exception:
+        log.exception("Silenzio: controllo non riuscito")
     # revisione settimanale: dopo il riepilogo, l'AI propone correzioni agli errori della settimana
     try:
         from hlxwatch.revisione import run_review

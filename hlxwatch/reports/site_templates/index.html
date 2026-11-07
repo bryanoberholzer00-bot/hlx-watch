@@ -56,6 +56,13 @@
   <small>Mancano: {{ r.segnali.missing|join(", ") }}.</small>
   <small>Prima di Deadlock: sito 79 giorni prima, repository 14.</small>
   <span class="vai">I segnali, gioco per gioco &rarr;</span></a>{% endif %}
+ {% if r.silenzio %}{% set sl = r.silenzio %}<a class="risposta" href="segnali.html#silenzio">
+  <span class="domanda">Il silenzio</span>
+  <span class="grande">{{ sl.giorni }} {{ "giorno" if sl.giorni == 1 else "giorni" }} senza nomi mai visti</span>
+  <small>L'ultimo nome HLX nuovo è del {{ sl.ultimo[8:10] }}/{{ sl.ultimo[5:7] }}; quelli già noti possono ricomparire in altri giochi.</small>
+  <small>{% if sl.record %}<b>È la pausa più lunga di HLX</b> (prima: {{ sl.massima.giorni }} giorni).{% else %}Normale per HLX: la pausa tipica è di {{ sl.tipica }} giorni, la più lunga di {{ sl.massima.giorni }}.{% endif %}</small>
+  {% if sl.alyx %}<small>Alyx prima dell'annuncio: {{ sl.alyx.prima_annuncio }} giorni di silenzio.</small>{% endif %}
+  <span class="vai">Le pause a confronto &rarr;</span></a>{% endif %}
  {% if r.vr %}<a class="risposta" href="sistemi.html#vr">
   <span class="domanda">HLX è un gioco VR?</span>
   <span class="grande">I dati non lo dicono</span>

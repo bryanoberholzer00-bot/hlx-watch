@@ -332,6 +332,9 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     ctx["slugs"] = assign_slugs(outcomes["traces"])       # una scheda per traccia: Esiti, Alyx e Ricerca la collegano
     from hlxwatch import alyx as _alyx, home
     risposte = home.answers(db, outcomes, _alyx.load_seed())
+    # il silenzio: giorni senza un nome HLX nuovo, accanto alle pause di HLX e di Alyx (pagina iniziale e segnali.html)
+    from hlxwatch import silenzio
+    risposte["silenzio"] = silenzio.summary(outcomes, _alyx.load_seed(), now_local().date())
     index_html = env.get_template("index.html").render(
         stats=stats, high=bundle_rows(high), recent=bundle_rows(recent)[:40], glance=glance(termo_current, status),
         chart=timeline_svg(timeline_rows(db, timeline_days, days), timeline_days, link="search.html?since={day}&until={day}",
@@ -381,7 +384,8 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
         s=sistemi.summary(outcomes, alyx.load_seed(), db)), encoding="utf-8")
     # prima di un annuncio: i segnali dei progetti passati accanto a quelli di HLX
     from hlxwatch import segnali
-    (out_dir / "segnali.html").write_text(env.get_template("segnali.html").render(s=segnali.summary(db, outcomes)),
+    (out_dir / "segnali.html").write_text(env.get_template("segnali.html").render(s=segnali.summary(db, outcomes),
+                                                                                   sil=risposte.get("silenzio")),
                                           encoding="utf-8")
     # mappa dei collegamenti: i pezzi uniti ai luoghi dove compaiono e agli altri pezzi arrivati insieme
     from hlxwatch import mappa
