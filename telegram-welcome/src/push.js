@@ -9,6 +9,8 @@
 // Segreti: VAPID_PRIVATE_JWK (chiave privata P-256 in formato JWK), PUSH_SECRET.
 // Variabile facoltativa solo per i test locali: PUSH_ALLOW_HTTP=1 accetta indirizzi http://127.0.0.1.
 
+import { activate } from "./annuncio.js";
+
 const SITE_ORIGIN = "https://bryanoberholzer00-bot.github.io";
 const CONTACT = "https://github.com/bryanoberholzer00-bot/hlx-watch";
 const MAX_SUBSCRIPTIONS = 2000;
@@ -272,7 +274,7 @@ export async function flushMorning(env, site, ackOrigin) {
   return total;
 }
 
-export async function handlePush(request, env) {
+export async function handlePush(request, env, sendTelegram = null) {
   const path = new URL(request.url).pathname;
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(request) });
   if (!env.SUBS || !env.VAPID_PRIVATE_JWK) return json(request, { error: "notifiche non configurate" }, 503);
@@ -316,7 +318,16 @@ export async function handlePush(request, env) {
     if (!authorized(request, env)) return json(request, { error: "non autorizzato" }, 403);
     let body;
     try { body = await request.json(); } catch { return json(request, { error: "json non valido" }, 400); }
-    const message = body.message || {};
+    const { voci, annuncio, ...message } = body.message || {};
+    // un possibile annuncio dal giro completo accende la modalità annuncio (src/annuncio.js), una volta per invio
+    if (annuncio && !body.cursor && sendTelegram) {
+      try {
+        await activate(env, Array.isArray(voci) && voci.length ? voci : [{ x: message.body, u: message.url }], sendTelegram,
+          Date.now(), "giro completo");
+      } catch (err) {
+        console.log("modalità annuncio non attivata:", String(err));
+      }
+    }
     // di notte le novità si mettono da parte: alle 8 parte un solo riassunto (le prove passano sempre)
     if (!message.urgente && isQuiet(env)) {
       if (!body.cursor) await queueForMorning(env, message);

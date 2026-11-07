@@ -64,6 +64,12 @@ class WebPushNotifier(Notifier):
             message["urgente"] = True
         if "annuncio" in heading.lower():
             message["title"] = heading      # il titolo della notifica dice subito che è un possibile annuncio
+        from hlxwatch.announcement import HEADING, KEYWORD
+        if heading == HEADING:
+            # un annuncio vero (non la prova generale): il bot accende la modalità annuncio (telegram-welcome/src/annuncio.js)
+            message["annuncio"] = True
+            message["voci"] = [{"x": (f.token or f.text)[:160], "u": f.card or "", "g": f.game}
+                               for g in groups for f in g.findings if KEYWORD in (f.keywords or [])][:5]
         payload = {"message": message, "cursor": None}
         headers = {"Authorization": f"Bearer {self.secret}"}
         delivered, statuses = 0, {}

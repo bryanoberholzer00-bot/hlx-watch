@@ -14,6 +14,7 @@
 
 import { dispatchStatus } from "./dispatch.js";
 import { broadcast } from "./push.js";
+import { activate } from "./annuncio.js";
 
 export const FAST_CRON = "*/10 * * * *";
 const FEED = "steam_community_announcements";
@@ -188,6 +189,11 @@ export async function fastCheck(env, site, origin, sendTelegram) {
   const old = JSON.parse((await env.SUBS.get(ALERTS)) || "[]");
   await env.SUBS.put(ALERTS, JSON.stringify([...result.alerts, ...old].slice(0, 10)));
   if (env.OWNER_CHAT_ID) await sendTelegram(env, env.OWNER_CHAT_ID, telegramText(result.alerts, site));
+  try {
+    await activate(env, result.alerts, sendTelegram);       // modalità annuncio (src/annuncio.js)
+  } catch (err) {
+    console.log("controllo veloce: modalità annuncio non attivata", String(err));
+  }
   const top = result.alerts[0];
   try {
     await broadcast(env, {

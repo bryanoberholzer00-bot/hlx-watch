@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Dopo l'annuncio - HLX Watch{% endblock %}
+{% block description %}{% if a.attiva %}Possibile annuncio di Valve: giorno {{ a.giorno }}. Le novità arrivate dopo, accanto a quello che era successo dopo l'annuncio di Alyx.{% else %}Cosa fa HLX Watch il giorno in cui Valve annuncia un Half-Life, e cosa era successo dopo l'annuncio di Alyx.{% endif %}{% endblock %}
+{% block content %}
+<style>
+ .giorno-n{font-size:2.6rem;font-weight:800;line-height:1;color:#e53935}
+ .voci-annuncio li{margin:.35rem 0}
+ .tappe{border-left:3px solid var(--line);margin:.6rem 0 .6rem .4rem;padding-left:1rem}
+ .tappe li{margin:.5rem 0;list-style:none}
+ .tappe li.oggi{font-weight:700;color:#e53935}
+</style>
+{% set al = a.alyx %}
+{% if a.attiva %}{% set m = a.modo %}
+<div class="breve">
+<h1>Dopo l'annuncio</h1>
+<p class="muted">HLX Watch è in <b>modalità annuncio</b> dal {{ m.da|local }}: il giro
+completo riparte ogni 10 minuti a tutte le ore, fino al {{ m.fino|localday }} o finché il proprietario non la spegne.</p>
+</div>
+<section class="avviso" style="padding:.8rem 1rem;border-radius:8px">
+ <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+  <div><span class="giorno-n">{{ a.giorno }}</span><br><small class="muted">{{ "giorno" if a.giorno == 1 else "giorni" }}</small></div>
+  <div style="flex:1;min-width:14rem"><b>Cosa ha fatto scattare la modalità</b>
+   <ul class="voci-annuncio">{% for v in m.voci %}<li>{{ v.x }}{% if v.u %} — <a href="{{ v.u }}" rel="noopener">apri</a>{% endif %}</li>{% endfor %}</ul>
+   <small class="muted">Rilevato da: {{ m.fonte or "controllo veloce" }}. Può essere un falso allarme: un nome con «Half-Life» o «HLX»
+   non è per forza un gioco nuovo.</small></div>
+ </div>
+</section>
+
+<section>
+ <h2>Arrivato dopo</h2>
+ {% if a.novita %}
+ <table>
+  <tr><th>Quando</th><th>Gioco</th><th>Voce</th><th>Punteggio</th></tr>
+  {% for n in a.novita %}<tr><td>{{ n.quando|local }}</td><td>{{ n.gioco }}</td>
+   <td>{% if n.annuncio %}🔴 {% endif %}<a href="search.html?q={{ n.testo[:60]|urlencode }}">{{ n.testo }}</a></td><td>{{ n.punteggio }}</td></tr>{% endfor %}
+ </table>
+ <p class="muted"><small>Le voci con punteggio da 50 in su dal {{ m.da|localday }}, le più importanti prima. Tutte nella <a href="search.html?new=1&min=50">ricerca</a>.</small></p>
+ {% else %}
+ <p>Ancora niente di nuovo dopo l'annuncio nei file pubblici. È normale: vedi qui sotto cosa era successo con Alyx.</p>
+ {% endif %}
+</section>
+{% else %}
+<div class="breve">
+<h1>Dopo l'annuncio</h1>
+<p class="muted">Oggi non c'è nessun annuncio. Questa pagina si accende da sola il giorno in cui HLX Watch vede un
+possibile annuncio di un Half-Life: qui sotto cosa succede allora, e cosa era successo dopo l'annuncio di Alyx.</p>
+</div>
+<section>
+ <h2>Il giorno dell'annuncio</h2>
+ <p>Un possibile annuncio è un post ufficiale di Valve su Steam che parla di un Half-Life nuovo, un'app Steam di Valve
+ con «Half-Life» o «HLX» nel nome, o un repository nuovo di SteamTracking o di Valve con quel nome. Il controllo veloce
+ li guarda ogni 10 minuti; il giro completo li ritrova con i dettagli. Appena ne vede uno, HLX Watch:</p>
+ <ul>
+  <li>avvisa subito su Telegram, con le notifiche del sito (anche di notte) e nell'app Android;</li>
+  <li>passa in <b>modalità annuncio</b> per 14 giorni: il giro completo riparte ogni 10 minuti a tutte le ore, invece che
+   ogni 30;</li>
+  <li>mette una fascia rossa in cima a ogni pagina del sito, e questa pagina conta i giorni, elenca quello che arriva
+   dopo e lo mette accanto ad Alyx;</li>
+  <li>comincia a seguire da solo l'app Steam del gioco, con le sue build e i suoi rami.</li>
+ </ul>
+ <p class="muted"><small>Se è un falso allarme il proprietario spegne tutto con un comando al bot. La catena degli avvisi si
+ prova con la <a href="metodologia.html#prova">prova generale</a>.</small></p>
+</section>
+{% endif %}
+
+{% if al %}
+<section>
+ <h2>Dopo l'annuncio di Alyx</h2>
+ <p>Half-Life: Alyx è stato annunciato il {{ al.annuncio }} ed è uscito {{ al.giorni_uscita }} giorni dopo. Prima
+ dell'annuncio, nei file pubblici di Valve, c'erano già {{ al.prima }} nomi del gioco (allora si chiamava <code>hlvr</code>).
+ <b>Dopo l'annuncio, per {{ al.primo }} giorni non è comparso niente di nuovo</b>: il lavoro continuava, ma non passava più dai
+ giochi pubblici. Poi, a ridosso dell'uscita:</p>
+ <ul class="tappe">
+  <li{% if a.attiva and a.giorno == 1 %} class="oggi"{% endif %}>giorno 1 · l'annuncio</li>
+  {% if a.attiva and a.giorno > 1 and a.giorno < al.primo %}<li class="oggi">giorno {{ a.giorno }} · oggi: dopo Alyx, a questo punto, non era ancora comparso niente</li>{% endif %}
+  {% for t in al.tappe %}<li>giorno {{ t.giorno + 1 }} ({{ t.data }}) · {{ t.nomi }} {{ "nome nuovo" if t.nomi == 1 else "nomi nuovi" }}: <code>{{ t.esempi|join("</code>, <code>")|safe }}</code>{% if t.nomi > t.esempi|length %} e altri{% endif %}</li>{% endfor %}
+  <li>giorno {{ al.giorni_uscita + 1 }} ({{ al.uscita }}) · l'uscita</li>
+ </ul>
+ <p class="muted"><small>Le voci di marzo 2020 erano la promozione del gioco dentro SteamVR (la «destinazione» di City 17, il
+ laboratorio di Russell). Quindi dopo un annuncio non aspettarti una pioggia di novità: se arrivano, di solito sono
+ il segno che l'uscita è vicina.</small></p>
+</section>
+{% endif %}
+{% endblock %}

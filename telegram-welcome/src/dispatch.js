@@ -14,6 +14,7 @@
 // salvato come segreto del Worker: wrangler secret put GH_DISPATCH_TOKEN. Senza token il modulo non fa niente.
 // Se GitHub rifiuta il token (scaduto o revocato) il proprietario riceve un solo avviso; un altro quando riparte.
 
+import { modeStatus } from "./annuncio.js";
 import { runsStatus, watchRuns } from "./giri.js";
 
 export const REPO = "bryanoberholzer00-bot/hlx-watch";
@@ -138,7 +139,9 @@ export async function dispatchRun(env, sendTelegram, now = Date.now()) {
   } catch (err) {
     console.log("sorveglianza dei giri non riuscita:", String(err));
   }
-  const decision = shouldDispatch(runs, now);
+  // modalità annuncio (src/annuncio.js): ogni 10 minuti a tutte le ore
+  const mode = await modeStatus(env, now);
+  const decision = shouldDispatch(runs, now, mode ? HOT_EVERY_MS : everyMs(now));
   if (!decision.go) {
     await recovered(env, sendTelegram);
     return { done: false, why: decision.why };
@@ -160,9 +163,10 @@ export async function dispatchRun(env, sendTelegram, now = Date.now()) {
 
 // Per /fast/stato.json: il sito mostra se l'avvio ogni 30 minuti è attivo, e ogni quanto riparte adesso
 export async function dispatchStatus(env, now = Date.now()) {
+  const mode = await modeStatus(env, now);
   const error = env.SUBS ? await env.SUBS.get(ERROR_KEY) : null;
   const expiry = env.SUBS ? await env.SUBS.get(EXPIRY_KEY) : null;
   return { attivo: Boolean(env.GH_DISPATCH_TOKEN) && !error, token: Boolean(env.GH_DISPATCH_TOKEN), errore: error || null,
     scadenza: env.GH_DISPATCH_TOKEN ? expiry || null : null, giri: await runsStatus(env),
-    ogni: isHot(now) ? 10 : 30, ore_calde: isHot(now) };
+    ogni: mode || isHot(now) ? 10 : 30, ore_calde: isHot(now), annuncio: mode };
 }

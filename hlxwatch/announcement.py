@@ -122,3 +122,40 @@ def drill_item(db: Database, site_url: str) -> dict[str, Any] | None:
     return {"s": 200, "g": "HLX Watch", "t": "prova", "k": f"PROVA GENERALE {local(state['at'])}",
             "x": DRILL_TEXT, "f": "", "d": local_day(state["at"]), "n": 1, "u": f"{site_url}metodologia.html#prova",
             "ul": "Metodologia", "a": 1, "p": 1, "c": state["at"]}
+
+
+# ------------------------------------------------------------------ dopo l'annuncio
+# La modalità annuncio la decide il bot su Cloudflare (telegram-welcome/src/annuncio.js) e il sito la legge da
+# /fast/stato.json. Qui i dati della pagina annuncio.html: le voci dell'annuncio, le novità arrivate dopo e, accanto,
+# cosa era comparso nei file pubblici dopo l'annuncio di Alyx (alyx_seed.json): quasi niente per 104 giorni, poi le
+# voci della promozione in SteamVR negli ultimi giorni prima dell'uscita.
+def alyx_after(seed: dict[str, Any] | None, day: int | None = None) -> dict[str, Any] | None:
+    from collections import Counter
+    from datetime import date
+    if not seed or not seed.get("names"):
+        return None
+    ann, rel = date.fromisoformat(seed["announced"]), date.fromisoformat(seed["released"])
+    offsets = sorted((date.fromisoformat(n["day"]) - ann).days for n in seed["names"] if n["day"] >= seed["announced"])
+    per_day = Counter(offsets)
+    steps = [{"giorno": d, "nomi": c, "data": (ann.toordinal() + d)} for d, c in sorted(per_day.items())]
+    for s in steps:
+        s["data"] = date.fromordinal(s["data"]).isoformat()
+        s["esempi"] = [n["name"] for n in seed["names"] if (date.fromisoformat(n["day"]) - ann).days == s["giorno"]][:3]
+    return {"annuncio": seed["announced"], "uscita": seed["released"], "giorni_uscita": (rel - ann).days,
+            "dopo": len(offsets), "prima": len(seed["names"]) - len(offsets), "tappe": steps,
+            "primo": offsets[0] if offsets else None,
+            "fino_a": sum(1 for d in offsets if day is not None and d <= day) if day is not None else None}
+
+
+def after_page(db: Database, mode: dict[str, Any] | None, seed: dict[str, Any] | None) -> dict[str, Any]:
+    if not mode:
+        return {"attiva": False, "alyx": alyx_after(seed)}
+    since = str(mode.get("da") or "")[:19]            # stesso formato di findings.created_at (2026-11-06T01:10:43Z)
+    rows = db.conn.execute(
+        "SELECT game, file_path, text, token, score, keywords, created_at FROM findings WHERE created_at >= ? "
+        "AND score >= 50 AND change_type NOT IN ('baseline', 'present', 'summary') ORDER BY score DESC, created_at DESC "
+        "LIMIT 40", (since,)).fetchall() if since else []
+    news = [{"gioco": r[0], "file": r[1], "testo": (r[3] or r[2] or "")[:160], "punteggio": r[4], "quando": r[6],
+             "annuncio": KEYWORD in (r[5] or "")} for r in rows]
+    day = int(mode.get("giorno") or 1)
+    return {"attiva": True, "modo": mode, "giorno": day, "novita": news, "alyx": alyx_after(seed, day)}

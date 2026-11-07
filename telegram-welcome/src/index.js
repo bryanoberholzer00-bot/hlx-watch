@@ -14,6 +14,7 @@
 import { flushMorning, handlePush } from "./push.js";
 import { FAST_CRON, fastAlerts, fastCheck, fastStatus, fastWatchdog } from "./fast.js";
 import { dispatchRun } from "./dispatch.js";
+import { modeStatus, statusText, switchOff } from "./annuncio.js";
 import { ensureWebhook, handleCallback, noiseList } from "./noise.js";
 // Pulsanti ✅/❌ sotto le proposte della revisione settimanale e /proposte.json: vedi src/proposte.js
 import { decisionsList, handleProposal, parseProposal } from "./proposte.js";
@@ -63,6 +64,7 @@ function welcome(isOwner, site) {
     "/ultime — le ultime scoperte rilevanti",
     "/cerca <i>testo</i> — cerca nell'archivio (es. /cerca hlx_)",
     "/stato — ultima scansione, numeri, ultima analisi AI",
+    "/annuncio — se è in corso un possibile annuncio",
   ].join("\n");
   if (isOwner) {
     return `<b>Ciao, sei il proprietario di HLX Watch.</b>\n\nQui ricevi gli avvisi immediati quando compare una ` +
@@ -145,6 +147,13 @@ async function answer(env, text, chatId) {
         return await cerca(env, site, args);
       case "/stato":
         return await stato(env, site);
+      case "/annuncio":
+        return statusText(await modeStatus(env), site);
+      case "/annuncio_falso":
+        if (!isOwner) return "Solo il proprietario di HLX Watch può spegnere la modalità annuncio.";
+        return (await switchOff(env))
+          ? "✅ Modalità annuncio spenta: si torna al giro ogni 30 minuti (10 nelle ore calde). La fascia sul sito sparisce al prossimo giro."
+          : "La modalità annuncio non era attiva.";
       default:
         return command.startsWith("/") ? `Comando sconosciuto. Prova /help.` : null;
     }
@@ -215,7 +224,7 @@ export default {
     // notifiche di sistema del sito: iscrizioni dal browser e invii dai run su GitHub (src/push.js)
     const path = new URL(request.url).pathname;
     if (path.startsWith("/push/")) {
-      return handlePush(request, env);
+      return handlePush(request, env, reply);
     }
     if (path === "/fast/annuncio.json" && request.method === "GET") {
       return fastAlerts(env);                       // l'app Android lo legge insieme a bot/ultime.json

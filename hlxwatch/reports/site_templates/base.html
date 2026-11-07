@@ -113,6 +113,10 @@
  .breve{max-width:820px;margin:0 auto} .breve section p{line-height:1.55} .breve h2{font-size:1.15rem}
  .breve .fatti p{margin:.2rem 0} .lingua{text-align:right;margin:0 0 -.4rem;font-size:.9rem}
  .avviso{border:2px solid #e53935;background:rgba(229,57,53,.08)}
+ .fascia-annuncio{display:block;background:#c62828;color:#fff;text-decoration:none;padding:.55rem 1rem;text-align:center;
+  font-size:.95rem;line-height:1.35}
+ .fascia-annuncio span{display:block;font-size:.8rem;opacity:.9}
+ .fascia-annuncio:hover{background:#b71c1c}
  ul.giochi{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4rem .6rem}
  ul.giochi li{background:var(--code);border-radius:999px;padding:.15rem .7rem;font-size:.9rem}
  .nuovo-qui{font-size:.85rem;color:var(--muted)}
@@ -137,6 +141,7 @@
      <a href="sistemi.html">Di cosa è fatto HLX</a>
      <a href="mappa.html">Mappa dei collegamenti</a>
      <a href="segnali.html">Prima di un annuncio</a>
+     <a href="annuncio.html">Dopo l'annuncio</a>
      <a href="alyx.html">HLX e Alyx a confronto</a>
      <a href="contatore.html">Il contatore di Valve</a>
      <a href="orologio.html">L'orologio di Valve</a>
@@ -187,6 +192,8 @@
   if (hit) { hit.setAttribute("aria-current", "page"); if (hit.closest(".menu")) moreBtn.style.opacity = 1; }
 })();
 </script>
+{% if annuncio %}<a class="fascia-annuncio" href="annuncio.html">🔴 <b>Possibile annuncio di Valve</b>{% if annuncio.voci %}: {{ annuncio.voci[0].x }}{% endif %}
+ <span>giorno {{ annuncio.giorno }} · HLX Watch controlla ogni 10 minuti · cosa succede ora →</span></a>{% endif %}
 <main>{% block content %}{% endblock %}</main>
 <script>
 // sul telefono, le tabelle più larghe dello schermo diventano schede (la Ricerca ha le sue, fatte dal suo script;

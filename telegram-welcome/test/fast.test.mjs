@@ -83,8 +83,10 @@ test("fastCheck manda Telegram e scrive /fast/annuncio.json", async () => {
     assert.equal(env.SUBS.writes, writes);                              // nessuna novità, nessuna scrittura
     steamPosts = [{ gid: "9", title: "Half-Life 3", contents: "", feedname: "steam_community_announcements", date: Math.floor(Date.now() / 1000) }];
     await fastCheck(env, "https://example/", "https://bot", tg);
-    assert.equal(sent.length, 1);
+    assert.equal(sent.length, 2);                                       // l'avviso e la modalità annuncio
     assert.match(sent[0], /POSSIBILE ANNUNCIO/);
+    assert.match(sent[1], /modalità annuncio attiva/);
+    assert.ok(JSON.parse(env.SUBS.data.get("annuncio:modo")).voci[0].x.includes("Half-Life 3"));
     const res = await fastAlerts(env);
     const list = await res.json();
     assert.equal(list.length, 1);

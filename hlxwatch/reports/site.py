@@ -273,6 +273,14 @@ def write_counter(env: Environment, db: Database, out_dir: Path, hlx_days: list[
     return a
 
 
+def _alyx_seed_safe() -> dict[str, Any] | None:
+    from hlxwatch import alyx as _alyx
+    try:
+        return _alyx.load_seed()
+    except Exception:                       # senza lo storico di Alyx la pagina dell'annuncio esce lo stesso
+        return None
+
+
 def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 180) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     from hlxwatch.revisione import load
@@ -310,7 +318,14 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
                                                                exclude_change_type=("baseline", "present"))])
     from hlxwatch.reports.termometro import compute as termo_now, history, history_svg
     termo_current = termo_now(cfg, db)
-    status = source_status(cfg, db, fast_status(cfg))
+    fast = fast_status(cfg)
+    status = source_status(cfg, db, fast)
+    # modalità annuncio (decisa dal bot su Cloudflare): fascia in cima a ogni pagina e pagina annuncio.html
+    mode = ((fast or {}).get("avvio") or {}).get("annuncio") or None
+    env.globals["annuncio"] = mode
+    from hlxwatch.announcement import after_page
+    (out_dir / "annuncio.html").write_text(env.get_template("annuncio.html").render(
+        a=after_page(db, mode, _alyx_seed_safe())), encoding="utf-8")
     # registro delle tracce HLX prima della pagina iniziale: i riquadri delle risposte e le ultime tracce lo usano
     outcomes = outcome_register(cfg, db)
     from hlxwatch.reports.schede import assign_slugs, write_cards

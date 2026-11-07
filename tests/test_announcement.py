@@ -123,3 +123,45 @@ def test_webpush_announcement_is_urgent_with_its_title(tmp_path, monkeypatch):
         announcement.HEADING, group_findings([f], cfg))
     assert sent[0]["message"]["urgente"] is True and sent[0]["message"]["title"] == announcement.HEADING
     db.close()
+
+
+def test_webpush_announcement_turns_on_the_mode_but_the_drill_does_not(tmp_path, monkeypatch):
+    cfg, db = make(tmp_path)
+    sent = []
+    monkeypatch.setattr("hlxwatch.notifiers.webpush.requests.post", lambda url, json=None, headers=None, timeout=None: (
+        sent.append(json) or SimpleNamespace(status_code=200, json=lambda: {"sent": 1, "statuses": {}, "cursor": None}, text="")))
+    f = Finding(game="steamtracking", source="discovery", file_path="SteamTracking/GameTracking-HalfLife3",
+                change_type="new_repo", text="POSSIBILE ANNUNCIO: Nuovo repository", score=200,
+                keywords=["new_repo", announcement.KEYWORD])
+    n = WebPushNotifier("https://bot.example", "segreto", "https://site.example/")
+    n.send_groups(announcement.HEADING, group_findings([f], cfg))
+    assert sent[-1]["message"]["annuncio"] is True and "Nuovo repository" in sent[-1]["message"]["voci"][0]["x"]
+    n.send_groups(announcement.DRILL_HEADING, group_findings([f], cfg))
+    assert "annuncio" not in sent[-1]["message"]                    # la prova generale non accende niente
+    db.close()
+
+
+def test_alyx_after_announcement():
+    seed = {"announced": "2019-11-21", "released": "2020-03-23", "names": [
+        {"name": "hlvr", "day": "2016-12-11"}, {"name": "soundstacks_hlvr", "day": "2020-03-04"},
+        {"name": "hlalyxpromotitle", "day": "2020-03-12"}, {"name": "hlalyxpromodesc", "day": "2020-03-12"}]}
+    a = announcement.alyx_after(seed, 110)
+    assert a["primo"] == 104 and a["prima"] == 1 and a["dopo"] == 3 and a["giorni_uscita"] == 123
+    assert [(t["giorno"], t["nomi"]) for t in a["tappe"]] == [(104, 1), (112, 2)]
+    assert a["fino_a"] == 1
+    assert announcement.alyx_after(None) is None
+
+
+def test_after_page(tmp_path):
+    cfg, db = make(tmp_path)
+    assert announcement.after_page(db, None, None) == {"attiva": False, "alyx": None}
+    db.conn.execute("INSERT INTO builds (game, source, ref, date, created_at) VALUES ('cs2', 'github', 'r1', "
+                    "'2026-11-05T20:00:00Z', '2026-11-05T20:00:00Z')")
+    for text, when, score in (("prima", "2026-11-05T19:00:00Z", 120), ("dopo", "2026-11-05T21:00:00Z", 120),
+                              ("debole", "2026-11-05T22:00:00Z", 10)):
+        db.conn.execute("INSERT INTO findings (build_id, game, source, file_path, change_type, text, score, keywords, dedup_hash, "
+                        "created_at) VALUES (1, 'cs2', 'github', 'a.txt', 'added', ?, ?, '[\"hlx\"]', ?, ?)", (text, score, text, when))
+    mode = {"da": "2026-11-05T20:00:00.000Z", "fino": "2026-11-19T20:00:00.000Z", "giorno": 2, "voci": []}
+    p = announcement.after_page(db, mode, None)
+    assert p["attiva"] and p["giorno"] == 2 and [n["testo"] for n in p["novita"]] == ["dopo"]
+    db.close()
