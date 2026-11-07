@@ -8,6 +8,8 @@ nello stato del database (chiave timeline:temi). L'AI viene richiamata solo per 
 La data di un indizio è la prima comparsa più vecchia tra le sue righe: per le voci della scansione completa è il primo
 commit di SteamTracking che le contiene ("almeno dal" se c'erano già all'inizio del tracciamento).
 Correzioni a mano in config: timeline.nascondi (id da nascondere), timeline.rilevanza ({id: alta|media|...}).
+I fatti che non vengono dai file (per esempio un dipendente di Valve che dice "HLX" in pubblico) stanno in
+fatti_esterni.json, scritti a mano e solo con fonti affidabili: la pagina li mostra con le fonti, segnati a parte.
 """
 from __future__ import annotations
 
@@ -27,6 +29,7 @@ from hlxwatch.timeutil import local_day
 log = logging.getLogger(__name__)
 
 STATE_KEY = "timeline:temi"
+EXTERNAL = Path(__file__).with_name("fatti_esterni.json")
 LEVELS = ("alta", "media", "bassa", "rumore")
 MAX_GROUPS_PER_CALL = 150
 MAX_ATTEMPTS = 3
@@ -212,6 +215,24 @@ def update_timeline(cfg: Config, db: Database, client: Any = None) -> int:
 
 
 # ------------------------------------------------------------------- pagina
+def external_entries(path: Path = EXTERNAL) -> list[dict[str, Any]]:
+    """I fatti esterni come voci della Cronologia (con le fonti al posto delle righe dei file)."""
+    try:
+        facts = json.loads(path.read_text(encoding="utf-8")).get("fatti") or []
+    except (OSError, ValueError):
+        return []
+    out = []
+    for f in facts:
+        day = str(f.get("data") or "")[:10]
+        if not (day and f.get("titolo")):
+            continue
+        out.append({"id": f.get("id") or day, "titolo": f["titolo"], "spiegazione": f.get("spiegazione", ""),
+                    "rilevanza": f.get("rilevanza", "media"), "esterno": True, "fonti": f.get("fonti") or [],
+                    "cerca": "", "giochi": [], "righe": 0, "esempi": [], "date": day + "T12:00:00Z", "data": day,
+                    "fonte": None, "rimosso": None, "anno": day[:4]})
+    return out
+
+
 def _sort_key(item: dict[str, Any]) -> str:
     return item["date"] or "0000"
 
@@ -270,6 +291,7 @@ def build_entries(cfg: Config, db: Database) -> dict[str, Any]:
             "anno": local_day(anchor["date"])[:4] if anchor else "senza data",
         }
         (noise if t["rilevanza"] == "rumore" else entries).append(entry)
+    entries += [e for e in external_entries() if e["id"] not in hidden]
     entries.sort(key=_sort_key, reverse=True)
     noise.sort(key=_sort_key, reverse=True)
     return {"entries": entries, "noise": noise, "unclassified": unclassified,

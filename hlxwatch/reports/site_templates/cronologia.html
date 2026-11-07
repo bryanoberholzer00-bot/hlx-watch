@@ -12,6 +12,9 @@
  .lvl.alta{background:#e53935} .lvl.media{background:#fb8c00} .lvl.bassa,.lvl.rumore{background:#90a4ae}
  .year{font-weight:700;margin:1rem 0 .6rem -1.2rem;padding-left:.2rem;color:var(--muted)}
  .tl code{display:inline-block;margin-top:.2rem}
+ .tl li.esterno::before{background:#2f80ed}
+ .esterno-tag{display:inline-block;padding:0 .45rem;border-radius:4px;font-size:.75rem;font-weight:600;color:#fff;
+  background:#2f80ed;margin-left:.3rem}
 </style>
 <h1>Cronologia HLX</h1>
 <section>
@@ -20,7 +23,9 @@
  ("almeno dal" vuol dire che c'era già quando il tracciamento è iniziato, quindi può essere più vecchia).</p>
  <p class="muted">Le spiegazioni sono scritte da {{ ai_model }} e riviste a mano; la pagina si aggiorna da sola quando compare un nuovo indizio.
  Rilevanza: <span class="lvl alta">alta</span> indizio concreto di lavoro su HLX, <span class="lvl media">media</span> riferimento reale ma vecchio o indiretto,
- <span class="lvl bassa">bassa</span> curiosità. Per il dettaglio di ogni riga usa la <a href="search.html">ricerca</a>.</p>
+ <span class="lvl bassa">bassa</span> curiosità. Per il dettaglio di ogni riga usa la <a href="search.html">ricerca</a>.
+ Le voci <span class="esterno-tag" style="margin:0">fuori dai file</span> sono fatti riportati da testate affidabili (per esempio
+ una frase detta in pubblico da qualcuno di Valve), scritti a mano con le fonti.</p>
 </section>
 <section>
 {% if not data.entries %}<p class="muted">Nessun indizio ancora classificato.</p>{% endif %}
@@ -28,14 +33,16 @@
 {% set ns = namespace(year="") %}
 {% for e in data.entries %}
  {% if e.anno != ns.year %}{% set ns.year = e.anno %}<div class="year">{{ e.anno }}</div>{% endif %}
- <li class="{{ e.rilevanza }}">
-  <div class="when">{% if e.rimosso and e.data == e.rimosso %}rimosso il {{ e.rimosso }}{% else %}{{ e.data }}{% if e.rimosso %} &middot; rimosso il {{ e.rimosso }}{% endif %}{% endif %}<span class="lvl {{ e.rilevanza }}">{{ e.rilevanza }}</span></div>
+ <li class="{{ e.rilevanza }}{{ ' esterno' if e.esterno }}">
+  <div class="when">{% if e.rimosso and e.data == e.rimosso %}rimosso il {{ e.rimosso }}{% else %}{{ e.data }}{% if e.rimosso %} &middot; rimosso il {{ e.rimosso }}{% endif %}{% endif %}<span class="lvl {{ e.rilevanza }}">{{ e.rilevanza }}</span>{% if e.esterno %}<span class="esterno-tag">fuori dai file</span>{% endif %}</div>
   <h3>{{ e.titolo }}</h3>
   <p>{{ e.spiegazione }}</p>
+  {% if e.esterno %}<div class="meta">Fonti: {% for f in e.fonti %}<a href="{{ f.url }}" rel="noopener">{{ f.nome }}</a>{{ ", " if not loop.last }}{% endfor %}</div>
+  {% else %}
   <div class="meta">{{ e.giochi|join(", ") }} &middot; {{ e.righe }} {{ "riga" if e.righe == 1 else "righe" }}
    {% if e.fonte %} &middot; <a href="{{ e.fonte }}">{{ e.fonte|linklabel }} della prima comparsa</a>{% endif %}
    {% if e.cerca %} &middot; <a href="search.html?q={{ e.cerca|urlencode }}">tutte le voci</a>{% endif %}</div>
-  <code>{{ e.esempi[0] }}</code>
+  <code>{{ e.esempi[0] }}</code>{% endif %}
  </li>
 {% endfor %}
 </ul>

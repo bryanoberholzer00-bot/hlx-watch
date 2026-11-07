@@ -1,0 +1,16 @@
+{
+  "nota": "Fatti su HLX che non vengono dai file di Valve, scritti a mano e solo se riportati da testate affidabili. La Cronologia li mostra con le fonti.",
+  "fatti": [
+    {
+      "id": "e1",
+      "data": "2026-10-21",
+      "titolo": "Un dipendente di Valve dice «HLX» sul palco",
+      "spiegazione": "Al GameSoundCon di Burbank, rispondendo a una domanda sull'audio HDR (il bilanciamento automatico dei volumi), il compositore di Valve Mike Morasky ha detto che Deadlock ha la sua versione e che anche HLX ha la sua. Il collega David Feise poi ha scherzato che l'aveva detto «una volta sola». È la prima volta che qualcuno di Valve nomina HLX in pubblico: conferma che è un progetto vero, con un suo sistema audio, ma non dice cos'è né quando esce. Valve non ha commentato.",
+      "rilevanza": "alta",
+      "fonti": [
+        {"nome": "VGC", "url": "https://www.videogameschronicle.com/news/half-life-3-speculation-grows-as-valve-developer-mentions-hlx-during-stage-panel/"},
+        {"nome": "PlayStation Universe", "url": "https://www.psu.com/news/rumoured-half-life-3-codename-hlx-mentioned-by-valve-dev-during-gamesoundcon-panel/"}
+      ]
+    }
+  ]
+}
