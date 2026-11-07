@@ -173,6 +173,12 @@ class FullScanSource:
         self.orphans.collect(repo_cfg, lambda args: self._git(args, cwd=path, check=False))
         self.pulse.collect(repo_cfg, lambda args: self._git(args, cwd=path, check=False))
         self.families.collect(repo_cfg, lambda args: self._git(args, cwd=path, check=False))
+        # le opzioni degli schemi riservate a HLX: che cosa sblocca ogni "mod != hlx" (hlxwatch/opzioni.py)
+        try:
+            from hlxwatch.opzioni import collect as collect_options
+            collect_options(self.db, name, lambda args: self._git(args, cwd=path, check=False))
+        except Exception:
+            log.exception("[%s] opzioni riservate a HLX non lette", name)
         loc_findings = self.localization.learn(name, self.token_counts(path),
                                                score_override=repo_cfg.get("loc_prefix_score"))
         for f in loc_findings:

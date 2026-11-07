@@ -8,8 +8,31 @@
       "spiegazione": "Al GameSoundCon di Burbank, rispondendo a una domanda sull'audio HDR (il bilanciamento automatico dei volumi), il compositore di Valve Mike Morasky ha detto che Deadlock ha la sua versione e che anche HLX ha la sua. Il collega David Feise poi ha scherzato che l'aveva detto «una volta sola». È la prima volta che qualcuno di Valve nomina HLX in pubblico: conferma che è un progetto vero, con un suo sistema audio, ma non dice cos'è né quando esce. Valve non ha commentato.",
       "rilevanza": "alta",
       "fonti": [
-        {"nome": "VGC", "url": "https://www.videogameschronicle.com/news/half-life-3-speculation-grows-as-valve-developer-mentions-hlx-during-stage-panel/"},
-        {"nome": "PlayStation Universe", "url": "https://www.psu.com/news/rumoured-half-life-3-codename-hlx-mentioned-by-valve-dev-during-gamesoundcon-panel/"}
+        {
+          "nome": "VGC",
+          "url": "https://www.videogameschronicle.com/news/half-life-3-speculation-grows-as-valve-developer-mentions-hlx-during-stage-panel/"
+        },
+        {
+          "nome": "PlayStation Universe",
+          "url": "https://www.psu.com/news/rumoured-half-life-3-codename-hlx-mentioned-by-valve-dev-during-gamesoundcon-panel/"
+        }
+      ]
+    },
+    {
+      "id": "e2",
+      "data": "2026-06-30",
+      "titolo": "Ragnarök, il nuovo motore fisico di Valve «nei futuri giochi»",
+      "spiegazione": "Annunciando il suo motore fisico Box3D, Erin Catto (l'autore di Box2D) ha scritto che Dirk Gregorius, il programmatore di Valve che ha fatto Rubikon, il motore fisico di Half-Life: Alyx, ha portato ottimizzazioni simili in un motore nuovo chiamato Ragnarök, da cercare nei futuri giochi di Valve. Valve non l'ha confermato e non dice per quale gioco: i giochi che Valve sta facendo sono quasi tutti multigiocatore, e un motore fisico più fine serve soprattutto a un gioco in prima persona come Half-Life. Nei file pubblici il nome Ragnarök non compare.",
+      "rilevanza": "media",
+      "fonti": [
+        {
+          "nome": "Erin Catto, annuncio di Box3D",
+          "url": "https://box2d.org/posts/2026/06/announcing-box3d/"
+        },
+        {
+          "nome": "PC Games Hardware",
+          "url": "https://www.pcgameshardware.de/Source-Engine-Software-255922/News/neu-fuer-Half-Life-3-Rubikon-Ragnarok-Valve-1547074/"
+        }
       ]
     }
   ]

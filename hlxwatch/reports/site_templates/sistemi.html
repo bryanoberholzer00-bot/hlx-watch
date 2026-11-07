@@ -53,6 +53,26 @@ lavora, da quando, e cosa è comparso di recente. Ogni nome porta alla sua sched
  </div>{% endfor %}
 </section>
 
+{% if opz %}{% set solo = opz|selectattr("solo")|list %}
+<section id="opzioni">
+ <h2>Le opzioni che esistono solo per HLX</h2>
+ <p>Negli schemi del motore ogni opzione dell'editor può essere nascosta a seconda del gioco aperto. Le righe
+ <code>mod != hlx</code> nascondono un'opzione quando il gioco non è HLX: quindi quell'opzione serve a HLX. Gli altri
+ giochi di Valve non la vedono nemmeno. Sono {{ opz|length }}, {{ solo|length }} solo per HLX; quasi tutte riguardano gli
+ effetti: luce, nebbia, acqua, bordi più puliti, calcolo sulla scheda video. È lavoro sulla qualità dell'immagine, quello
+ che un gioco con una grafica di punta chiede e un gioco competitivo no.</p>
+ <div class="tabwrap"><table>
+  <tr><th>Che cosa fa</th><th>Per chi</th><th>Dove</th><th>Dal</th></tr>
+  {% for o in opz %}<tr><td>{{ o.spiegazione or o.nome }}<br><small class="muted"><code>{{ o.campo }}</code>{% if o.nome and o.spiegazione %} · «{{ o.nome }}»{% endif %}</small></td>
+   <td>{{ o.per }}</td><td><small>{{ o.classi|join(", ") }}</small></td>
+   <td>{% if o.dal %}{{ "almeno " if o.almeno }}{{ o.dal[8:10] }}/{{ o.dal[5:7] }}/{{ o.dal[:4] }}{% else %}—{% endif %}</td></tr>{% endfor %}
+ </table></div>
+ <p class="muted"><small>Letto a ogni scansione completa dai file di schema pubblicati da SteamTracking
+ (DumpSource2/schemas). "Dal": la prima comparsa della riga <code>mod != …</code> in quel file; "almeno" vuol dire che
+ c'era già all'inizio dell'archivio.</small></p>
+</section>
+{% endif %}
+
 <section id="gemelli">
  <h2>HLX accanto agli altri giochi</h2>
  <p>Alcuni pezzi di HLX hanno un fratello in un altro gioco, scritto allo stesso modo: lo stesso motore, gli stessi file,

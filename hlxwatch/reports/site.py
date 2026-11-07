@@ -380,8 +380,9 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
                                        encoding="utf-8")
     # di cosa è fatto HLX: le tracce per sistema, e la domanda "HLX è un gioco VR?" davanti ai dati
     from hlxwatch import sistemi
+    from hlxwatch import opzioni               # le opzioni degli schemi che esistono solo per HLX
     (out_dir / "sistemi.html").write_text(env.get_template("sistemi.html").render(
-        s=sistemi.summary(outcomes, alyx.load_seed(), db)), encoding="utf-8")
+        s=sistemi.summary(outcomes, alyx.load_seed(), db), opz=opzioni.summary(db)), encoding="utf-8")
     # prima di un annuncio: i segnali dei progetti passati accanto a quelli di HLX
     from hlxwatch import segnali
     (out_dir / "segnali.html").write_text(env.get_template("segnali.html").render(s=segnali.summary(db, outcomes),
