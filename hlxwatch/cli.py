@@ -147,6 +147,12 @@ def cmd_cron(args: argparse.Namespace) -> int:
         storia_file.run(cfg, db)
     except Exception:
         log.exception("Storia dei file dei personaggi: recupero non riuscito")
+    # le immagini degli strumenti di Valve: icone nuove con il giorno del disegno (hlxwatch/sources/immagini.py)
+    try:
+        from hlxwatch.sources import immagini
+        immagini.scan(cfg, db, notifiers=pipeline.notifiers if not args.no_notify else [])
+    except Exception:
+        log.exception("Immagini degli strumenti: controllo non riuscito")
     # il silenzio: avviso se HLX supera la sua pausa più lunga, e in modalità annuncio quando ricompaiono nomi nuovi
     try:
         from hlxwatch.silenzio import watch as watch_silence

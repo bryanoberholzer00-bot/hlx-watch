@@ -382,7 +382,12 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     from hlxwatch import sistemi
     from hlxwatch import opzioni               # le opzioni degli schemi che esistono solo per HLX
     from hlxwatch.sources import storia_file   # i file dei personaggi nel tempo, accanto ai giorni delle tracce HLX
-    pers = storia_file.overview(db, {t["first"][:10] for t in outcomes["traces"] if t.get("first")})
+    hlx_days = {t["first"][:10] for t in outcomes["traces"] if t.get("first")}
+    pers = storia_file.overview(db, hlx_days)
+    # le immagini degli strumenti (icone nuove degli editor, con il giorno del disegno)
+    from hlxwatch.sources import immagini
+    (out_dir / "immagini.html").write_text(env.get_template("immagini.html").render(im=immagini.summary(db, hlx_days)),
+                                           encoding="utf-8")
     (out_dir / "sistemi.html").write_text(env.get_template("sistemi.html").render(
         s=sistemi.summary(outcomes, alyx.load_seed(), db), opz=opzioni.summary(db), pers=pers), encoding="utf-8")
     # prima di un annuncio: i segnali dei progetti passati accanto a quelli di HLX

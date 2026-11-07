@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Le immagini degli strumenti - HLX Watch{% endblock %}
+{% block description %}Le icone nuove degli strumenti di Valve dal 2024, con il giorno in cui il grafico le ha create e quello in cui sono uscite con CS2, Dota 2 e Deadlock.{% endblock %}
+{% block content %}
+<style>
+ .img-giorno{border:1px solid var(--line);border-radius:8px;padding:.6rem .9rem;margin:.6rem 0}
+ .img-giorno h3{margin:0 0 .4rem;font-size:1rem}
+ .img-griglia{display:flex;flex-wrap:wrap;gap:.5rem}
+ .img-voce{display:flex;align-items:center;gap:.4rem;border:1px solid var(--line);border-radius:6px;padding:.25rem .45rem;
+  background:var(--card);max-width:100%}
+ .img-voce img{width:24px;height:24px;object-fit:contain;image-rendering:auto;background:repeating-conic-gradient(rgba(127,127,127,.18) 0 25%,transparent 0 50%) 50%/8px 8px;border-radius:3px}
+ .img-voce .n{font-size:.78rem;word-break:break-all} .img-voce small{display:block;color:var(--muted);font-size:.7rem}
+ .etichette .img-voce img{width:32px;height:32px;image-rendering:pixelated}
+ .hlxtag{display:inline-block;padding:0 .35rem;border-radius:4px;font-size:.72rem;margin-left:.3rem}
+</style>
+<div class="breve">
+<h1>Le immagini degli strumenti</h1>
+<p class="muted">I data miner aprono i pacchetti dei giochi per vedere le icone nuove degli editor di Valve. HLX Watch le
+prende dove sono già pubbliche: SteamTracking pubblica in chiaro le immagini degli strumenti di CS2, Dota 2 e Deadlock
+(la cartella <code>game/core/tools/images</code>). Quasi tutte portano dentro i dati di Photoshop con il giorno in cui
+sono state disegnate. Aggiornato {{ generated }}.</p>
+</div>
+{% if not im %}
+<section><p>Le immagini arrivano con il prossimo giro.</p></section>
+{% else %}
+<section>
+ <div class="cards">
+  <div class="card"><b>{{ im.n }}</b><span>immagini nuove dal {{ im.da[8:10] }}/{{ im.da[5:7] }}/{{ im.da[:4] }}</span></div>
+  <div class="card"><b>{{ im.con_data }}</b><span>con il giorno in cui sono state disegnate</span></div>
+  {% if im.anticipo_tipico is not none %}<div class="card"><b>{{ im.anticipo_tipico }} giorni</b><span>tipicamente tra il disegno e l'uscita</span></div>{% endif %}
+  <div class="card"><b>{{ im.giorni_hlx }}</b><span>giorni di uscita vicini a una traccia HLX</span></div>
+ </div>
+ <p>Le icone non sono il gioco: sono i pulsanti degli strumenti con cui Valve lo costruisce. Ma dicono a cosa lavorano
+ gli strumenti (particelle sulla scheda video, modelli che si deformano, ossa per le facce) e, con la data del disegno,
+ da quanto tempo. Le icone escono con gli aggiornamenti di un gioco qualunque, perché gli strumenti sono gli stessi per
+ tutti.</p>
+</section>
+
+{% if im.etichette %}
+<section class="etichette">
+ <h2>Le etichette delle risorse</h2>
+ <p>Nel browser delle risorse Valve divide modelli e materiali in categorie, ognuna con la sua icona. Le categorie dicono
+ che tipo di oggetti stanno costruendo: Tyler McVicker ha notato a marzo 2026 «Half-Life: Alyx», «industriale» e
+ «militare».</p>
+ <div class="img-griglia">
+ {% for o in im.etichette %}<a class="img-voce" href="{{ o.url }}" rel="noopener"><img src="{{ o.url }}" alt="" loading="lazy">
+  <span class="n">{{ o.nome }}<small>uscita {{ o.giorno[8:10] }}/{{ o.giorno[5:7] }}/{{ o.giorno[:4] }}{% if o.creata %} · disegnata {{ o.creata[8:10] }}/{{ o.creata[5:7] }}/{{ o.creata[:4] }}{% endif %}</small></span></a>{% endfor %}
+ </div>
+</section>
+{% endif %}
+
+<section>
+ <h2>Giorno per giorno</h2>
+ {% for d in im.giorni %}<div class="img-giorno">
+  <h3>{{ d.giorno[8:10] }}/{{ d.giorno[5:7] }}/{{ d.giorno[:4] }} · {{ d.immagini|length }} {{ "immagine" if d.immagini|length == 1 else "immagini" }}
+   <small class="muted">({{ d.giochi|join(", ") }})</small>{% if d.hlx %}<span class="hlxtag avviso">traccia HLX vicina</span>{% endif %}</h3>
+  <div class="img-griglia">
+  {% for o in d.immagini %}<a class="img-voce" href="{{ o.url }}" rel="noopener" title="{{ o.percorso }}"><img src="{{ o.url }}" alt="" loading="lazy">
+   <span class="n">{{ o.nome }}{% if o.creata %}<small>disegnata {{ o.creata[8:10] }}/{{ o.creata[5:7] }}/{{ o.creata[:4] }}{% if o.anticipo is not none and o.anticipo > 0 %} ({{ o.anticipo }} giorni prima){% endif %}</small>{% endif %}</span></a>{% endfor %}
+  </div>
+ </div>{% endfor %}
+ <p class="muted"><small>Un'immagine conta dal primo giorno in cui è uscita, in qualunque gioco. Il giorno del disegno è
+ quello scritto da Photoshop nell'immagine (ora di Seattle): non c'è in tutte. "Traccia HLX vicina": entro un giorno da una
+ traccia HLX. Le immagini sono mostrate dai file pubblici di SteamTracking.</small></p>
+</section>
+{% endif %}
+{% endblock %}
