@@ -60,12 +60,12 @@ github:
       branch: master
       appid: 546560
       gamedir: hlvr
-      ignore_keywords: [half_life, hl_universe]       # in un repo di Half-Life la parola è solo rumore
+      ignore_keywords: [half_life, hl_universe, hl_nomi_attaccati]       # in un repo di Half-Life la parola è solo rumore
     - name: steamclient
       title: "Client Steam"
       repo: SteamTracking/SteamTracking
       branch: master
-      ignore_keywords: [half_life, hl_universe]       # la UI di Steam cita i giochi Half-Life esistenti; "Half-Life 3" ha la sua regola
+      ignore_keywords: [half_life, hl_universe, hl_nomi_attaccati]       # la UI di Steam cita i giochi Half-Life esistenti; "Half-Life 3" ha la sua regola
       # file del client Steam: stringhe, localizzazione, flag di funzionalità (Deadlock vi comparve prima dell'annuncio)
     - name: protobufs
       title: "Protobuf Steam"
@@ -77,19 +77,19 @@ github:
       repo: SteamTracking/GameTracking-SteamVR
       branch: master
       # runtime VR: eventuale componente VR di hlx
-      ignore_keywords: [hl_universe]
+      ignore_keywords: [hl_universe, hl_nomi_attaccati]
     - name: steamworks
       title: "Documentazione Steamworks"
       repo: SteamTracking/SteamworksDocumentation
       branch: master
-      ignore_keywords: [half_life, hl_universe]       # cita spesso i giochi Half-Life esistenti; "Half-Life 3" resta coperto
+      ignore_keywords: [half_life, hl_universe, hl_nomi_attaccati]       # cita spesso i giochi Half-Life esistenti; "Half-Life 3" resta coperto
       since: "2026-04-24T00:00:00Z"      # prima lettura: sei mesi di storia, poi solo i commit nuovi
       # funzioni nuove documentate per gli sviluppatori prima dell'uscita
     - name: steamhelp
       title: "Pagine di aiuto di Steam"
       repo: SteamTracking/SteamHelpTracking
       branch: main
-      ignore_keywords: [half_life, hl_universe]
+      ignore_keywords: [half_life, hl_universe, hl_nomi_attaccati]
       since: "2026-04-24T00:00:00Z"
       # articoli di supporto, anche per prodotti non ancora usciti
     # Altri repo utili: SteamTracking/GameTracking-TF2
@@ -348,13 +348,13 @@ steam:
     - {appid: 730,     name: cs2,      title: "Counter-Strike 2"}
     - {appid: 570,     name: dota2,    title: "Dota 2"}
     - {appid: 1422450, name: deadlock, title: "Deadlock"}
-    - {appid: 546560,  name: alyx,     title: "Half-Life: Alyx", ignore_keywords: [half_life, hl_universe]}
+    - {appid: 546560,  name: alyx,     title: "Half-Life: Alyx", ignore_keywords: [half_life, hl_universe, hl_nomi_attaccati]}
     # catalogo Half-Life: nel 2024 l'attività sulle build di Half-Life 2 ha anticipato l'aggiornamento del ventennale,
     # e Alyx è stato aggiornato a settembre 2026 dopo quattro anni. Prima lettura di ogni app: solo registrata
-    - {appid: 70,      name: hl1,      title: "Half-Life", ignore_keywords: [half_life, hl_universe, hl2_achievement]}
-    - {appid: 220,     name: hl2,      title: "Half-Life 2", ignore_keywords: [half_life, hl_universe, hl2_achievement]}
-    - {appid: 380,     name: hl2ep1,   title: "Half-Life 2: Episode One", ignore_keywords: [half_life, hl_universe, hl2_achievement]}
-    - {appid: 420,     name: hl2ep2,   title: "Half-Life 2: Episode Two", ignore_keywords: [half_life, hl_universe, hl2_achievement]}
+    - {appid: 70,      name: hl1,      title: "Half-Life", ignore_keywords: [half_life, hl_universe, hl_nomi_attaccati, hl2_achievement]}
+    - {appid: 220,     name: hl2,      title: "Half-Life 2", ignore_keywords: [half_life, hl_universe, hl_nomi_attaccati, hl2_achievement]}
+    - {appid: 380,     name: hl2ep1,   title: "Half-Life 2: Episode One", ignore_keywords: [half_life, hl_universe, hl_nomi_attaccati, hl2_achievement]}
+    - {appid: 420,     name: hl2ep2,   title: "Half-Life 2: Episode Two", ignore_keywords: [half_life, hl_universe, hl_nomi_attaccati, hl2_achievement]}
   # NOTA: Deadlock (1422450) in anonimo espone solo info parziali (depot e build richiedono un token):
   # viene comunque seguito tramite il repo GameTracking-Deadlock.
   new_apps:
@@ -498,11 +498,15 @@ keywords:
     - id: hl_nomi_attaccati
       # nomi di Half-Life scritti attaccati e nemici nuovi che hl_universe non vede: g_vXenAnimation,
       # info_combine_gunship_bomb_target, CRangerTrapCableHelper, ai_flyer_flanking_route_hint (aggiornamenti di fine
-      # ottobre 2026, verificati nei file di CS2 il 7/11). "Xen" solo seguito da una maiuscola: boxEntity non conta.
+      # ottobre 2026, verificati nei file di CS2 il 7/11). "Xen" solo seguito da una maiuscola e da minuscole (XenAnimation sì, i codici casuali
+      # del client di Steam come _3XenXoJ5 no): boxEntity non conta.
       # Maiuscole esatte e senza flag interni (spegnerebbero il filtro veloce); si cattura solo la parte con le
       # maiuscole normali ("Ranger" di RangerTrap), perché le parole con maiuscole mescolate vengono scartate.
-      pattern: "Xen(?=[A-Z])|[Gg]unship|Ranger(?=_?Trap)|ranger(?=_?trap)|Flyer(?=_?Flank)|flyer(?=_?flank)"
+      # "gunship" da solo prende i vecchi suoni di Half-Life 2 nel motore (chopper/gunship): solo la bomba.
+      # Niente "Xen" dopo una cifra: nei CSS e JS dei siti sono codici casuali (_3XenXoJ5...).
+      pattern: "(?<![0-9])Xen(?=[A-Z])|[Gg]unship(?=_?[Bb]omb)|Ranger(?=_?Trap)|ranger(?=_?trap)|Flyer(?=_?Flank)|flyer(?=_?flank)"
       case_sensitive: true
+      path_excludes: ['\.(css|js|json)$']
       weight: 80
       description: "nomi di Half-Life attaccati e nemici nuovi"
     - id: hl_universe
