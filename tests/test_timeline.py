@@ -46,6 +46,7 @@ def test_group_key_merges_games_and_numbers():
 
 
 def test_classify_once_and_build_entries(tmp_path, monkeypatch):
+    monkeypatch.setattr(timeline, "EXTERNAL", tmp_path / "nessun_fatto_esterno.json")   # solo le voci dai file
     cfg, db = make(tmp_path, monkeypatch)
     add(db, "cs2", '// MPropertySuppressExpr = "mod != hlx"', "added", datetime(2026, 7, 1, tzinfo=timezone.utc), score=130)
     add(db, "dota2", '// MPropertySuppressExpr = "mod != hlx"', "added", datetime(2026, 6, 1, tzinfo=timezone.utc), score=130, sha="b")

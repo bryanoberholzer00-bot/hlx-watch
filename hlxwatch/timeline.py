@@ -215,8 +215,9 @@ def update_timeline(cfg: Config, db: Database, client: Any = None) -> int:
 
 
 # ------------------------------------------------------------------- pagina
-def external_entries(path: Path = EXTERNAL) -> list[dict[str, Any]]:
+def external_entries(path: Path | None = None) -> list[dict[str, Any]]:
     """I fatti esterni come voci della Cronologia (con le fonti al posto delle righe dei file)."""
+    path = path or EXTERNAL
     try:
         facts = json.loads(path.read_text(encoding="utf-8")).get("fatti") or []
     except (OSError, ValueError):
