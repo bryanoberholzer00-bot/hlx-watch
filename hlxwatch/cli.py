@@ -141,6 +141,12 @@ def cmd_cron(args: argparse.Namespace) -> int:
         watch_map(cfg, db, pipeline.notifiers if not args.no_notify else [])
     except Exception:
         log.exception("Mappa dei collegamenti: controllo non riuscito")
+    # una volta sola: lo storico dei file dei personaggi dal 2024 (hlxwatch/sources/storia_file.py), senza avvisi
+    try:
+        from hlxwatch.sources import storia_file
+        storia_file.run(cfg, db)
+    except Exception:
+        log.exception("Storia dei file dei personaggi: recupero non riuscito")
     # il silenzio: avviso se HLX supera la sua pausa più lunga, e in modalità annuncio quando ricompaiono nomi nuovi
     try:
         from hlxwatch.silenzio import watch as watch_silence
