@@ -7,7 +7,10 @@ commit giganti (oltre 3000 file l'API non li mostra).
 
 - primo giro per repository: le occorrenze trovate diventano voci "present" (c'erano già), senza avvisi;
 - giri successivi: confronto con l'elenco precedente, occorrenze nuove "added" e sparite "removed",
-  tralasciando quelle già registrate dal monitoraggio dei commit.
+  tralasciando quelle già registrate dal monitoraggio dei commit;
+- se il prefiltro si allarga (termini nuovi in full_scan.prefilter), le righe che il prefiltro di prima non vedeva
+  c'erano già nei file: diventano "present" (con la data di prima comparsa cercata dopo), non novità. Così a novembre
+  2026 sono entrate nell'archivio stringhe come CRangerTrapCableHelper, che il primo giro aveva lasciato fuori.
 
 La ricerca usa `git grep` direttamente sugli oggetti git: niente working tree, niente problemi con
 percorsi lunghi o nomi di file non validi su Windows.
@@ -61,6 +64,8 @@ class FullScanSource:
         self.exclude = {str(x) for x in (self.fcfg.get("exclude_repos") or [])}
         codenames = [re.escape(str(c)) for c in (cfg.keywords.get("codenames") or []) if str(c).strip()]
         self.prefilter = "|".join([self.fcfg.get("prefilter") or DEFAULT_PREFILTER, *codenames, CODENAME_PREFILTER])
+        # il prefiltro di prima di novembre 2026, per i repository scansionati quando non si salvava ancora
+        self.legacy_prefilter = "|".join([DEFAULT_PREFILTER, *codenames, CODENAME_PREFILTER])
         self.codenames = CodenameTracker(cfg, db)
         self.localization = LocalizationTracker(cfg, db)
         self.orphans = OrphanTracker(cfg, db)
@@ -218,6 +223,23 @@ class FullScanSource:
                            score=res.score, keywords=res.keywords, token=res.token, line_no=line_no,
                            context=f"contenuto attuale di {repo}@{sha[:10]}")
 
+        filter_key = f"fullscan_prefiltro:{name}"
+        old_filter = self.db.get_state(filter_key) or self.legacy_prefilter
+        widened = None
+        if previous is not None and old_filter != self.prefilter:
+            try:
+                # git grep usa le classi POSIX ([[:space:]]); in Python si scrivono diverse
+                posix = {"[[:space:]]": r"\s", "[[:digit:]]": r"\d", "[[:alpha:]]": "[A-Za-z]", "[[:alnum:]]": "[A-Za-z0-9]"}
+                py_filter = old_filter
+                for k, v in posix.items():
+                    py_filter = py_filter.replace(k, v)
+                widened = re.compile(py_filter, re.IGNORECASE)
+            except re.error:
+                widened = None
+            log.info("[%s] prefiltro allargato: le righe che prima non vedeva diventano già presenti", name)
+        if old_filter != self.prefilter or self.db.get_state(filter_key) is None:
+            self.db.set_state(filter_key, self.prefilter)
+
         if previous is None:
             for key in sorted(new_keys)[: self.max_per_repo]:
                 file_path, line_no, text, res = current[key]
@@ -229,6 +251,11 @@ class FullScanSource:
                 if old_all is not None and line_key(file_path, text) in old_all:
                     continue                # c'era già, sotto soglia: è salito solo il punteggio
                 if self._already_recorded(name, file_path, text, "added"):
+                    continue
+                if widened is not None and not widened.search(text) and not widened.search(file_path):
+                    # il prefiltro di prima non la vedeva: c'era già, non è una novità
+                    if not self._already_recorded(name, file_path, text, "present"):
+                        findings.append(make(file_path, line_no, text, res, "present"))
                     continue
                 findings.append(make(file_path, line_no, text, res, "added"))
             for key in sorted(old_keys - new_keys):

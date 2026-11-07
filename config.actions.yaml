@@ -256,7 +256,7 @@ timeline:
   min_score: 90                          # 90 e non 100: così entrano anche le righe hl3 (peso 90),
                                          # come "mod" "hl3" del 2018; l'AI scarta da sé le estensioni .hl3 dei salvataggi
   nascondi: []                           # id degli indizi da non mostrare (es. [t7])
-  include_keywords: [hl2_achievement]    # voci sotto min_score da mostrare comunque come contesto
+  include_keywords: [hl2_achievement, hl_nomi_attaccati]    # voci sotto min_score da mostrare comunque come contesto
   rilevanza: {}                          # correzioni a mano, es. {t5: alta}
   correzioni:                            # testo o rilevanza corretti a mano (l'AI si può sbagliare)
     t17:
@@ -336,7 +336,7 @@ full_scan:
   min_score: 50                          # registra solo le righe con punteggio almeno 50
   # termini (regex estesa, senza distinzione maiuscole) che selezionano le righe da valutare:
   # solo parole ad alto valore, le generiche come npc_ darebbero migliaia di righe
-  prefilter: "hlx|hl3|half[ _-]?life|left[ _-]?4[ _-]?dead|l4d3"
+  prefilter: "hlx|hl3|half[ _-]?life|left[ _-]?4[ _-]?dead|l4d3|xen|gunship|ranger_?trap|flyer_?flank"
   exclude_repos: []                      # nomi dei repo da non scansionare
   max_findings_per_repo: 2000
 
@@ -495,6 +495,16 @@ keywords:
       weight: 40
       description: "half-life generico (rumoroso)"
       excludes: ["alyx", "half-life 2", "half_life_2", "half-life2", "hl2", "episode", "halflife2"]
+    - id: hl_nomi_attaccati
+      # nomi di Half-Life scritti attaccati e nemici nuovi che hl_universe non vede: g_vXenAnimation,
+      # info_combine_gunship_bomb_target, CRangerTrapCableHelper, ai_flyer_flanking_route_hint (aggiornamenti di fine
+      # ottobre 2026, verificati nei file di CS2 il 7/11). "Xen" solo seguito da una maiuscola: boxEntity non conta.
+      # Maiuscole esatte e senza flag interni (spegnerebbero il filtro veloce); si cattura solo la parte con le
+      # maiuscole normali ("Ranger" di RangerTrap), perché le parole con maiuscole mescolate vengono scartate.
+      pattern: "Xen(?=[A-Z])|[Gg]unship|Ranger(?=_?Trap)|ranger(?=_?trap)|Flyer(?=_?Flank)|flyer(?=_?flank)"
+      case_sensitive: true
+      weight: 80
+      description: "nomi di Half-Life attaccati e nemici nuovi"
     - id: hl_universe
       # creature, armi, luoghi e personaggi di Half-Life nei file condivisi di CS2, Dota 2 e Deadlock
       # (esclusa Alyx). 45 punti: sotto la soglia di notifica, ma un'entità FGD o un file nuovo la superano.

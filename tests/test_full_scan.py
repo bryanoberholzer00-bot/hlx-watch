@@ -61,3 +61,32 @@ def test_full_scan_present_then_added_and_removed(tmp_path):
     # l'intervallo giornaliero: senza force non riparte subito
     assert src.run() == []
     db.close()
+
+
+def test_widened_prefilter_records_old_lines_as_present(tmp_path):
+    """Termini nuovi nel prefiltro: le righe che c'erano già entrano come "present", non come novità."""
+    origin = tmp_path / "origin"
+    origin.mkdir()
+    git(origin, "init", "-q", "-b", "main")
+    (origin / "hammer_strings.txt").write_text("hlx_old_convar\nGetAttributeTable_CRangerTrapCableHelper\n", encoding="utf-8")
+    git(origin, "add", "-A")
+    git(origin, "commit", "-q", "-m", "uno")
+
+    old = make_cfg(tmp_path, origin)
+    old.raw["full_scan"]["prefilter"] = "hlx|hl3|half[ _-]?life|left[ _-]?4[ _-]?dead|l4d3"
+    db = Database(old.db_path)
+    first = FullScanSource(old, db).run(force=True)
+    assert {f.token for f in first} == {"hlx_old_convar"}            # il prefiltro di prima non vede il Ranger
+
+    new = make_cfg(tmp_path, origin)                                  # prefiltro di config.example, allargato
+    second = FullScanSource(new, db).run(force=True)
+    assert [(f.change_type, f.token) for f in second] == [("present", "GetAttributeTable_CRangerTrapCableHelper")]
+    assert FullScanSource(new, db).run(force=True) == []              # una volta sola
+
+    (origin / "hammer_strings.txt").write_text("hlx_old_convar\nGetAttributeTable_CRangerTrapCableHelper\n"
+                                               "info_combine_gunship_bomb_target\n", encoding="utf-8")
+    git(origin, "add", "-A")
+    git(origin, "commit", "-q", "-m", "due")
+    third = FullScanSource(new, db).run(force=True)
+    assert [(f.change_type, f.token) for f in third] == [("added", "info_combine_gunship_bomb_target")]
+    db.close()
