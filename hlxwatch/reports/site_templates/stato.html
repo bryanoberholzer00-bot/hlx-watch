@@ -47,7 +47,8 @@ stato di ogni fonte. La prima parte si aggiorna ogni volta che apri la pagina; l
  <h2>Chi sorveglia chi</h2>
  <ul class="sorveglianza">
   <li><b>Il bot sorveglia i giri.</b> Ogni 10 minuti il bot su Cloudflare guarda gli ultimi giri su GitHub, ne avvia
-   uno nuovo ogni 30 minuti e avvisa su Telegram se un giro è bloccato da più di 75 minuti, se gli ultimi due sono
+   uno nuovo ogni 30 minuti (ogni 10 nelle ore calde: dalle 21 alle 3 italiane, dal lunedì al venerdì, quando
+   arriva metà degli aggiornamenti dei giochi) e avvisa su Telegram se un giro è bloccato da più di 75 minuti, se gli ultimi due sono
    falliti o se non ne parte nessuno da più di 80 minuti. Un avviso per guasto, e uno quando tutto torna a posto.</li>
   <li><b>I giri sorvegliano il bot.</b> A ogni giro HLX Watch legge lo stato del bot: se non risponde, o se non segna
    un giro riuscito da più di due ore e mezza, avvisa. Così un guasto del bot non resta nascosto.</li>
@@ -104,7 +105,7 @@ stato di ogni fonte. La prima parte si aggiorna ogni volta che apri la pagina; l
   $("n-ultimo").textContent = lastOk ? fa(okAge) : "nessuno tra gli ultimi";
   var attivo = bot && bot.avvio && bot.avvio.attivo;
   if(busy){ $("n-prossimo").textContent="in corso adesso"; }
-  else if(attivo){ var last=new Date(runs[0].created_at), next=new Date(last.getTime()+OGNI*60000);
+  else if(attivo){ var ogni=(bot.avvio.ogni||OGNI), last=new Date(runs[0].created_at), next=new Date(last.getTime()+ogni*60000);
    $("n-prossimo").textContent = next.getTime()<=now ? "a momenti" : "verso le "+next.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit",timeZone:"Europe/Rome"}); }
   else { $("n-prossimo").textContent="quando GitHub ha posto"; }
   // verdetto
@@ -115,7 +116,7 @@ stato di ogni fonte. La prima parte si aggiorna ogni volta che apri la pagina; l
   else if(busy && min(now-new Date(busy.created_at))>75){ verdetto("guasto","Un giro è in corso da "+min(now-new Date(busy.created_at))+" minuti",testi.bloccato); }
   else if(okAge===null || okAge>80){ verdetto("attenzione","Nessun giro riuscito "+(okAge===null?"tra gli ultimi":"da "+fa(okAge).replace(" fa","")),"Di solito ce n'è uno ogni 30 minuti. Se dura, il proprietario riceve un avviso."); }
   else if(bot && !botOk){ verdetto("attenzione","Il bot su Cloudflare "+(bot.irraggiungibile?"non risponde":"è fermo"),"I giri su GitHub continuano, ma più di rado, e gli avvisi veloci dell'annuncio non partono."); }
-  else { verdetto("ok","Tutto funziona","Ultimo giro riuscito "+fa(okAge)+". Un giro ogni 30 minuti, sorvegliato dal bot."); }
+  else { verdetto("ok","Tutto funziona","Ultimo giro riuscito "+fa(okAge)+". Un giro ogni "+((bot&&bot.avvio&&bot.avvio.ogni)||OGNI)+" minuti"+(bot&&bot.avvio&&bot.avvio.ore_calde?" (ore calde)":"")+", sorvegliato dal bot."); }
  });
 })();
 </script>

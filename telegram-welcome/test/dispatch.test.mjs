@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { DISPATCH_EVERY_MS, dispatchRun, dispatchStatus, shouldDispatch } from "../src/dispatch.js";
+import { DISPATCH_EVERY_MS, HOT_EVERY_MS, dispatchRun, dispatchStatus, isHot, shouldDispatch } from "../src/dispatch.js";
 import { ORGS, compare } from "../src/fast.js";
 
 class FakeKV {
@@ -19,7 +19,7 @@ test("avvia solo se l'ultimo run è finito da mezz'ora", () => {
   assert.equal(shouldDispatch([], now).go, true);
   assert.equal(shouldDispatch([{ status: "completed", created_at: ago(31) }], now).go, true);
   assert.equal(shouldDispatch([{ status: "completed", created_at: ago(29.5) }], now).go, true);
-  assert.equal(shouldDispatch([{ status: "completed", created_at: ago(20) }], now).go, false);
+  assert.equal(shouldDispatch([{ status: "completed", created_at: ago(20) }], now, DISPATCH_EVERY_MS).go, false);
   assert.equal(shouldDispatch([{ status: "in_progress", created_at: ago(60) }], now).go, false);
   assert.equal(shouldDispatch([{ status: "queued", created_at: ago(90) }, { status: "completed", created_at: ago(95) }], now).go, false);
   assert.ok(DISPATCH_EVERY_MS < 30 * 60000);      // con il cron ogni 10 minuti il run riparte dopo 30, non dopo 40
@@ -42,7 +42,7 @@ test("senza token non fa niente", async () => {
     const r = await dispatchRun({ SUBS: new FakeKV() }, async () => {}, now);
     assert.equal(r.done, false);
     assert.equal(calls.length, 0);
-    assert.deepEqual(await dispatchStatus({ SUBS: new FakeKV() }), { attivo: false, token: false, errore: null, scadenza: null, giri: null });
+    assert.deepEqual(await dispatchStatus({ SUBS: new FakeKV() }, now), { attivo: false, token: false, errore: null, scadenza: null, giri: null, ogni: 10, ore_calde: true });
   } finally {
     globalThis.fetch = realFetch;
   }
@@ -75,7 +75,7 @@ test("avvia il run, e avvisa una volta sola se il token viene rifiutato", async 
     assert.equal((await dispatchRun(env, tg, now)).done, true);
     assert.equal(sent.length, 2);
     assert.match(sent[1], /di nuovo/);
-    assert.deepEqual(await dispatchStatus(env), { attivo: true, token: true, errore: null, scadenza: null, giri: null });
+    assert.deepEqual(await dispatchStatus(env, now), { attivo: true, token: true, errore: null, scadenza: null, giri: null, ogni: 10, ore_calde: true });
   } finally {
     globalThis.fetch = realFetch;
   }
@@ -136,4 +136,27 @@ test("il giro legge la scadenza dalle risposte di GitHub", async () => {
   } finally {
     globalThis.fetch = realFetch;
   }
+});
+
+test("ore calde: dalle 21 alle 3 italiane, nelle sere dal lunedì al venerdì", () => {
+  const at = (iso) => isHot(Date.parse(iso));
+  assert.equal(at("2026-11-10T20:30:00Z"), true);    // martedì 21:30 in Italia (UTC+1)
+  assert.equal(at("2026-11-11T01:30:00Z"), true);    // mercoledì 2:30, la notte dopo
+  assert.equal(at("2026-11-11T02:30:00Z"), false);   // mercoledì 3:30
+  assert.equal(at("2026-11-10T12:00:00Z"), false);   // martedì 13:00
+  assert.equal(at("2026-11-14T20:30:00Z"), false);   // sabato sera
+  assert.equal(at("2026-11-14T00:30:00Z"), true);    // sabato 1:30: la notte del venerdì
+  assert.equal(at("2026-11-16T00:30:00Z"), false);   // lunedì 1:30: la notte della domenica
+  assert.equal(at("2026-07-14T19:30:00Z"), true);    // d'estate (UTC+2): martedì 21:30
+  assert.equal(at("2026-07-14T18:30:00Z"), false);   // d'estate: martedì 20:30
+});
+
+test("nelle ore calde il giro riparte dopo 10 minuti", () => {
+  const hot = Date.parse("2026-11-10T21:00:00Z");     // martedì 22:00 in Italia
+  const ran = (min) => [{ status: "completed", created_at: new Date(hot - min * 60000).toISOString() }];
+  assert.equal(shouldDispatch(ran(9.9), hot).go, true);
+  assert.equal(shouldDispatch(ran(5), hot).go, false);
+  assert.ok(HOT_EVERY_MS < 10 * 60000);
+  const cold = Date.parse("2026-11-10T12:00:00Z");
+  assert.equal(shouldDispatch([{ status: "completed", created_at: new Date(cold - 9.9 * 60000).toISOString() }], cold).go, false);
 });

@@ -23,7 +23,7 @@ def load_notifiers(cfg: Config) -> list[Notifier]:
             log.warning("Discord abilitato ma DISCORD_WEBHOOK_URL manca in .env")
     if cfg.get("notifiers.telegram.enabled", False):
         if cfg.telegram_token and cfg.telegram_chat_id:
-            notifiers.append(TelegramNotifier(cfg.telegram_token, cfg.telegram_chat_id))
+            notifiers.append(TelegramNotifier(cfg.telegram_token, cfg.telegram_chat_id, _quiet(cfg)))
         else:
             log.warning("Telegram abilitato ma TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID mancano in .env")
     if cfg.get("notifiers.webpush.enabled", False):
@@ -34,6 +34,16 @@ def load_notifiers(cfg: Config) -> list[Notifier]:
         else:
             log.warning("Notifiche di sistema abilitate ma mancano PUSH_SECRET in .env o notifiers.webpush.worker_url")
     return notifiers
+
+
+def _quiet(cfg: Config) -> tuple[int, int] | None:
+    """notifiers.telegram.quiet_hours: [23, 8] (ora italiana); vuoto o false per avere sempre il suono."""
+    value = cfg.get("notifiers.telegram.quiet_hours", [23, 8])
+    try:
+        start, end = (int(x) for x in value)
+    except (TypeError, ValueError):
+        return None
+    return (start % 24, end % 24) if start != end else None
 
 
 def notify_findings(notifiers: list[Notifier], findings: list[Finding], cfg: Config, heading: str) -> bool:

@@ -3,6 +3,8 @@ from __future__ import annotations
 import html
 import logging
 import time
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -12,17 +14,35 @@ from hlxwatch.notifiers.base import AlertGroup, Notifier, finding_line
 log = logging.getLogger(__name__)
 MAX_MESSAGE = 4000
 MAX_BUTTONS = 8
+ROME = ZoneInfo("Europe/Rome")
+
+
+def is_quiet(quiet: tuple[int, int] | None, now: datetime | None = None) -> bool:
+    """Notte silenziosa: dalle quiet[0] alle quiet[1] (ora italiana, anche a cavallo della mezzanotte)."""
+    if not quiet:
+        return False
+    start, end = quiet
+    hour = (now or datetime.now(ROME)).astimezone(ROME).hour
+    return start <= hour < end if start < end else hour >= start or hour < end
 
 
 class TelegramNotifier(Notifier):
     name = "telegram"
 
-    def __init__(self, token: str, chat_id: str):
+    def __init__(self, token: str, chat_id: str, quiet: tuple[int, int] | None = None):
         self.url = f"https://api.telegram.org/bot{token}/sendMessage"
         self.chat_id = chat_id
+        # notte silenziosa: i messaggi arrivano senza suono, tranne le tracce HLX e i possibili annunci
+        self.quiet = quiet
+        self._loud = False
+
+    def _silent(self) -> bool:
+        return not self._loud and is_quiet(self.quiet)
 
     def _send_chunk(self, text: str, markup: dict | None = None) -> bool:
         payload = {"chat_id": self.chat_id, "text": text, "parse_mode": "HTML", "disable_web_page_preview": True}
+        if self._silent():
+            payload["disable_notification"] = True
         if markup:
             payload["reply_markup"] = markup
         for _ in range(4):
@@ -62,8 +82,10 @@ class TelegramNotifier(Notifier):
         url = self.url.rsplit("/", 1)[0] + "/sendPhoto"
         try:
             with open(path, "rb") as fh:
-                response = requests.post(url, data={"chat_id": self.chat_id, "caption": caption[:1024],
-                                                    "parse_mode": "HTML"}, files={"photo": fh}, timeout=60)
+                data = {"chat_id": self.chat_id, "caption": caption[:1024], "parse_mode": "HTML"}
+                if self._silent():
+                    data["disable_notification"] = "true"
+                response = requests.post(url, data=data, files={"photo": fh}, timeout=60)
         except (OSError, requests.RequestException) as exc:
             log.error("Immagine non inviata a Telegram: %s", exc)
             return False
@@ -99,4 +121,9 @@ class TelegramNotifier(Notifier):
             lines.append("")
             lines.append("<i>👎 = è rumore: niente più avvisi per le voci di quel tipo (ripremi per annullare)</i>")
             markup = {"inline_keyboard": [buttons[i:i + 4] for i in range(0, len(buttons), 4)]}
-        return self._send(lines, markup)
+        # anche di notte suona se c'è una traccia HLX o un possibile annuncio
+        self._loud = any(noise_protected(f.keywords) for g in groups for f in g.findings)
+        try:
+            return self._send(lines, markup)
+        finally:
+            self._loud = False

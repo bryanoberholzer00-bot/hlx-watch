@@ -1,9 +1,14 @@
-// HLX Watch - avvio del giro completo su GitHub ogni 30 minuti.
+// HLX Watch - avvio del giro completo su GitHub ogni 30 minuti, ogni 10 nelle ore calde.
 //
 // I run pianificati di GitHub ("schedule") partono quando GitHub ha posto: in pratica ogni 4-5 ore. Un run avviato
 // a mano ("workflow_dispatch") parte invece subito. Il bot, che gira puntuale ogni 10 minuti, guarda l'ultimo run
 // del workflow e, se è finito da almeno DISPATCH_EVERY_MS, ne avvia uno nuovo: lo stesso giro di un run pianificato
 // (tutti gli input ai valori predefiniti). I run pianificati restano attivi come riserva.
+//
+// Ore calde: metà degli aggiornamenti dei giochi arriva tra le 21 e le 2 italiane, il pomeriggio di Seattle dal
+// lunedì al venerdì (pagina orologio.html, novembre 2026). In quella fascia il giro riparte appena il precedente è
+// finito, cioè ogni 10 minuti: le novità si vedono fino a 20 minuti prima. Sono circa 120 giri in più alla settimana,
+// gratuiti per un repository pubblico, e sempre uno alla volta.
 //
 // Serve un token GitHub "fine-grained" limitato a questo repository con il solo permesso Actions: read and write,
 // salvato come segreto del Worker: wrangler secret put GH_DISPATCH_TOKEN. Senza token il modulo non fa niente.
@@ -15,6 +20,8 @@ export const REPO = "bryanoberholzer00-bot/hlx-watch";
 export const WORKFLOW = "hlx-watch.yml";
 const BRANCH = "main";
 export const DISPATCH_EVERY_MS = 28 * 60 * 1000;     // con il controllo ogni 10 minuti: un run ogni 30 minuti
+export const HOT_EVERY_MS = 8 * 60 * 1000;           // nelle ore calde: un run ogni 10 minuti
+export const HOT_FROM = 21, HOT_TO = 3;              // ora italiana: dalle 21 alle 3 (esclusa)
 const ERROR_KEY = "dispatch:errore";
 // scadenza del token: GitHub la manda in ogni risposta (intestazione github-authentication-token-expiration)
 const EXPIRY_KEY = "dispatch:scadenza";
@@ -30,11 +37,30 @@ function headers(env) {
   };
 }
 
+// Ora e giorno della settimana in Italia (0 = domenica), anche con l'ora legale
+function romeClock(now) {
+  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", hour12: false, weekday: "short" })
+    .formatToParts(new Date(now));
+  const hour = Number(parts.find((p) => p.type === "hour").value) % 24;
+  const day = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(parts.find((p) => p.type === "weekday").value);
+  return { hour, day };
+}
+
+// Le sere dal lunedì al venerdì (dalle 21) e la notte dopo (fino alle 3): il pomeriggio di lavoro a Seattle
+export function isHot(now = Date.now()) {
+  const { hour, day } = romeClock(now);
+  if (hour >= HOT_FROM) return day >= 1 && day <= 5;
+  if (hour < HOT_TO) return day >= 2 && day <= 6;
+  return false;
+}
+
+export const everyMs = (now = Date.now()) => (isHot(now) ? HOT_EVERY_MS : DISPATCH_EVERY_MS);
+
 // Decide se avviare un run, guardando gli ultimi del workflow (pianificati, a mano o avviati dal bot).
-export function shouldDispatch(runs, now = Date.now()) {
+export function shouldDispatch(runs, now = Date.now(), every = everyMs(now)) {
   if (runs.some((r) => BUSY.has(r.status))) return { go: false, why: "un run è già in corso o in coda" };
   const last = Math.max(0, ...runs.map((r) => Date.parse(r.created_at) || 0));
-  if (now - last < DISPATCH_EVERY_MS) return { go: false, why: "ultimo run partito da poco" };
+  if (now - last < every) return { go: false, why: "ultimo run partito da poco" };
   return { go: true, why: "" };
 }
 
@@ -132,10 +158,11 @@ export async function dispatchRun(env, sendTelegram, now = Date.now()) {
   return { done: false, why: `avvio rifiutato (${res.status})` };
 }
 
-// Per /fast/stato.json: il sito mostra se l'avvio ogni 30 minuti è attivo
-export async function dispatchStatus(env) {
+// Per /fast/stato.json: il sito mostra se l'avvio ogni 30 minuti è attivo, e ogni quanto riparte adesso
+export async function dispatchStatus(env, now = Date.now()) {
   const error = env.SUBS ? await env.SUBS.get(ERROR_KEY) : null;
   const expiry = env.SUBS ? await env.SUBS.get(EXPIRY_KEY) : null;
   return { attivo: Boolean(env.GH_DISPATCH_TOKEN) && !error, token: Boolean(env.GH_DISPATCH_TOKEN), errore: error || null,
-    scadenza: env.GH_DISPATCH_TOKEN ? expiry || null : null, giri: await runsStatus(env) };
+    scadenza: env.GH_DISPATCH_TOKEN ? expiry || null : null, giri: await runsStatus(env),
+    ogni: isHot(now) ? 10 : 30, ore_calde: isHot(now) };
 }
