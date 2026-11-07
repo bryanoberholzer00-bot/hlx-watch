@@ -34,6 +34,23 @@
           "url": "https://www.pcgameshardware.de/Source-Engine-Software-255922/News/neu-fuer-Half-Life-3-Rubikon-Ragnarok-Valve-1547074/"
         }
       ]
+    },
+    {
+      "id": "e3",
+      "data": "2024-11-15",
+      "titolo": "Il libro «Raising the Bar» promesso per il 2025 e mai uscito",
+      "spiegazione": "Per i vent'anni di Half-Life 2 Valve ha annunciato una nuova edizione di «Raising the Bar», il libro sullo sviluppo del gioco, con capitoli nuovi sugli episodi, compresi idee ed esperimenti per l'Episodio 3 cancellato, in uscita nel 2025. Il 2025 è passato senza il libro e senza una nuova data. Valve non ha spiegato il ritardo: alcuni data miner pensano che lo trattenga perché svelerebbe idee riprese in HLX, ma è solo un'ipotesi. Se il libro esce, vale la pena guardare che cosa racconta dell'Episodio 3.",
+      "rilevanza": "bassa",
+      "fonti": [
+        {
+          "nome": "PC Gamer",
+          "url": "https://pcgamer.com/games/fps/valve-is-re-releasing-half-life-2s-raising-the-bar-art-book-after-nearly-20-years-out-of-print-and-adding-new-sections-about-all-three-hl2-episodes"
+        },
+        {
+          "nome": "Combine OverWiki",
+          "url": "https://combineoverwiki.net/wiki/Raising_the_Bar"
+        }
+      ]
     }
   ]
 }
