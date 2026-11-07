@@ -206,3 +206,42 @@ def test_watch_rules_changed_is_silent(monkeypatch):
     old["luoghi"] = {k: [] for k in old["luoghi"]}
     db.set_state(mappa.STATE_KEY, json.dumps(old))
     assert mappa.watch(_Cfg(), db, [n]) == [] and n.sent == []
+
+
+# ------------------------------------------------------------------ pezzi compagni (senza HLX nel nome, stesso commit)
+def test_companions_arrive_with_hlx_pieces(tmp_path):
+    from hlxwatch.outcomes import trace_key
+    from hlxwatch.sources.first_seen import line_hash
+    from hlxwatch.storage import Database
+    db = Database(tmp_path / "db.sqlite")
+    rows = [  # gioco, file, testo, token, parole chiave, commit, data, "almeno dal"
+        ("cs2", HAMMER, "CHLXCoverPreviewHelper", "CHLXCoverPreviewHelper", '["hlx_class"]', "aaa", "2026-09-23T00:05:28Z", 0),
+        ("cs2", HAMMER, "CRangerTrapCableHelper", "CRangerTrapCableHelper", '["hl_nomi_attaccati"]', "aaa", "2026-09-23T00:05:28Z", 0),
+        ("cs2", "game/bin/win64/resourcecompiler_strings.txt", "ai_flyer_flanking_route_hint",
+         "ai_flyer_flanking_route_hint", '["hl_nomi_attaccati"]', "aaa", "2026-09-23T00:05:28Z", 0),
+        # Xen: c'era già all'inizio dell'archivio ("almeno dal"), non è arrivato con niente
+        ("cs2", "game/bin/win64/materialsystem2_strings.txt", "g_vXenAnimation", "g_vXenAnimation",
+         '["hl_nomi_attaccati"]', "old", "2023-03-22T00:00:00Z", 1),
+        # in Dota 2 la riga HLX ricompare il 7/10 con gli strumenti in blocco: lì non è la sua prima comparsa
+        ("dota2", HAMMER, "CHLXCoverPreviewHelper", "CHLXCoverPreviewHelper", '["hlx_class"]', "bbb", "2026-10-07T00:00:00Z", 0),
+        ("dota2", HAMMER, "info_combine_gunship_bomb_target", "info_combine_gunship_bomb_target",
+         '["hl_nomi_attaccati", "hl_universe"]', "bbb", "2026-10-07T00:00:00Z", 0),
+    ]
+    for i, (game, path, text, token, kw, sha, when, least) in enumerate(rows):
+        db.conn.execute("INSERT INTO findings (game, source, file_path, change_type, text, token, score, keywords, "
+                        "dedup_hash, created_at) VALUES (?, 'fullscan', ?, 'present', ?, ?, 80, ?, ?, ?)",
+                        (game, path, text, token, kw, f"h{i}", when))
+        db.conn.execute("INSERT INTO first_seen (game, file_path, line_hash, text, commit_sha, commit_date, at_least, "
+                        "checked_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (game, path, line_hash(text), text, sha, when, least, when))
+    db.conn.commit()
+    key = trace_key("CHLXCoverPreviewHelper", "CHLXCoverPreviewHelper")
+    r = {"traces": [tr("CHLXCoverPreviewHelper", "2026-09-23", HAMMER, U1, key=key)]}
+    g = mappa.graph(r, {}, db)
+    mates = [n for n in g["nodes"] if n.get("compagno")]
+    assert sorted(n["short"] for n in mates) == ["Ranger: cavi-trappola", "Volanti: aggiramento"]
+    assert all(n["updates"] == [f"2026-09-23|{U1}"] and n["insieme_a"] == ["CHLXCoverPreviewHelper"] for n in mates)
+    assert len(g["links"]) == 3                                   # il pezzo HLX e i due compagni, a coppie
+    s = mappa.summary(db, r)
+    assert s["n"] == 1 and len(s["compagni"]) == 2 and s["tools"] == 1
+    assert mappa.graph(r, {})["nodes"] == g["nodes"][:1]          # senza archivio: solo i pezzi HLX
+    db.close()

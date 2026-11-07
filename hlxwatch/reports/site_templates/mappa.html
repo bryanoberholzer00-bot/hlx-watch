@@ -16,6 +16,8 @@
  @media (prefers-color-scheme: dark){.mappa-box .k-strumento rect{fill:#24304d}.mappa-box .k-gioco rect{fill:#1f3a2a}
   .mappa-box .k-dati rect{fill:#33284a}}
  .mappa-box .pezzo circle{fill:var(--accent);stroke:var(--card);stroke-width:2}
+ .mappa-box .pezzo.compagno circle{fill:var(--card);stroke:var(--accent);stroke-width:2;stroke-dasharray:3 2}
+ .mappa-box .pezzo.compagno text{font-style:italic}
  .mappa-box .pezzo text{font-size:11.5px;fill:var(--text);paint-order:stroke;stroke:var(--card);stroke-width:3px}
  .mappa-box a.pezzo:hover text,.mappa-box a.pezzo:focus text{fill:var(--accent);font-weight:700}
  .legenda{display:flex;flex-wrap:wrap;gap:.4rem 1.1rem;font-size:.85rem;color:var(--muted);margin:.3rem 0 .8rem}
@@ -24,6 +26,7 @@
  .legenda .l-strumento{background:#e8eefc;border-color:#5b7fd6} .legenda .l-gioco{background:#e6f5ea;border-color:#2e9d4f}
  .legenda .l-dati{background:#f5ecfb;border-color:#8b5cf6}
  .legenda .l-pezzo{border-radius:50%;background:var(--accent);border-color:var(--accent)}
+ .legenda .l-compagno{border-radius:50%;background:transparent;border:2px dashed var(--accent)}
  .legenda .l-insieme{width:.5rem;height:1rem;border:0;border:2.5px solid var(--accent);border-left:0;border-radius:0}
  .gruppo{border:1px solid var(--line);border-radius:8px;padding:.6rem .9rem;margin:.6rem 0}
  .gruppo h3{margin:0 0 .25rem;font-size:1rem} .gruppo ul{margin:.35rem 0 0;padding-left:1.1rem}
@@ -34,7 +37,8 @@
 <div class="breve">
 <h1>Mappa dei collegamenti</h1>
 {% if not m %}<p>Non ci sono ancora tracce HLX nell'archivio.</p></div>{% else %}
-<p class="muted">I {{ m.n }} pezzi di HLX trovati nei file pubblici di Valve, collegati ai {{ m.n_places }} luoghi in cui
+<p class="muted">I {{ m.n }} pezzi di HLX trovati nei file pubblici di Valve{% if m.compagni %} (più {{ m.compagni|length }}
+senza il nome HLX, arrivati insieme a loro){% endif %}, collegati ai {{ m.n_places }} luoghi in cui
 compaiono (il programma o l'insieme di file che li contiene) e agli altri pezzi arrivati nello stesso aggiornamento.
 Una traccia da sola dice poco: messe insieme dicono su quale parte del lavoro Valve si sta concentrando. Ultimo
 aggiornamento {{ generated }}.</p>
@@ -45,6 +49,7 @@ aggiornamento {{ generated }}.</p>
   <span><i class="l-strumento"></i>strumento di sviluppo</span><span><i class="l-gioco"></i>codice di un gioco</span>
   <span><i class="l-dati"></i>file di dati</span><span><i class="l-pezzo"></i>pezzo di HLX (porta alla sua scheda)</span>
   <span><i class="l-insieme"></i>arrivati nello stesso aggiornamento</span>
+  {% if m.compagni %}<span><i class="l-compagno"></i>senza il nome HLX, arrivato insieme a un pezzo HLX</span>{% endif %}
  </div>
  <p class="muted scorri"><small>Il disegno è largo: scorrilo di lato.</small></p>
  <div class="mappa-box">
@@ -56,7 +61,7 @@ aggiornamento {{ generated }}.</p>
    <text x="{{ b.x + 6 }}" y="{{ (b.y1 + b.y2) / 2 + 4 }}">{{ b.day[8:10] }}/{{ b.day[5:7] }}/{{ b.day[2:4] }}</text></g>
   {% endfor %}
   {% for n in m.nodes %}
-  {% if n.slug %}<a class="pezzo" href="traccia-{{ n.slug }}.html">{% else %}<g class="pezzo">{% endif %}<title>{{ n.label }} ({{ n.system_name }}, dal {{ n.first[8:10] }}/{{ n.first[5:7] }}/{{ n.first[:4] }})</title>
+  {% if n.slug %}<a class="pezzo" href="traccia-{{ n.slug }}.html">{% else %}<g class="pezzo{{ ' compagno' if n.compagno }}">{% endif %}<title>{{ n.label }} ({{ n.system_name }}, dal {{ n.first[8:10] }}/{{ n.first[5:7] }}/{{ n.first[:4] }}){% if n.compagno %}: senza il nome HLX, arrivato nello stesso commit di {{ n.insieme_a|join(", ") }}{% endif %}</title>
    <circle cx="{{ n.x }}" cy="{{ n.y }}" r="6"/>
    <text x="{{ n.x + 11 }}" y="{{ n.y + 4 }}">{{ n.icon }} {{ n.short }} <tspan class="anno">{{ n.first[:4] }}</tspan></text>
   {% if n.slug %}</a>{% else %}</g>{% endif %}
@@ -86,6 +91,11 @@ aggiornamento {{ generated }}.</p>
   {% if m.biggest %}<li><b>L'aggiornamento più ricco è del {{ m.biggest.day[8:10] }}/{{ m.biggest.day[5:7] }}/{{ m.biggest.day[:4] }}</b>:
    {{ m.biggest.pieces|length }} pezzi arrivati insieme ({{ m.biggest.pieces|map(attribute='short')|join(", ") }}).
    {% if m.biggest.url %}<a href="{{ m.biggest.url }}" rel="noopener">Vedi l'aggiornamento</a>.{% endif %}</li>{% endif %}
+  {% if m.compagni %}<li><b>Arrivati con HLX, senza il nome:</b> {% for c in m.compagni %}{{ c.label }}{{ "; " if not loop.last }}{% endfor %}.
+   Sono comparsi per la prima volta nello stesso commit di {{ m.compagni[0].insieme_a|join(", ") }}
+   ({{ m.compagni[0].first[8:10] }}/{{ m.compagni[0].first[5:7] }}/{{ m.compagni[0].first[:4] }}). Non portano il nome HLX,
+   quindi da soli non sono una prova; ma essere scritti insieme ai pezzi HLX li lega a loro, e dicono qualcosa di più
+   concreto su che gioco sia: nemici e attacchi da piazzare nelle mappe.</li>{% endif %}
   {% if m.bridges %}<li><b>Pezzi ponte:</b> {% for n in m.bridges %}{{ n.short }} (in {{ n.places|length }} luoghi){{ ", " if not loop.last }}{% endfor %}.
    Un nome che compare in tanti programmi sta nel codice che condividono.</li>{% endif %}
   <li>{% if m.enemy_linked %}<b>Un nemico è già arrivato insieme ai suoi suoni o ai suoi effetti</b>, nello stesso
@@ -105,7 +115,7 @@ aggiornamento {{ generated }}.</p>
   <small class="muted">{% for pl in g.places %}<b>{{ pl.name }}</b>: {{ pl.about }}{{ "; " if not loop.last }}{% endfor %}.<br>
    Dal {{ g.first[8:10] }}/{{ g.first[5:7] }}/{{ g.first[:4] }} al {{ g.last[8:10] }}/{{ g.last[5:7] }}/{{ g.last[:4] }},
    in {{ g.updates }} aggiornament{{ "o" if g.updates == 1 else "i" }}. Sistemi: {{ g.systems|join(", ") }}.</small>
-  <ul>{% for n in g.pieces %}<li>{{ n.icon }} {% if n.slug %}<a href="traccia-{{ n.slug }}.html"><code>{{ n.label[:90] }}</code></a>{% else %}<code>{{ n.label[:90] }}</code>{% endif %}
+  <ul>{% for n in g.pieces %}<li>{{ n.icon }} {% if n.slug %}<a href="traccia-{{ n.slug }}.html"><code>{{ n.label[:90] }}</code></a>{% elif n.compagno %}<i>{{ n.label }}</i> <small class="muted">(senza HLX nel nome: {{ n.nomi[:3]|join(", ") }})</small>{% else %}<code>{{ n.label[:90] }}</code>{% endif %}
    <small class="muted">{{ n.first[8:10] }}/{{ n.first[5:7] }}/{{ n.first[:4] }} · {{ n.system_name }}{% if n.places|length > 1 %} · in {{ n.places|length }} luoghi{% endif %}</small></li>{% endfor %}</ul>
  </div>{% endfor %}
  {% if m.alone %}<h3>Pezzi da soli</h3>

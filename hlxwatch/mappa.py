@@ -5,6 +5,10 @@ Ogni traccia HLX da sola dice poco; messe insieme dicono dove Valve lavora. Qui 
 (Hammer, l'editor degli effetti, i suoni...), e agli altri pezzi arrivati nello stesso aggiornamento. Due pezzi nello
 stesso luogo servono alla stessa parte del lavoro; due pezzi arrivati insieme sono stati scritti insieme.
 
+Accanto ai pezzi HLX, i "compagni": nomi senza HLX (parola chiave hl_nomi_attaccati, come i cavi delle trappole
+del "Ranger") comparsi per la prima volta nello stesso commit di un pezzo HLX, nello stesso gioco. Non portano il nome,
+ma sono arrivati insieme: la mappa li disegna a parte (cerchio vuoto) e li unisce con la stessa parentesi.
+
 I luoghi sono riconosciuti dal percorso del file con regole scritte a mano (`PLACES`), controllate su tutti i file
 delle tracce dell'archivio (6 novembre 2026). Il disegno è calcolato qui, sempre uguale (stesso
 archivio, stesso disegno), e la pagina non ha bisogno di script: luoghi a sinistra, pezzi a destra, gruppo per gruppo.
@@ -105,8 +109,66 @@ def files_by_trace(db: Any) -> dict[str, set[str]]:
     return out
 
 
-def graph(reg: dict[str, Any], files: dict[str, set[str]]) -> dict[str, Any]:
-    """Pezzi, luoghi e collegamenti, senza disegno: i pezzi uniti come in sistemi.pieces."""
+# pezzi compagni: (regola sul nome, chiave, nome per esteso, nome corto sulla mappa, sistema)
+COMPANION_KEYWORD = "hl_nomi_attaccati"
+COMPANIONS: list[tuple[str, str, str, str, str]] = [
+    (r"ranger_?trap", "ranger", "Ranger: cavi delle trappole", "Ranger: cavi-trappola", "nemici"),
+    (r"gunship_?bomb", "gunship", "Cannoniera Combine: bersaglio delle bombe", "Cannoniera: bombe", "nemici"),
+    (r"flyer_?flank", "flyer", "Nemici volanti: percorsi di aggiramento", "Volanti: aggiramento", "nemici"),
+    (r"xen", "xen", "Animazione di Xen", "Xen: animazione", "mondo"),
+]
+_COMPANION_RULES = [(re.compile(rx, re.I), k, n, sh, sy) for rx, k, n, sh, sy in COMPANIONS]
+
+
+def _first_commit(db: Any, game: str, file_path: str, text: str) -> tuple[str, str] | None:
+    """(commit, data) della prima comparsa della riga, se è sicura (non "almeno dal")."""
+    from hlxwatch.sources.first_seen import line_hash
+    row = db.conn.execute("SELECT commit_sha, commit_date, at_least FROM first_seen WHERE game = ? AND file_path = ? "
+                          "AND line_hash = ?", (game, file_path, line_hash(text))).fetchone()
+    if not row or not row[0] or row[2]:
+        return None
+    return str(row[0]), str(row[1] or "")
+
+
+def companions(db: Any, nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """I pezzi compagni: nomi senza HLX con la prima comparsa nello stesso commit (e gioco) di un pezzo HLX."""
+    from hlxwatch.outcomes import _is_hlx, trace_key
+    owner = {k: i for i, n in enumerate(nodes) for k in n.get("keys") or []}
+    hlx_commits: dict[tuple[str, str], set[int]] = defaultdict(set)
+    for r in db.conn.execute("SELECT game, file_path, token, text, keywords FROM findings WHERE keywords LIKE '%hlx%' "
+                             "AND change_type NOT IN ('baseline', 'summary', 'removed')"):
+        if not _is_hlx(r["keywords"]):
+            continue
+        i = owner.get(trace_key(r["token"], r["text"]))
+        fc = _first_commit(db, r["game"], r["file_path"], r["text"]) if i is not None else None
+        # solo il commit della prima comparsa del pezzo: quando un gioco riceve gli strumenti in blocco (Dota 2 il
+        # 7/10/2026) le righe HLX vecchie ricompaiono lì, ma non sono "arrivate insieme" a niente
+        if fc and fc[1][:10] == str(nodes[i]["first"])[:10]:
+            hlx_commits[(r["game"], fc[0])].add(i)
+    if not hlx_commits:
+        return []
+    found: dict[str, dict[str, Any]] = {}
+    for r in db.conn.execute("SELECT game, file_path, token, text FROM findings WHERE keywords LIKE ? "
+                             "AND change_type NOT IN ('baseline', 'summary', 'removed')", (f'%"{COMPANION_KEYWORD}"%',)):
+        name = f"{r['token'] or ''} {r['text'] or ''}"
+        rule = next(((k, n, sh, sy) for rx, k, n, sh, sy in _COMPANION_RULES if rx.search(name)), None)
+        if not rule or SKIP_FILES.search(r["file_path"] or ""):
+            continue
+        fc = _first_commit(db, r["game"], r["file_path"], r["text"])
+        if not fc or (r["game"], fc[0]) not in hlx_commits:
+            continue
+        c = found.setdefault(rule[0], {"key": rule[0], "label": rule[1], "short": rule[2], "system": rule[3], "files": set(), "with": set(),
+                                       "first": fc[1][:10], "names": set()})
+        c["files"].add(r["file_path"])
+        c["with"] |= hlx_commits[(r["game"], fc[0])]
+        c["first"] = min(c["first"], fc[1][:10])
+        c["names"].add(r["token"] or r["text"][:60])
+    return list(found.values())
+
+
+def graph(reg: dict[str, Any], files: dict[str, set[str]], db: Any = None) -> dict[str, Any]:
+    """Pezzi, luoghi e collegamenti, senza disegno: i pezzi uniti come in sistemi.pieces. Con l'archivio (db) anche i
+    pezzi compagni, arrivati nello stesso commit di un pezzo HLX."""
     from hlxwatch import sistemi
     pieces = sistemi.pieces(reg, with_traces=True)
     by_trace = {t.get("key") or t["label"]: t for t in reg.get("traces") or []}
@@ -128,6 +190,17 @@ def graph(reg: dict[str, Any], files: dict[str, set[str]]) -> dict[str, Any]:
                       "system": p["system"], "system_name": sistemi.NAMES[p["system"]],
                       "icon": ICONS.get(p["system"], "•"), "slug": p.get("slug"), "places": places,
                       "updates": sorted(updates), "files": sorted(paths), "keys": list(p["keys"])})
+    if db is not None:
+        hlx_nodes = list(nodes)
+        for c in sorted(companions(db, hlx_nodes), key=lambda c: c["label"]):
+            mates = [hlx_nodes[i] for i in sorted(c["with"])]
+            places = sorted({place_of(x) for x in c["files"]} or {"altro"})
+            nodes.append({"id": f"c{len(nodes)}", "label": c["label"], "short": c["short"], "first": c["first"],
+                          "system": c["system"], "system_name": sistemi.NAMES[c["system"]],
+                          "icon": ICONS.get(c["system"], "•"), "slug": None, "places": places, "compagno": True,
+                          "insieme_a": sorted({m["short"] for m in mates}), "nomi": sorted(c["names"])[:6],
+                          # la stessa parentesi dei pezzi HLX con cui è arrivato
+                          "updates": sorted({u for m in mates for u in m["updates"]}), "files": sorted(c["files"]), "keys": []})
     # pezzi arrivati nello stesso aggiornamento (stesso commit, stesso giorno)
     together: dict[str, list[int]] = defaultdict(list)
     for i, n in enumerate(nodes):
@@ -238,14 +311,16 @@ def layout(g: dict[str, Any], gr: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def summary(db: Any, reg: dict[str, Any]) -> dict[str, Any] | None:
-    g = graph(reg, files_by_trace(db))
+    g = graph(reg, files_by_trace(db), db)
     if not g["nodes"]:
         return None
     gr = groups(g)
     drawing = layout(g, gr)
     places = sorted(g["places"].values(), key=lambda p: (-len(p["pieces"]), p["name"]))
-    tools = [n for n in g["nodes"] if all(PLACE_KIND[k] == "strumento" for k in n["places"])]
-    bridges = [n for n in g["nodes"] if len(n["places"]) > 1]
+    hlx = [n for n in g["nodes"] if not n.get("compagno")]
+    mates = [n for n in g["nodes"] if n.get("compagno")]
+    tools = [n for n in hlx if all(PLACE_KIND[k] == "strumento" for k in n["places"])]
+    bridges = [n for n in hlx if len(n["places"]) > 1]
     for pl in places:
         pl["n"] = len(pl["pieces"])
     # l'aggiornamento che ha portato più pezzi insieme
@@ -257,11 +332,13 @@ def summary(db: Any, reg: dict[str, Any]) -> dict[str, Any] | None:
     biggest = {"day": big[0].split("|", 1)[0], "url": big[0].split("|", 1)[1], "pieces": big[1]} if big and len(big[1]) > 1 else None
     # un nemico arrivato nello stesso aggiornamento dei suoi suoni o dei suoi effetti sarebbe un pezzo di gioco messo
     # insieme. Stare nello stesso gruppo non basta: i gruppi passano anche per programmi condivisi come Hammer
-    enemy_linked = any("nemici" in {x["system"] for x in ns} and {"suono", "particelle"} & {x["system"] for x in ns}
+    # (solo pezzi HLX: un compagno è un indizio, non una prova)
+    enemy_linked = any("nemici" in {x["system"] for x in ns if not x.get("compagno")}
+                       and {"suono", "particelle"} & {x["system"] for x in ns if not x.get("compagno")}
                        for ns in per_update.values())
     return {"nodes": g["nodes"], "places": places, "links": g["links"], "groups": gr, "width": WIDTH, "height": drawing["height"],
             "brackets": drawing["brackets"],
-            "n": len(g["nodes"]), "n_places": len(places), "tools": len(tools), "bridges": bridges,
+            "n": len(hlx), "compagni": mates, "n_places": len(places), "tools": len(tools), "bridges": bridges,
             "together": len(g["links"]), "alone": [x for x in gr if x["n"] == 1], "biggest": biggest,
             "enemy_linked": enemy_linked}
 
