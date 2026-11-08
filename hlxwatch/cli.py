@@ -159,6 +159,12 @@ def cmd_cron(args: argparse.Namespace) -> int:
         steam_valve.check(cfg, db, pipeline.notifiers if not args.no_notify else [])
     except Exception:
         log.exception("Pagina di Valve su Steam: controllo non riuscito")
+    # il registro delle previsioni: avviso quando una scadenza passa o una traccia HLX corrisponde (hlxwatch/previsioni.py)
+    try:
+        from hlxwatch import previsioni
+        previsioni.watch(cfg, db, pipeline.notifiers if not args.no_notify else [])
+    except Exception:
+        log.exception("Registro delle previsioni: controllo non riuscito")
     # il silenzio: avviso se HLX supera la sua pausa più lunga, e in modalità annuncio quando ricompaiono nomi nuovi
     try:
         from hlxwatch.silenzio import watch as watch_silence

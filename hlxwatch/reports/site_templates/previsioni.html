@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Il registro delle previsioni - HLX Watch{% endblock %}
+{% block description %}Cosa hanno detto su HLX Tyler McVicker, Gabe Follower e gli altri video, e cosa dicono i file pubblici di Valve: confermate, vere in parte, non trovate, in attesa.{% endblock %}
+{% block content %}
+<style>
+ .prev-autori{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem;margin:.8rem 0}
+ .prev-autore{border:1px solid var(--line);border-radius:8px;padding:.7rem .9rem;background:var(--card)}
+ .prev-autore h3{margin:0 0 .3rem;font-size:1rem}
+ .prev-autore .quota{font-size:1.6rem;font-weight:700}
+ .prev-conti{display:flex;flex-wrap:wrap;gap:.3rem .7rem;font-size:.85rem;margin-top:.3rem}
+ .prev-video{border:1px solid var(--line);border-radius:8px;padding:.6rem .9rem;margin:.8rem 0}
+ .prev-video h3{margin:0 0 .2rem;font-size:1rem}
+ .prev-voce{display:grid;grid-template-columns:2rem 1fr;gap:.2rem .5rem;padding:.5rem 0;border-top:1px solid var(--line)}
+ .prev-voce .sim{font-size:1.2rem;line-height:1.4}
+ .prev-voce p{margin:.15rem 0}
+ .prev-voce .tipo{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+ .prev-voce .esito{font-weight:600}
+ .prev-voce.da_rivedere{background:rgba(229,57,53,.06)}
+ .prev-legenda{display:flex;flex-wrap:wrap;gap:.3rem 1rem;font-size:.85rem;color:var(--muted)}
+</style>
+<div class="breve">
+<h1>Il registro delle previsioni</h1>
+<p class="muted">Su YouTube i data miner raccontano cosa hanno trovato nei file di Valve e cosa si aspettano. Qui ogni
+affermazione è segnata con il video e la data, e accanto c'è cosa dicono i dati di HLX Watch. Col tempo si vede chi ci
+prende. Aggiornato {{ generated }}.</p>
+</div>
+<section>
+ <div class="cards">
+  <div class="card"><b>{{ p.n }}</b><span>affermazioni da {{ p.video|length }} video</span></div>
+  <div class="card"><b>{{ p.totali.confermata }}</b><span>confermate dai dati</span></div>
+  <div class="card"><b>{{ p.totali.non_trovata }}</b><span>non trovate nei file</span></div>
+  <div class="card"><b>{{ p.totali.in_attesa }}</b><span>in attesa</span></div>
+  {% if p.totali.da_rivedere %}<div class="card avviso"><b>{{ p.totali.da_rivedere }}</b><span>da rivedere</span></div>{% endif %}
+ </div>
+ <div class="prev-legenda">{% for e in p.esiti %}<span>{{ e.simbolo }} {{ e.etichetta }}</span>{% endfor %}</div>
+</section>
+
+<section>
+ <h2>Chi ci prende</h2>
+ <div class="prev-autori">
+ {% for a in p.autori %}<div class="prev-autore">
+  <h3>{{ a.autore }}</h3>
+  {% if a.quota is not none %}<div class="quota">{{ a.quota }}%</div>
+  <small class="muted">confermate su {{ a.controllate }} che i dati possono controllare ({{ a.video }} video)</small>
+  {% else %}<small class="muted">ancora niente che i dati possano controllare</small>{% endif %}
+  <div class="prev-conti">{% for e in p.esiti %}{% if a.conti[e.chiave] %}<span title="{{ e.etichetta }}">{{ e.simbolo }} {{ a.conti[e.chiave] }}</span>{% endif %}{% endfor %}</div>
+ </div>{% endfor %}
+ </div>
+ <p class="muted"><small>La percentuale conta le confermate, e le vere in parte a metà, su quelle che i file possono
+ dire: confermate, in parte, smentite e non trovate. Le ipotesi e le cose che i file non possono dire (doppiatori, date
+ interne) restano fuori. "Non trovata" non vuol dire falsa: vuol dire che nessuna traccia HLX ne parla.</small></p>
+</section>
+
+{% if p.attesa %}
+<section>
+ <h2>Le scadenze</h2>
+ <p>Queste previsioni si decidono da sole: se la data passa senza un annuncio di HLX diventano confermate, se HLX viene
+ annunciato prima diventano smentite.</p>
+ <ul>{% for v in p.attesa %}<li><b>{{ v.testo }}</b> ({{ v.video_info.autore }}): mancano {{ v.giorni }} giorni.</li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+<section>
+ <h2>Video per video</h2>
+ {% for vid in p.video %}<div class="prev-video" id="{{ vid.id }}">
+  <h3><a href="{{ vid.url }}" rel="noopener">{{ vid.titolo }}</a></h3>
+  <small class="muted">{{ vid.autore }} · {{ vid.data[8:10] }}/{{ vid.data[5:7] }}/{{ vid.data[:4] }}</small>
+  {% for v in vid.voci %}<div class="prev-voce {{ v.esito }}" id="{{ v.id }}">
+   <div class="sim" title="{{ v.etichetta }}">{{ v.simbolo }}</div>
+   <div>
+    <span class="tipo">{{ v.tipo }}</span>
+    <p><b>{{ v.testo }}</b></p>
+    <p><span class="esito">{{ v.etichetta }}.</span> {% if v.nota %}{{ v.nota }}{% endif %} {% if v.motivo %}{{ v.motivo }}{% endif %}</p>
+    {% if v.tracce %}<p><small>Tracce HLX: {% for t in v.tracce %}<code>{{ t.testo }}</code> ({{ t.gioco }}, {{ t.giorno[8:10] }}/{{ t.giorno[5:7] }}){% if not loop.last %}; {% endif %}{% endfor %}</small></p>{% endif %}
+    {% if v.cerca or v.link %}<p><small>{% if v.cerca %}<a href="search.html?q={{ v.cerca|urlencode }}">le righe nell'archivio</a>{% endif %}{% if v.cerca and v.link %} · {% endif %}{% if v.link %}<a href="{{ v.link }}">dove se ne parla sul sito</a>{% endif %}</small></p>{% endif %}
+   </div>
+  </div>{% endfor %}
+ </div>{% endfor %}
+</section>
+
+<section>
+ <p class="muted"><small>Le affermazioni sono riassunte da me, non citate parola per parola: per il testo esatto c'è il
+ video. Restano fuori i video che parlano di fughe di dati (come i 12 TB di Steam2), perché HLX Watch usa solo dati
+ pubblici e legali. Quando arriva una traccia HLX che corrisponde a un'affermazione non trovata, la voce diventa "da
+ rivedere" e arriva un avviso su Telegram.</small></p>
+</section>
+{% endblock %}

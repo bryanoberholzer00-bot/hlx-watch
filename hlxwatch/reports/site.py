@@ -388,6 +388,10 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     from hlxwatch.sources import immagini
     (out_dir / "immagini.html").write_text(env.get_template("immagini.html").render(im=immagini.summary(db, hlx_days)),
                                            encoding="utf-8")
+    # il registro delle previsioni: cosa dicono i video su HLX e cosa dicono i dati (hlxwatch/previsioni.json)
+    from hlxwatch import previsioni
+    (out_dir / "previsioni.html").write_text(env.get_template("previsioni.html").render(p=previsioni.summary(db)),
+                                             encoding="utf-8")
     (out_dir / "sistemi.html").write_text(env.get_template("sistemi.html").render(
         s=sistemi.summary(outcomes, alyx.load_seed(), db), opz=opzioni.summary(db), pers=pers), encoding="utf-8")
     # prima di un annuncio: i segnali dei progetti passati accanto a quelli di HLX
