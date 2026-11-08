@@ -1,0 +1,16 @@
+{
+  "nota": "Le serate degli eventi in cui Valve potrebbe annunciare HLX. Orari in UTC. Dall'inizio alla fine il bot su Cloudflare (telegram-welcome/src/serata.js) avvia il giro completo ogni 10 minuti, legge la pagina di Valve su Steam e (con la chiave YOUTUBE_API_KEY) i canali YouTube dell'evento; il sito mette una fascia in cima alle pagine da 7 giorni prima. Per aggiungere una serata basta una voce qui e un nuovo deploy del bot.",
+  "serate": [
+    {
+      "id": "tga-2026",
+      "nome": "The Game Awards 2026",
+      "luogo": "Peacock Theater, Los Angeles",
+      "inizio": "2026-12-10T17:00:00Z",
+      "spettacolo": "2026-12-11T00:30:00Z",
+      "fine": "2026-12-11T08:00:00Z",
+      "previsione": "gr4",
+      "youtube": [{"id": "UCqDS7KWjAPKv-7ZSlro9OiQ", "nome": "The Game Awards"}],
+      "fonte": "https://gamingbolt.com/the-game-awards-2026-confirmed-for-december-10th/amp"
+    }
+  ]
+}

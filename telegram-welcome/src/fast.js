@@ -2,11 +2,13 @@
 //
 // I run pianificati su GitHub partono in media ogni 4-5 ore, non ogni 30 minuti: il giorno dell'annuncio l'avviso
 // arriverebbe con ore di ritardo. Questo controllo gira nel Worker (i cron di Cloudflare sono puntuali) e guarda
-// solo le due fonti che possono annunciare un gioco:
+// le fonti che possono annunciare un gioco:
 //   - i post nella sezione Annunci di Steam dei giochi Half-Life, di SteamVR, del client Steam e dello Steam Deck
 //     (ISteamNews/GetNewsForApp, pubblica, senza chiave);
 //   - i repository nuovi delle organizzazioni SteamTracking e ValveSoftware su GitHub (API pubblica; con il token
 //     dell'avvio dei run, se c'è, il limite di richieste è più alto).
+//   - le pagine dei giochi su half-life.com e, nella serata di un evento, la pagina di Valve su Steam e YouTube
+//     (src/serata.js).
 // Se trova un Half-Life nuovo manda subito l'avviso: Telegram al proprietario, notifiche del sito a tutti (anche di
 // notte) e una voce in /fast/annuncio.json, che l'app Android legge insieme a bot/ultime.json. Le regole sono le
 // stesse di hlxwatch/sources/steam_news.py e del piano annuncio; il giro completo su GitHub poi archivia il post.
@@ -15,6 +17,7 @@
 import { dispatchStatus } from "./dispatch.js";
 import { broadcast } from "./push.js";
 import { activate } from "./annuncio.js";
+import { serataCheck } from "./serata.js";
 
 export const FAST_CRON = "*/10 * * * *";
 const FEED = "steam_community_announcements";
@@ -182,6 +185,12 @@ export async function fastCheck(env, site, origin, sendTelegram) {
   }
   const result = compare(state, news, repos);
   if (result.changed) await env.SUBS.put(STATE, JSON.stringify(result.state));
+  // half-life.com sempre; nella serata di un evento anche la pagina di Valve su Steam e YouTube (src/serata.js)
+  try {
+    result.alerts.push(...(await serataCheck(env, sendTelegram)));
+  } catch (err) {
+    console.log("controllo veloce: serata non controllata", String(err));
+  }
   if (news.length || Object.keys(repos).length) await beat(env, sendTelegram);
   if (!result.alerts.length) return result;
 

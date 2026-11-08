@@ -323,6 +323,9 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     # modalità annuncio (decisa dal bot su Cloudflare): fascia in cima a ogni pagina e pagina annuncio.html
     mode = ((fast or {}).get("avvio") or {}).get("annuncio") or None
     env.globals["annuncio"] = mode
+    # la serata di un evento (The Game Awards...): fascia da 7 giorni prima (hlxwatch/serata.py, serate.json)
+    from hlxwatch import serata as serata_mod
+    env.globals["serata"] = serata_mod.current()
     from hlxwatch.announcement import after_page
     (out_dir / "annuncio.html").write_text(env.get_template("annuncio.html").render(
         a=after_page(db, mode, _alyx_seed_safe())), encoding="utf-8")

@@ -6,6 +6,8 @@
 //
 // Segreti (wrangler secret put): BOT_TOKEN, WEBHOOK_SECRET, OWNER_CHAT_ID
 // Controllo veloce dell'annuncio ogni 10 minuti e /fast/annuncio.json: vedi src/fast.js
+// Pagine di half-life.com sempre, e la serata di un evento (The Game Awards...; segreto facoltativo YOUTUBE_API_KEY):
+// vedi src/serata.js e hlxwatch/serate.json
 // Avvio del giro completo su GitHub ogni 30 minuti (segreto facoltativo GH_DISPATCH_TOKEN): vedi src/dispatch.js
 // Notifiche di sistema del sito (percorsi /push/...): vedi src/push.js
 // Pulsante 👎 "è rumore" sotto gli avvisi e /rumore.json: vedi src/noise.js

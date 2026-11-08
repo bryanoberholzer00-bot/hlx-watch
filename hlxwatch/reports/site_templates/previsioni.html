@@ -60,6 +60,30 @@ prende. Aggiornato {{ generated }}.</p>
 </section>
 {% endif %}
 
+{% if serata %}
+<section id="serata">
+ <h2>🏆 {{ serata.nome }}</h2>
+ {% if serata.stato == "prima" %}<p>{{ serata.giorno_evento|capitalize }}, {{ serata.luogo }}. In Italia lo spettacolo
+ inizia {{ serata.spettacolo_locale }}{% if serata.giorni > 1 %}: mancano {{ serata.giorni }} giorni{% endif %}.</p>
+ {% elif serata.stato == "in_corso" %}<p><b>La serata è in corso.</b> Lo spettacolo inizia {{ serata.spettacolo_locale }}.</p>
+ {% elif annuncio %}<p><b>La serata è finita, ed è comparso un possibile annuncio:</b> <a href="annuncio.html">cosa succede ora</a>.</p>
+ {% else %}<p><b>La serata è finita.</b> I controlli non hanno trovato un possibile annuncio di Half-Life.</p>{% endif %}
+ <p>Da {{ serata.inizio_locale }} a {{ serata.fine_locale }} HLX Watch resta sveglio:</p>
+ <ul>
+  <li>ogni 10 minuti legge i post di Steam dei giochi Half-Life, la pagina di Valve su Steam, le pagine di half-life.com e i
+  repository nuovi di Valve e SteamTracking;</li>
+  <li>il giro completo, che di solito riparte ogni 30 minuti, riparte ogni 10;</li>
+  <li>se compare un Half-Life nuovo (un prodotto su Steam, una pagina su half-life.com, un post), l'avviso arriva subito su
+  Telegram, sul sito e nell'app, anche di notte, e in cima alle pagine compare la fascia rossa.</li>
+ </ul>
+ {% for v in p.attesa if v.regola == "niente_annuncio_entro" and v.id == serata.previsione %}<p>La previsione
+ «<a href="#{{ v.id }}">{{ v.testo }}</a>» ({{ v.video_info.autore }}) si decide quella notte: senza annuncio diventa
+ confermata alla sua scadenza, con l'annuncio smentita.</p>{% endfor %}
+ <p class="muted"><small>Data e luogo: <a href="{{ serata.fonte }}" rel="noopener">l'annuncio della serata</a>. I controlli
+ cominciano ore prima dello spettacolo, così coprono anche l'anteprima.</small></p>
+</section>
+{% endif %}
+
 <section>
  <h2>Video per video</h2>
  {% for vid in p.video %}<div class="prev-video" id="{{ vid.id }}">

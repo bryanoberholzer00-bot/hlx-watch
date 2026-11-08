@@ -3,6 +3,7 @@
   // Segreti: wrangler secret put BOT_TOKEN | WEBHOOK_SECRET | OWNER_CHAT_ID
   // facoltativo: GH_DISPATCH_TOKEN (token GitHub fine-grained, solo questo repository, Actions: read and write)
   // per avviare il giro completo ogni 30 minuti (src/dispatch.js)
+  // facoltativo: YOUTUBE_API_KEY (chiave gratuita di YouTube Data API v3) per i video nuovi nelle serate (src/serata.js)
   "name": "hlx-watch-bot",
   "main": "src/index.js",
   "compatibility_date": "2026-09-01",

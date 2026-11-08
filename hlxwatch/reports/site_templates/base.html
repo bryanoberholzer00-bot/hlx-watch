@@ -117,6 +117,9 @@
   font-size:.95rem;line-height:1.35}
  .fascia-annuncio span{display:block;font-size:.8rem;opacity:.9}
  .fascia-annuncio:hover{background:#b71c1c}
+ .fascia-serata{display:block;background:#5d4300;color:#fff;text-decoration:none;padding:.5rem 1rem;text-align:center;font-size:.95rem}
+ .fascia-serata span{display:block;font-size:.8rem;opacity:.9} .fascia-serata.in_corso{background:#8a5a00}
+ .fascia-serata:hover{filter:brightness(1.15)}
  ul.giochi{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4rem .6rem}
  ul.giochi li{background:var(--code);border-radius:999px;padding:.15rem .7rem;font-size:.9rem}
  .nuovo-qui{font-size:.85rem;color:var(--muted)}
@@ -196,6 +199,13 @@
 </script>
 {% if annuncio %}<a class="fascia-annuncio" href="annuncio.html">🔴 <b>Possibile annuncio di Valve</b>{% if annuncio.voci %}: {{ annuncio.voci[0].x }}{% endif %}
  <span>giorno {{ annuncio.giorno }} · HLX Watch controlla ogni 10 minuti · cosa succede ora →</span></a>{% endif %}
+{% if serata and serata.fascia and not annuncio %}<a class="fascia-serata {{ serata.stato }}" href="previsioni.html#serata">🏆
+ {% if serata.stato == "prima" %}<b>{{ serata.nome }}</b>: {{ serata.giorno_evento }} a Los Angeles, in Italia {% if serata.giorni <= 1 %}stanotte{% else %}{{ serata.spettacolo_locale.split(" alle ")[0] }}{% endif %} alle {{ serata.ora_spettacolo }}
+ <span>{% if serata.giorni > 1 %}mancano {{ serata.giorni }} giorni · {% endif %}quella notte HLX Watch controlla ogni 10 minuti, dalle {{ serata.ora_inizio }} alle {{ serata.ora_fine }} →</span>
+ {% elif serata.stato == "in_corso" %}<b>In corso: {{ serata.nome }}</b> · lo spettacolo inizia alle {{ serata.ora_spettacolo }}
+ <span>HLX Watch controlla ogni 10 minuti fino alle {{ serata.ora_fine }}: se compare Half-Life, la fascia diventa rossa →</span>
+ {% else %}<b>{{ serata.nome }}: la serata è finita</b>
+ <span>nessun possibile annuncio di Half-Life trovato dai controlli →</span>{% endif %}</a>{% endif %}
 <main>{% block content %}{% endblock %}</main>
 <script>
 // sul telefono, le tabelle più larghe dello schermo diventano schede (la Ricerca ha le sue, fatte dal suo script;

@@ -16,6 +16,7 @@
 
 import { modeStatus } from "./annuncio.js";
 import { runsStatus, watchRuns } from "./giri.js";
+import { serataStatus } from "./serata.js";
 
 export const REPO = "bryanoberholzer00-bot/hlx-watch";
 export const WORKFLOW = "hlx-watch.yml";
@@ -139,9 +140,9 @@ export async function dispatchRun(env, sendTelegram, now = Date.now()) {
   } catch (err) {
     console.log("sorveglianza dei giri non riuscita:", String(err));
   }
-  // modalità annuncio (src/annuncio.js): ogni 10 minuti a tutte le ore
+  // modalità annuncio (src/annuncio.js) e serata di un evento (src/serata.js): ogni 10 minuti a tutte le ore
   const mode = await modeStatus(env, now);
-  const decision = shouldDispatch(runs, now, mode ? HOT_EVERY_MS : everyMs(now));
+  const decision = shouldDispatch(runs, now, mode || serataStatus(now) ? HOT_EVERY_MS : everyMs(now));
   if (!decision.go) {
     await recovered(env, sendTelegram);
     return { done: false, why: decision.why };
@@ -168,5 +169,6 @@ export async function dispatchStatus(env, now = Date.now()) {
   const expiry = env.SUBS ? await env.SUBS.get(EXPIRY_KEY) : null;
   return { attivo: Boolean(env.GH_DISPATCH_TOKEN) && !error, token: Boolean(env.GH_DISPATCH_TOKEN), errore: error || null,
     scadenza: env.GH_DISPATCH_TOKEN ? expiry || null : null, giri: await runsStatus(env),
-    ogni: mode || isHot(now) ? 10 : 30, ore_calde: isHot(now), annuncio: mode };
+    ogni: mode || isHot(now) || serataStatus(now) ? 10 : 30, ore_calde: isHot(now), annuncio: mode,
+    serata: serataStatus(now) };
 }
