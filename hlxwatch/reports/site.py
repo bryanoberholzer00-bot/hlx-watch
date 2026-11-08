@@ -392,8 +392,10 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
         s=sistemi.summary(outcomes, alyx.load_seed(), db), opz=opzioni.summary(db), pers=pers), encoding="utf-8")
     # prima di un annuncio: i segnali dei progetti passati accanto a quelli di HLX
     from hlxwatch import segnali
+    from hlxwatch.sources import steam_valve
     (out_dir / "segnali.html").write_text(env.get_template("segnali.html").render(s=segnali.summary(db, outcomes),
-                                                                                   sil=risposte.get("silenzio")),
+                                                                                   sil=risposte.get("silenzio"),
+                                                                                   sv=steam_valve.summary(db)),
                                           encoding="utf-8")
     # mappa dei collegamenti: i pezzi uniti ai luoghi dove compaiono e agli altri pezzi arrivati insieme
     from hlxwatch import mappa

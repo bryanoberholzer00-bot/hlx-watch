@@ -153,6 +153,12 @@ def cmd_cron(args: argparse.Namespace) -> int:
         immagini.scan(cfg, db, notifiers=pipeline.notifiers if not args.no_notify else [])
     except Exception:
         log.exception("Immagini degli strumenti: controllo non riuscito")
+    # la pagina di Valve su Steam: prodotti contati e mostrati, tutti e in arrivo (hlxwatch/sources/steam_valve.py)
+    try:
+        from hlxwatch.sources import steam_valve
+        steam_valve.check(cfg, db, pipeline.notifiers if not args.no_notify else [])
+    except Exception:
+        log.exception("Pagina di Valve su Steam: controllo non riuscito")
     # il silenzio: avviso se HLX supera la sua pausa più lunga, e in modalità annuncio quando ricompaiono nomi nuovi
     try:
         from hlxwatch.silenzio import watch as watch_silence

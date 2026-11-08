@@ -27,6 +27,26 @@ dell'annuncio, e con quanti giorni di anticipo. Nell'ultima colonna, a che punto
  l'inizio degli archivi di SteamTracking (dicembre 2016), il nome poteva esserci da prima.</small></p>
 </section>
 
+{% if sv %}
+<section id="steam-valve">
+ <h2>La pagina di Valve su Steam</h2>
+ <p>La pagina sviluppatore di Valve su Steam dice quanti prodotti ha e quanti sono in arrivo. A novembre 2025 contava
+ 5 prodotti in arrivo ma ne mostrava 4: uno era già nel negozio, nascosto. HLX Watch la legge ogni 6 ore e avvisa se un
+ numero supera quello che la pagina mostra, se compare un prodotto nuovo o se i prodotti in arrivo aumentano.</p>
+ <div class="cards">
+  <div class="card"><b>{{ sv.arrivo }}</b><span>in arrivo{% if sv.arrivo != sv.arrivo_elencati %}, ma ne mostra {{ sv.arrivo_elencati }}{% else %}, tutti mostrati{% endif %}{% if sv.arrivo_app %} (<a href="https://store.steampowered.com/app/{{ sv.arrivo_app[0] }}/" rel="noopener">{{ "Deadlock" if sv.arrivo_app[0] == "1422450" else "app " ~ sv.arrivo_app[0] }}</a>{% if sv.arrivo_app|length > 1 %} e altri{% endif %}){% endif %}</span></div>
+  <div class="card"><b>{{ sv.tutti }}</b><span>prodotti in tutto{% if sv.tutti != sv.tutti_elencati %}, ma ne mostra {{ sv.tutti_elencati }}{% else %}, tutti mostrati{% endif %}</span></div>
+ </div>
+ {% if sv.storia|length > 1 %}<table>
+  <tr><th>Dal</th><th>In arrivo (mostrati)</th><th>In tutto (mostrati)</th></tr>
+  {% for r in sv.storia %}<tr><td>{{ r.giorno[8:10] }}/{{ r.giorno[5:7] }}/{{ r.giorno[:4] }}</td><td>{{ r.arrivo }} ({{ r.arrivo_elencati }})</td><td>{{ r.tutti }} ({{ r.tutti_elencati }})</td></tr>{% endfor %}
+ </table>{% endif %}
+ <p class="muted"><small>Ultima lettura {{ sv.at[8:10] }}/{{ sv.at[5:7] }} alle {{ sv.at[11:16] }} (ora di Greenwich), dal negozio
+ degli Stati Uniti. I numeri vengono dalla stessa lista che usa la pagina di Steam; il negozio di un altro paese può
+ mostrarne qualcuno in meno.</small></p>
+</section>
+{% endif %}
+
 {% if sil %}
 <section id="silenzio">
  <h2>Il silenzio</h2>
