@@ -30,6 +30,7 @@ def test_real_strings_are_seen(cfg, text, path):
     ("chopper/gunship", "game/core/pak01_dir.txt"),              # suoni di Half-Life 2 nel motore
     ("Bullets.GunshipNearmiss", "game/core/soundevents.vsndevts"),
     ("._3XenXoJ5CQnSgv-rw02USz{color:red}", "www.dota2.com/public/css/dota_react/main.css"),
+    ("common/associations/1/name = VoXenCo", "pics/app/5550140"),   # l'editore di un gioco indipendente su Steam
 ])
 def test_noise_is_not(cfg, text, path):
     res = KeywordMatcher(cfg.keywords).analyze_line(text, file_path=path)

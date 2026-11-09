@@ -507,7 +507,8 @@ keywords:
       # Niente "Xen" dopo una cifra: nei CSS e JS dei siti sono codici casuali (_3XenXoJ5...).
       pattern: "(?<![0-9])Xen(?=[A-Z])|[Gg]unship(?=_?[Bb]omb)|Ranger(?=_?Trap)|ranger(?=_?trap)|Flyer(?=_?Flank)|flyer(?=_?flank)"
       case_sensitive: true
-      path_excludes: ['\.(css|js|json)$']
+      # Niente nomi e dati delle app Steam di altri (pics/app/...): "VoXenCo", l'editore di un gioco indipendente (9/11/2026).
+      path_excludes: ['\.(css|js|json)$', '^pics/app/']
       weight: 80
       description: "nomi di Half-Life attaccati e nemici nuovi"
     - id: hl_universe
