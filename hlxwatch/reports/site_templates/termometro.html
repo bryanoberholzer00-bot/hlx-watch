@@ -6,6 +6,14 @@
  .now{display:inline-block;padding:.6rem 1rem;border-radius:8px;color:#fff;font-weight:bold;margin:.3rem 0 .8rem}
  .now big{font-size:2rem;margin-right:.5rem;vertical-align:middle}
  td.d{white-space:nowrap}
+ .termo-box{position:relative}
+ .termo-box svg{touch-action:pan-y;cursor:crosshair;display:block}
+ .termo-box svg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+ .termo-tip{position:absolute;top:6px;max-width:min(340px,80%);padding:.45rem .65rem;background:var(--card);
+  border:1px solid var(--line);border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.25);font-size:.85rem;line-height:1.35;
+  pointer-events:none;z-index:2}
+ .termo-tip code{word-break:break-all}
+ .termo-tip .ev{color:#2f80ed}
 </style>
 <h1>Termometro HLX</h1>
 
@@ -19,11 +27,67 @@
 
 <section>
  <h2>Giorno per giorno</h2>
- {{ svg|safe }}
+ <div class="termo-box">{{ svg|safe }}<div class="termo-tip" hidden></div></div>
  <p class="muted"><small>Linea arancione: l'indice di ogni giorno. Fasce: gialla da 15 (qualcosa si muove), arancione da 40
- (tracce recenti), rossa da 75 (molta attività). Punti: i picchi (passa sopra con il mouse per la traccia).
- Linee blu tratteggiate: fatti noti, per confronto.</small></p>
+ (tracce recenti), rossa da 75 (molta attività). Punti: i picchi. Linee blu tratteggiate: fatti noti, per confronto.
+ Passa sopra al grafico con il mouse (o trascina il dito) per vedere il giorno, l'indice e la traccia che pesa di più;
+ da tastiera, le frecce.</small></p>
 </section>
+<script type="application/json" id="termo-dati">{{ punti|tojson }}</script>
+<script>
+// cursore del grafico: dal mouse (o dal dito, o dalle frecce) al giorno, poi linea, punto e riquadro con i dettagli
+(function(){
+ var svg=document.querySelector('.termo-box svg'), tip=document.querySelector('.termo-tip');
+ if(!svg||!tip)return;
+ var d=JSON.parse(document.getElementById('termo-dati').textContent), n=d.v.length;
+ if(!n)return;
+ var vb=svg.viewBox.baseVal, L=+svg.dataset.left, R=+svg.dataset.right, T=+svg.dataset.top, B=+svg.dataset.bottom;
+ var cur=svg.querySelector('.cursore'), line=cur.querySelector('line'), dot=cur.querySelector('circle');
+ var day0=Date.parse(d.inizio+'T12:00:00Z'), DAY=864e5, span=Math.max(1,n-1), shown=-1;
+ var fmt=new Intl.DateTimeFormat('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
+ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+ function iso(i){return new Date(day0+i*DAY).toISOString().slice(0,10);}
+ function xOf(i){return L+i/span*(vb.width-L-R);}
+ function yOf(v){return T+(100-v)/100*(vb.height-T-B);}
+ function level(v){for(var k=0;k<d.livelli.length;k++)if(v>=d.livelli[k][0])return d.livelli[k][1];return '';}
+ function show(i){
+  i=Math.max(0,Math.min(n-1,i)); shown=i;
+  var v=d.v[i], x=xOf(i), y=yOf(v), day=iso(i);
+  line.setAttribute('x1',x); line.setAttribute('x2',x); dot.setAttribute('cx',x); dot.setAttribute('cy',y);
+  cur.setAttribute('visibility','visible');
+  var h='<b>'+esc(fmt.format(new Date(day0+i*DAY)))+'</b><br>indice <b>'+v+'</b> · '+esc(level(v));
+  var t=d.t[i]>=0?d.tracce[d.t[i]]:null;
+  if(t)h+='<br>pesa di più: <code>'+esc(t.testo)+'</code> in '+esc(t.gioco)+' <span class="muted">(commit del '+esc(t.del)+')</span>';
+  // fatto noto vicino: entro 8 pixel dalla sua linea, quanti giorni siano dipende dalla larghezza dello schermo
+  var near=Math.max(1,Math.round(8/(svg.getBoundingClientRect().width*(vb.width-L-R)/vb.width/span)));
+  d.eventi.forEach(function(e){
+   if(Math.abs(Date.parse(e.data+'T12:00:00Z')-Date.parse(day+'T12:00:00Z'))<=near*DAY)
+    h+='<br><span class="ev">┆ '+esc(e.data)+': '+esc(e.testo)+'</span>';
+  });
+  tip.innerHTML=h; tip.hidden=false;
+  // il riquadro sta accanto al cursore, dalla parte dove c'è più spazio
+  var px=x/vb.width*svg.getBoundingClientRect().width;
+  if(x>vb.width/2){tip.style.left='';tip.style.right=(svg.getBoundingClientRect().width-px+12)+'px';}
+  else{tip.style.right='';tip.style.left=(px+12)+'px';}
+ }
+ function hide(){cur.setAttribute('visibility','hidden');tip.hidden=true;shown=-1;}
+ function at(e){
+  var r=svg.getBoundingClientRect(), sx=(e.clientX-r.left)/r.width*vb.width;
+  show(Math.round((sx-L)/(vb.width-L-R)*span));
+ }
+ svg.setAttribute('tabindex','0');
+ svg.addEventListener('pointermove',at);
+ svg.addEventListener('pointerdown',at);
+ svg.addEventListener('pointerleave',function(e){if(e.pointerType==='mouse')hide();});
+ document.addEventListener('pointerdown',function(e){if(!svg.contains(e.target))hide();});
+ svg.addEventListener('blur',hide);
+ svg.addEventListener('keydown',function(e){
+  var step={ArrowLeft:-1,ArrowRight:1,PageDown:-30,PageUp:30,Home:-n,End:n}[e.key];
+  if(step===undefined){if(e.key==='Escape')hide();return;}
+  e.preventDefault(); show((shown<0?n-1:shown)+step);
+ });
+})();
+</script>
 
 <section>
  <h2>I picchi</h2>

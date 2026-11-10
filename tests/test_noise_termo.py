@@ -10,7 +10,7 @@ from hlxwatch.models import BuildInfo, Finding
 from hlxwatch.notifiers.base import group_findings
 from hlxwatch.notifiers.telegram import TelegramNotifier
 from hlxwatch.reports.site import build_site
-from hlxwatch.reports.termometro import history, history_svg
+from hlxwatch.reports.termometro import history, history_points, history_svg
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import utcnow
 
@@ -98,9 +98,18 @@ def test_history_and_page(tmp_path):
     assert len(h["serie"]) == 31 and h["massimo"] >= 40 and len(h["picchi"]) == 1
     assert h["picchi"][0]["traccia"].startswith("CHLXHelper")
     assert "<polyline" in history_svg(h)
+    # per il cursore del grafico: ogni giorno con l'indice sopra zero sa qual è la traccia che pesa di più
+    hot = [p for p in h["serie"] if p["indice"] > 0]
+    assert hot and all(h["tracce"][p["t"]]["testo"].startswith("CHLXHelper") for p in hot)
+    assert all("t" not in p for p in h["serie"] if p["indice"] == 0)
+    pts = history_points(h)
+    assert len(pts["v"]) == len(pts["t"]) == 31 and pts["inizio"] == h["serie"][0]["giorno"]
+    svg = history_svg(h)
+    assert 'data-left="34"' in svg and 'class="cursore"' in svg and "<title>" not in svg
     out = build_site(db, cfg, tmp_path / "site")
     page = (out / "termometro.html").read_text(encoding="utf-8")
     assert "Termometro HLX" in page and "<svg" in page and "Deadlock annunciato" in page
+    assert 'id="termo-dati"' in page and 'class="termo-tip"' in page
     data = json.loads((out / "bot" / "termometro_storico.json").read_text(encoding="utf-8"))
     assert data["serie"][-1]["giorno"] == utcnow().date().isoformat()
     db.close()

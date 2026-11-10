@@ -11,7 +11,6 @@ ha aggiunte (prima comparsa), non al giorno in cui sono state trovate.
 """
 from __future__ import annotations
 
-import html
 import json
 import math
 from datetime import date, datetime, timedelta, timezone
@@ -153,10 +152,20 @@ def history(cfg: Config, db: Database, start: str = HISTORY_START) -> dict[str, 
     day = date.fromisoformat(start)
     series: list[dict[str, Any]] = []
     tops: dict[str, dict[str, Any] | None] = {}
+    # la traccia che pesa di più ogni giorno, per il riquadro del grafico: elenco senza doppioni, e nella serie
+    # solo la sua posizione ("t"), così il file resta piccolo
+    labels: list[dict[str, str]] = []
+    label_pos: dict[str, int] = {}
     while day <= today:
         noon = datetime(day.year, day.month, day.day, 12, tzinfo=timezone.utc)
         value, top = index_at(items, noon)
-        series.append({"giorno": day.isoformat(), "indice": value})
+        point: dict[str, Any] = {"giorno": day.isoformat(), "indice": value}
+        if top is not None and value > 0:
+            if top["hash"] not in label_pos:
+                label_pos[top["hash"]] = len(labels)
+                labels.append({"testo": top["label"], "gioco": cfg.game_title(top["game"]), "del": local_day(top["at"])})
+            point["t"] = label_pos[top["hash"]]
+        series.append(point)
         tops[day.isoformat()] = top
         day += timedelta(days=1)
     peaks: list[dict[str, Any]] = []
@@ -179,8 +188,18 @@ def history(cfg: Config, db: Database, start: str = HISTORY_START) -> dict[str, 
                       "traccia": top["label"] if top else "", "traccia_del": local_day(top["at"]) if top else ""})
     events = (cfg.get("termometro", {}) or {}).get("eventi") or DEFAULT_EVENTS
     values = [p["indice"] for p in series]
-    return {"serie": series, "picchi": peaks, "eventi": events, "inizio": start,
+    return {"serie": series, "tracce": labels, "picchi": peaks, "eventi": events, "inizio": start,
             "massimo": max(values) if values else 0, "giorni_sopra_40": sum(1 for v in values if v >= 40)}
+
+
+def history_points(h: dict[str, Any]) -> dict[str, Any]:
+    """I dati del grafico in forma compatta per lo script della pagina: un valore per giorno dal primo giorno,
+    la traccia che pesa di più (posizione in "tracce", -1 se nessuna), i fatti noti e i livelli."""
+    series = h["serie"]
+    return {"inizio": series[0]["giorno"] if series else h["inizio"],
+            "v": [p["indice"] for p in series], "t": [p.get("t", -1) for p in series],
+            "tracce": h.get("tracce", []), "eventi": h["eventi"],
+            "livelli": [[floor, lab] for floor, _, lab, _ in LEVELS]}
 
 
 def history_svg(h: dict[str, Any]) -> str:
@@ -198,7 +217,9 @@ def history_svg(h: dict[str, Any]) -> str:
     def y(v: float) -> float:
         return top + (100 - v) / 100 * (ht - top - bottom)
 
-    parts = [f'<svg viewBox="0 0 {w} {ht}" class="termo" role="img" aria-label="Termometro HLX giorno per giorno">']
+    # i margini servono allo script della pagina per passare dalla posizione del mouse al giorno
+    parts = [f'<svg viewBox="0 0 {w} {ht}" class="termo" role="img" aria-label="Termometro HLX giorno per giorno" '
+             f'data-left="{left}" data-right="{right}" data-top="{top}" data-bottom="{bottom}">']
     bands = [(75, 100, "#C0392B"), (40, 75, "#B4531B"), (15, 40, "#8A6D00")]
     for lo, hi, color in bands:
         parts.append(f'<rect x="{left}" y="{y(hi):.1f}" width="{w - left - right}" height="{y(lo) - y(hi):.1f}" '
@@ -217,11 +238,14 @@ def history_svg(h: dict[str, Any]) -> str:
         if series[0]["giorno"] <= e["data"] <= series[-1]["giorno"]:
             ex = x(e["data"])
             parts.append(f'<line x1="{ex:.1f}" x2="{ex:.1f}" y1="{top}" y2="{ht - bottom}" stroke="#2f80ed" '
-                         f'stroke-dasharray="4 3"><title>{e["data"]}: {html.escape(str(e["testo"]))}</title></line>')
+                         f'stroke-dasharray="4 3"/>')
     pts = " ".join(f"{x(p['giorno']):.1f},{y(p['indice']):.1f}" for p in series)
     parts.append(f'<polyline points="{pts}" fill="none" stroke="var(--accent)" stroke-width="1.6"/>')
     for p in h["picchi"]:
-        parts.append(f'<circle cx="{x(p["giorno"]):.1f}" cy="{y(p["indice"]):.1f}" r="3.5" fill="var(--accent)">'
-                     f'<title>{p["giorno"]}: {p["indice"]} ({html.escape(p["gioco"])}: {html.escape(p["traccia"])})</title></circle>')
+        parts.append(f'<circle cx="{x(p["giorno"]):.1f}" cy="{y(p["indice"]):.1f}" r="3.5" fill="var(--accent)"/>')
+    # cursore: lo muove lo script della pagina (termometro.html) sotto il mouse o il dito
+    parts.append(f'<g class="cursore" visibility="hidden" pointer-events="none"><line y1="{top}" y2="{ht - bottom}" '
+                 f'stroke="currentColor" opacity="0.5"/><circle r="4.5" fill="var(--accent)" stroke="var(--card)" '
+                 f'stroke-width="2"/></g>')
     parts.append("</svg>")
     return "".join(parts)

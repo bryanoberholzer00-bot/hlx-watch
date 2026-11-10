@@ -316,7 +316,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
                                                              exclude_change_type=("baseline", "present"))])
     recent = group_rows([decorate(apply_first_seen(_row(r), days), ctx) for r in db.search_findings(min_score=50, limit=80, order="created_at",
                                                                exclude_change_type=("baseline", "present"))])
-    from hlxwatch.reports.termometro import compute as termo_now, history, history_svg
+    from hlxwatch.reports.termometro import compute as termo_now, history, history_points, history_svg
     termo_current = termo_now(cfg, db)
     fast = fast_status(cfg)
     status = source_status(cfg, db, fast)
@@ -363,7 +363,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     (out_dir / "bot" / "termometro_storico.json").write_text(json.dumps(termo, ensure_ascii=False, separators=(",", ":")),
                                                              encoding="utf-8")
     (out_dir / "termometro.html").write_text(env.get_template("termometro.html").render(
-        h=termo, svg=history_svg(termo), now=termo_current), encoding="utf-8")
+        h=termo, svg=history_svg(termo), punti=history_points(termo), now=termo_current), encoding="utf-8")
     # risposte veloci per chi arriva da un motore di ricerca, in italiano e in inglese, più l'anteprima dei link
     from hlxwatch.reports.brief import brief_data, preview_image
     brief = brief_data(cfg, termo_current, termo, outcomes)
