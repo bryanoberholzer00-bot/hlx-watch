@@ -123,6 +123,11 @@
  ul.giochi{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4rem .6rem}
  ul.giochi li{background:var(--code);border-radius:999px;padding:.15rem .7rem;font-size:.9rem}
  .nuovo-qui{font-size:.85rem;color:var(--muted)}
+ .svg-tip{position:fixed;z-index:50;max-width:min(320px,calc(100vw - 16px));padding:.4rem .6rem;background:var(--card);
+  color:var(--text);border:1px solid var(--line);border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.25);font-size:.85rem;
+  line-height:1.35;pointer-events:none}
+ main svg[data-cursore]{touch-action:pan-y}
+ main svg .tip-on{filter:brightness(1.35)} main svg line.tip-on{stroke-width:3}
 </style>
 </head>
 <body>
@@ -226,6 +231,74 @@
  all(document.querySelector('main'));
  // le tabelle dentro un riquadro chiuso si misurano quando lo si apre
  document.querySelectorAll('main details').forEach(function(d){d.addEventListener('toggle',function(){if(d.open)all(d);});});
+})();
+</script>
+<script>
+// grafici: i dettagli (i <title> dentro l'SVG) compaiono subito in un riquadro sotto il mouse o al tocco, invece del
+// suggerimento del browser, che arriva dopo un secondo, va centrato al pixel e sul telefono non c'è. Nei grafici a barre
+// (data-cursore="colonne") conta la colonna sotto il mouse, non solo la barra, più le tacche sottili vicine (fatti noti,
+// tracce HLX). Il Termometro ha il suo cursore e la linea del tempo della Panoramica il suo riquadro.
+(function(){
+ var svgs=[].filter.call(document.querySelectorAll('main svg'),function(s){
+  return !s.classList.contains('timeline')&&s.querySelector(':scope * title');});
+ if(!svgs.length)return;
+ var tip=document.createElement('div'),lit=[];
+ tip.className='svg-tip'; tip.hidden=true; document.body.appendChild(tip);
+ function esc(s){return s.replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+ function clear(){lit.forEach(function(el){el.classList.remove('tip-on');});lit=[];}
+ function hide(){tip.hidden=true;clear();}
+ function place(e){
+  var pad=14,w=tip.offsetWidth,h=tip.offsetHeight,x=e.clientX+pad,y=e.clientY+pad;
+  if(x+w>innerWidth-8)x=e.clientX-pad-w; if(x<8)x=8;
+  if(y+h>innerHeight-8)y=e.clientY-pad-h; if(y<8)y=8;
+  tip.style.left=x+'px'; tip.style.top=y+'px';
+ }
+ svgs.forEach(function(svg){
+  var items=[];
+  [].forEach.call(svg.querySelectorAll('title'),function(t){
+   var el=t.parentNode,text=t.textContent.trim();
+   if(el===svg||!text)return;
+   el.setAttribute('data-tip',text); el.setAttribute('aria-label',text); t.remove();
+   items.push({el:el,text:text});
+  });
+  var cols=svg.getAttribute('data-cursore')==='colonne',boxes=null;
+  function measure(){
+   if(boxes)return boxes;
+   var b=items.map(function(i){var r=i.el.getBBox();return{x:r.x,w:r.width};});
+   if(b.some(function(r){return r.w>0;}))boxes=b;        // un grafico dentro un riquadro chiuso si misura dopo
+   return b;
+  }
+  function pick(e){
+   if(!cols){
+    var el=e.target.closest&&e.target.closest('[data-tip]');
+    return items.filter(function(i){return i.el===el;});
+   }
+   var r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,k=vb.width/r.width,sx=vb.x+(e.clientX-r.left)*k;
+   var b=measure(),best=null,dist=Infinity,thin=[];
+   items.forEach(function(i,n){
+    var c=b[n].x+b[n].w/2,d=Math.abs(sx-c);
+    if(b[n].w<=2.5){if(d<=8*k)thin.push(i);}             // linee e tacche: entro 8 pixel
+    else if(d<=b[n].w/2+3&&d<dist){best=i;dist=d;}       // barre: la colonna sotto il mouse
+   });
+   return (best?[best]:[]).concat(thin);
+  }
+  function at(e){
+   var hit=pick(e);
+   clear();
+   if(!hit.length){tip.hidden=true;return;}
+   hit.forEach(function(i){i.el.classList.add('tip-on');lit.push(i.el);});
+   // le tacche sottili nel loro colore: blu i fatti noti, rosso le tracce HLX
+   tip.innerHTML=hit.map(function(i){
+    var c=i.el.getBBox().width<=2.5?(i.el.getAttribute('stroke')||i.el.getAttribute('fill')||''):'';
+    return /^#[0-9a-f]{3,6}$/i.test(c)?'<span style="color:'+c+'">'+esc(i.text)+'</span>':esc(i.text);}).join('<br>');
+   tip.hidden=false; place(e);
+  }
+  svg.addEventListener('pointermove',at);
+  svg.addEventListener('pointerdown',at);
+  svg.addEventListener('pointerleave',function(e){if(e.pointerType==='mouse')hide();});
+ });
+ document.addEventListener('pointerdown',function(e){if(!svgs.some(function(s){return s.contains(e.target);}))hide();});
+ addEventListener('scroll',hide,{passive:true});
 })();
 </script>
 <footer>HLX Watch v{{ version }} &middot; dati pubblici da SteamTracking/GameTracking-* e Steam PICS &middot; non affiliato con Valve &middot; <a href="https://github.com/bryanoberholzer00-bot/hlx-watch/releases/download/android-latest/hlx-watch.apk">app Android (APK)</a></footer>

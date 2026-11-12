@@ -531,7 +531,14 @@ def chart_svg(a: dict[str, Any] | None, hlx_days: list[str] | None = None) -> st
         return left + (idx + frac) * bw
 
     win = (a or {}).get("finestra") or {}
-    parts = [f'<svg viewBox="0 0 {w} {ht}" class="contatore" role="img" '
+    mesi = ("gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre",
+            "novembre", "dicembre")
+
+    def month(key: str) -> str:
+        return f"{mesi[int(key[5:7]) - 1]} {key[:4]}"
+
+    # data-cursore: il riquadro dei dettagli segue la colonna sotto il mouse (script in base.html)
+    parts = [f'<svg viewBox="0 0 {w} {ht}" class="contatore" role="img" data-cursore="colonne" '
              'aria-label="Modifiche salvate da Valve al giorno, mese per mese">']
     v = 0
     while v <= vmax:
@@ -544,7 +551,7 @@ def chart_svg(a: dict[str, Any] | None, hlx_days: list[str] | None = None) -> st
         hot = bool(win) and m["mese"] >= win.get("da", "9")[:7]
         parts.append(f'<rect x="{x0 + 0.6:.1f}" y="{y(m["ritmo"]):.1f}" width="{max(bw - 1.2, 1):.1f}" '
                      f'height="{y(0) - y(m["ritmo"]):.1f}" fill="{"var(--accent)" if hot else "#7a8699"}" '
-                     f'opacity="{0.95 if hot else 0.55}"><title>{m["mese"]}: {num(m["ritmo"])} al giorno</title></rect>')
+                     f'opacity="{0.95 if hot else 0.55}"><title>{month(m["mese"])}: {num(m["ritmo"])} modifiche al giorno</title></rect>')
         if m["mese"].endswith("-01"):
             parts.append(f'<text x="{x0 + 2:.1f}" y="{ht - 12}" font-size="12" fill="currentColor" '
                          f'opacity="0.7">{m["mese"][:4]}</text>')
@@ -552,13 +559,13 @@ def chart_svg(a: dict[str, Any] | None, hlx_days: list[str] | None = None) -> st
         ex = x_day(e["data"])
         if ex is not None:
             parts.append(f'<line x1="{ex:.1f}" x2="{ex:.1f}" y1="{top}" y2="{y(0):.1f}" stroke="#2f80ed" '
-                         f'stroke-dasharray="4 3" stroke-width="1.3"><title>{e["data"]}: '
+                         f'stroke-dasharray="4 3" stroke-width="1.3"><title>{e["data"][8:10]}/{e["data"][5:7]}/{e["data"][:4]}: '
                          f'{html.escape(e["testo"])}</title></line>')
     for day in sorted(set(hlx_days or [])):
         ex = x_day(day)
         if ex is not None:
             parts.append(f'<rect x="{ex - 1:.1f}" y="{y(0) + 2:.1f}" width="2" height="7" fill="#e53935">'
-                         f'<title>{day}: traccia HLX</title></rect>')
+                         f'<title>{day[8:10]}/{day[5:7]}/{day[:4]}: traccia HLX</title></rect>')
     parts.append("</svg>")
     return "".join(parts)
 

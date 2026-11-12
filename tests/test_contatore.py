@@ -1,5 +1,6 @@
 """Contatore di Valve: SourceRevision dei steam.inf, ritmo, fasce orarie, lavoro visibile e avviso sulle ondate."""
 import json
+import re
 from datetime import datetime, timedelta
 
 import yaml
@@ -144,6 +145,12 @@ def test_site_page(tmp_path):
     page = (out / "contatore.html").read_text(encoding="utf-8")
     assert "Il contatore di Valve" in page and "<svg" in page and "annuncio di Half-Life: Alyx" in page
     assert "Le ondate più forti" in page and 'href="contatore.html"' in (out / "index.html").read_text(encoding="utf-8")
+    # grafici a barre: il riquadro dei dettagli segue la colonna (script in base.html), testi leggibili
+    assert 'data-cursore="colonne"' in page and "svg-tip" in page and "modifiche al giorno</title>" in page
+    assert "<title>21/11/2019: annuncio di Half-Life: Alyx</title>" in page
+    charts = re.compile(r'<svg[^>]*data-cursore="colonne"')
+    assert len(charts.findall(page)) == 1
+    assert charts.search((out / "orologio.html").read_text(encoding="utf-8"))      # con pochi dati c'è un grafico solo
     data = json.loads((out / "bot" / "contatore.json").read_text(encoding="utf-8"))
     assert data["ultimo"]["rev"] > 11_000_000 and data["mesi"]
     assert not [p for p in check_site(out, need_preview=False) if "contatore" in p["testo"]]
