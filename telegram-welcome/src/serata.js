@@ -8,7 +8,10 @@
 //   - con la chiave YOUTUBE_API_KEY (API ufficiale YouTube Data, gratuita) si leggono i video nuovi dei canali
 //     dell'evento: un titolo con un Half-Life nuovo è un possibile annuncio, uno con "Valve" un messaggio. Il feed
 //     pubblico di YouTube non si usa: il robots.txt di YouTube lo vieta;
-//   - all'inizio e alla fine il proprietario riceve un messaggio (alla fine: cosa è comparso, o niente).
+//   - all'inizio e alla fine il proprietario riceve un messaggio (alla fine: cosa è comparso, o niente, e la pagella:
+//     controlli fatti, fonti lette e giri completi partiti, letti da GitHub).
+// Una serata con "prova": true è la prova generale: tutto come in quella vera (avvisi veri compresi), ma i messaggi
+// dicono che è una prova, la pagella dice se si è pronti per la serata vera e il sito non la mostra.
 // Sempre, a ogni controllo veloce (una richiesta di 20 KB): le pagine dei giochi su half-life.com (/en/alyx,
 // /en/halflife2...). Una pagina nuova di primo livello è un possibile annuncio: Alyx è comparsa lì il giorno
 // dell'annuncio. Con la chiave, anche i video nuovi del canale YouTube di Valve.
@@ -23,6 +26,10 @@ const HL_HOME = "https://www.half-life.com/en/home/";
 const VALVE_PAGE = "https://store.steampowered.com/developer/valve/ajaxgetfilteredrecommendations/";
 const DETAILS = "https://store.steampowered.com/api/appdetails";
 const YT_API = "https://www.googleapis.com/youtube/v3/playlistItems";
+const RUNS_API = "https://api.github.com/repos/bryanoberholzer00-bot/hlx-watch/actions/workflows/hlx-watch.yml/runs";
+const STEP_MS = 600000;                 // un controllo veloce e un giro completo ogni 10 minuti
+const MIN_RATE = 0.9;                   // pagella: almeno il 90% dei controlli e delle letture...
+const MAX_GAP_MIN = 25;                 // ...e mai più di 25 minuti senza un giro completo
 export const VALVE_CHANNEL = { id: "UCg0FSqPeiGD_lIiPaaAehQg", nome: "Valve" };
 const HLX_NAME = /hlx|half[\s_-]*life|(?<![a-z0-9])hl[\s_-]?3(?![0-9])/i;
 const HEADERS = { "User-Agent": "Mozilla/5.0 (compatible; hlx-watch-bot; +https://github.com/bryanoberholzer00-bot/hlx-watch)",
@@ -163,21 +170,86 @@ function esc(s) {
   return String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 }
 
-// ------------------------------------------------------------------ messaggi
-export function openingText(s) {
-  return `🏆 <b>Stasera ${esc(s.nome)}</b>\n` +
-    `Lo spettacolo inizia alle ${romeTime(s.spettacolo)} (ora italiana). Fino alle ${romeTime(s.fine)} HLX Watch ` +
-    "controlla ogni 10 minuti i post di Steam, la pagina di Valve su Steam, half-life.com e i repository nuovi, e " +
-    "riavvia il giro completo ogni 10 minuti. Se compare Half-Life ti avviso subito, anche di notte.";
+// ------------------------------------------------------------------ pagella
+// I giri completi della serata, dalla lista di GitHub: quanti sono partiti, come sono finiti e il buco più lungo
+// senza un giro (dall'inizio al primo, fra un giro e l'altro, dall'ultimo alla fine).
+export function runsSummary(runs, s) {
+  const from = Date.parse(s.inizio), to = Date.parse(s.fine);
+  const times = [];
+  let riusciti = 0, falliti = 0, altri = 0;
+  for (const r of runs || []) {
+    const t = Date.parse(r.created_at);
+    if (!(t >= from && t < to)) continue;
+    times.push(t);
+    if (r.conclusion === "success") riusciti += 1;
+    else if (r.conclusion === "failure" || r.conclusion === "timed_out") falliti += 1;
+    else altri += 1;                                  // ancora in corso, annullati, saltati
+  }
+  times.sort((a, b) => a - b);
+  const marks = [from, ...times, to];
+  let gap = 0;
+  for (let i = 1; i < marks.length; i++) gap = Math.max(gap, marks[i] - marks[i - 1]);
+  return { avviati: times.length, riusciti, falliti, altri, buco: Math.round(gap / 60000) };
 }
 
-export function closingText(s, trovate) {
-  const head = `🏆 <b>${esc(s.nome)}: la serata è finita</b>\n`;
-  if (!trovate.length) {
-    return head + "Nessuna traccia di Half-Life: niente post, niente pagine nuove, niente prodotti nuovi con quel nome." +
-      (s.previsione ? " Il registro delle previsioni segnerà da solo la previsione «niente annuncio» quando passa la sua scadenza." : "");
+// Righe della pagella e problemi trovati (vuoto = tutto a posto)
+export function pagella(s, scheda, giri) {
+  const righe = [], problemi = [];
+  const attesi = Math.floor((Date.parse(s.fine) - Date.parse(s.inizio)) / STEP_MS);
+  const fatti = (scheda && scheda.controlli) || 0;
+  const okC = fatti >= attesi * MIN_RATE;
+  righe.push(`${okC ? "✅" : "❌"} controlli veloci: ${fatti} su ${attesi} attesi`);
+  if (!okC) problemi.push("controlli veloci saltati (il cron di Cloudflare non è partito sempre)");
+  for (const [nome, [ok, ko]] of Object.entries((scheda && scheda.fonti) || {})) {
+    const buona = ok >= (ok + ko) * MIN_RATE;
+    righe.push(`${buona ? "✅" : "❌"} ${esc(nome)}: letta ${ok} volte su ${ok + ko}`);
+    if (!buona) problemi.push(`${esc(nome)} non risponde bene`);
   }
-  return head + "Durante la serata è comparso:\n" + trovate.slice(0, 8).map((t) => `• ${t}`).join("\n");
+  if (!giri) {
+    righe.push("❔ giri completi: GitHub non ha risposto, non so quanti ne sono partiti");
+    problemi.push("giri completi non verificati");
+  } else {
+    const okG = giri.falliti === 0 && giri.buco <= MAX_GAP_MIN && giri.avviati > 0;
+    righe.push(`${okG ? "✅" : "❌"} giri completi: ${giri.avviati} partiti, ${giri.riusciti} riusciti` +
+      (giri.falliti ? `, ${giri.falliti} falliti` : "") + `; il buco più lungo senza un giro: ${giri.buco} minuti`);
+    if (giri.falliti) problemi.push(`${giri.falliti} giri completi falliti (guarda i log su GitHub)`);
+    if (giri.buco > MAX_GAP_MIN || !giri.avviati) problemi.push("giri completi non partiti ogni 10 minuti");
+  }
+  return { righe, problemi };
+}
+
+// ------------------------------------------------------------------ messaggi
+export function openingText(s) {
+  const what = "i post di Steam, la pagina di Valve su Steam, half-life.com, i video su YouTube e i repository nuovi, e " +
+    "riavvia il giro completo ogni 10 minuti";
+  if (s.prova) {
+    return `🧪 <b>${esc(s.nome)}</b>\n` +
+      `Da adesso fino alle ${romeTime(s.fine)} di domattina HLX Watch fa tutto come nella serata vera: controlla ogni ` +
+      `10 minuti ${what}. Alla fine ti mando la pagella: quanti controlli sono riusciti, quali fonti hanno risposto e quanti ` +
+      "giri sono partiti. Se nel frattempo compare davvero Half-Life, l'avviso è vero, non fa parte della prova.";
+  }
+  return `🏆 <b>Stasera ${esc(s.nome)}</b>\n` +
+    `Lo spettacolo inizia alle ${romeTime(s.spettacolo)} (ora italiana). Fino alle ${romeTime(s.fine)} HLX Watch ` +
+    `controlla ogni 10 minuti ${what}. Se compare Half-Life ti avviso subito, anche di notte.`;
+}
+
+export function closingText(s, trovate, scheda = null, giri = null) {
+  const voto = pagella(s, scheda, giri);
+  const head = s.prova ? `🧪 <b>${esc(s.nome)}: finita</b>\n` : `🏆 <b>${esc(s.nome)}: la serata è finita</b>\n`;
+  let body;
+  if (!trovate.length) {
+    body = "Nessuna traccia di Half-Life: niente post, niente pagine nuove, niente prodotti nuovi con quel nome." +
+      (s.previsione && !s.prova ? " Il registro delle previsioni segnerà da solo la previsione «niente annuncio» quando passa la sua scadenza." : "");
+  } else {
+    body = "Durante la serata è comparso:\n" + trovate.slice(0, 8).map((t) => `• ${t}`).join("\n");
+  }
+  let esito = "\n\n<b>Pagella</b>\n" + voto.righe.join("\n");
+  if (s.prova) {
+    esito += voto.problemi.length
+      ? "\n\n⚠️ <b>Da sistemare prima della serata vera:</b>\n" + voto.problemi.map((p) => `• ${p}`).join("\n")
+      : "\n\n👍 <b>Tutto pronto per la serata vera.</b>";
+  }
+  return head + body + esito;
 }
 
 // ------------------------------------------------------------------ rete
@@ -217,6 +289,17 @@ async function readChannel(channelId, key) {
   return videos(await res.json());
 }
 
+// I giri completi partiti durante la serata (una sola lettura, alla chiusura; serve il token dei giri)
+async function readRuns(env, s) {
+  if (!env.GH_DISPATCH_TOKEN) return null;
+  const res = await fetch(`${RUNS_API}?per_page=100&created=${s.inizio}..${s.fine}`, { headers: {
+    Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "hlx-watch-bot",
+    Authorization: `Bearer ${env.GH_DISPATCH_TOKEN}` } });
+  if (!res.ok) throw new Error(`GitHub: HTTP ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data.workflow_runs) ? runsSummary(data.workflow_runs, s) : null;
+}
+
 async function attempt(label, fn) {
   try { return await fn(); } catch (err) { console.log(`serata: ${label} non letto:`, String(err)); return null; }
 }
@@ -228,7 +311,8 @@ export async function serataCheck(env, sendTelegram, now = Date.now(), list = LI
   if (!env.SUBS) return [];
   let state;
   try { state = JSON.parse((await env.SUBS.get(STATE)) || "{}"); } catch { state = {}; }
-  state = { ...state, aperte: [...(state.aperte || [])], chiuse: [...(state.chiuse || [])], trovate: { ...(state.trovate || {}) } };
+  state = { ...state, aperte: [...(state.aperte || [])], chiuse: [...(state.chiuse || [])], trovate: { ...(state.trovate || {}) },
+    pagella: { ...(state.pagella || {}) } };
   let changed = false;
   const tell = async (text) => { if (env.OWNER_CHAT_ID) await sendTelegram(env, env.OWNER_CHAT_ID, text); };
   const s = activeSerata(now, list);
@@ -239,15 +323,31 @@ export async function serataCheck(env, sendTelegram, now = Date.now(), list = LI
     changed = true;
     await tell(openingText(s));
   }
+  // pagella della serata: ogni controllo e ogni lettura riuscita o no (una scrittura ogni 10 minuti, solo di sera)
+  let scheda = null;
+  if (s) {
+    const old = state.pagella[s.id] || {};
+    scheda = { controlli: (old.controlli || 0) + 1, fonti: Object.fromEntries(Object.entries(old.fonti || {}).map(([k, v]) => [k, [...v]])) };
+    state.pagella[s.id] = scheda;
+    changed = true;
+  }
+  const read = async (label, fn) => {
+    const v = await attempt(label, fn);
+    if (scheda) {
+      const f = scheda.fonti[label] || (scheda.fonti[label] = [0, 0]);
+      f[v ? 0 : 1] += 1;
+    }
+    return v;
+  };
   const canali = [];
   if (env.YOUTUBE_API_KEY) {
     canali.push({ ...VALVE_CHANNEL, tutti: true });
     if (s) canali.push(...(s.youtube || []).map((c) => ({ ...c, tutti: false })));
   }
-  const readings = { pagine: await attempt("half-life.com", readPages), valve: null, yt: {} };
-  if (s) readings.valve = await attempt("pagina di Valve su Steam", readValve);
+  const readings = { pagine: await read("half-life.com", readPages), valve: null, yt: {} };
+  if (s) readings.valve = await read("pagina di Valve su Steam", readValve);
   for (const ch of canali) {
-    const v = await attempt(`YouTube ${ch.nome}`, () => readChannel(ch.id, env.YOUTUBE_API_KEY));
+    const v = await read(`YouTube ${ch.nome}`, () => readChannel(ch.id, env.YOUTUBE_API_KEY));
     if (v) readings.yt[ch.id] = v;
   }
   const res = compareSerata(state, readings, canali, now);
@@ -268,7 +368,8 @@ export async function serataCheck(env, sendTelegram, now = Date.now(), list = LI
   if (ended && state.aperte.includes(ended.id) && !state.chiuse.includes(ended.id)) {
     state.chiuse.push(ended.id);
     changed = true;
-    await tell(closingText(ended, state.trovate[ended.id] || []));
+    const giri = await attempt("giri completi su GitHub", () => readRuns(env, ended));
+    await tell(closingText(ended, state.trovate[ended.id] || [], state.pagella[ended.id] || null, giri));
   }
   if (changed) await env.SUBS.put(STATE, JSON.stringify(state));
   return annunci;

@@ -24,6 +24,10 @@ def test_the_real_file_is_valid_and_its_prediction_exists():
     c = serata.current(at("2026-11-08T12:00:00"))
     assert c["id"] == "tga-2026" and c["spettacolo_locale"] == "venerdì 11 dicembre alle 1:30"
     assert c["giorno_evento"] == "giovedì 10 dicembre" and c["inizio_locale"] == "giovedì 10 dicembre alle 18:00"
+    # la prova generale del bot c'è nel file ma il sito non la mostra, nemmeno la notte della prova
+    assert any(s.get("prova") for s in real)
+    during_drill = serata.current(at("2026-11-19T22:00:00"))
+    assert during_drill["id"] == "tga-2026" and during_drill["stato"] == "prima" and not during_drill["fascia"]
 
 
 def test_before_during_after():

@@ -6,7 +6,7 @@ import { shouldDispatch, HOT_EVERY_MS } from "../src/dispatch.js";
 import { fastCheck } from "../src/fast.js";
 import {
   LIST, STATE, activeSerata, classifyApp, closingText, compareSerata, endedSerata, halfLifePaths, isGamePage,
-  openingText, romeTime, serataCheck, serataStatus, uploadsPlaylist, valveList, videos,
+  openingText, pagella, romeTime, runsSummary, serataCheck, serataStatus, uploadsPlaylist, valveList, videos,
 } from "../src/serata.js";
 
 const S = { id: "prova", nome: "The Game Awards 2026", inizio: "2026-12-10T17:00:00Z", spettacolo: "2026-12-11T00:30:00Z",
@@ -34,6 +34,16 @@ test("la serata vera è valida e cade la notte del 10 dicembre", () => {
   assert.equal(romeTime(tga.inizio), "18:00");
   assert.equal(activeSerata(Date.parse("2026-12-11T02:00:00Z"))?.id, "tga-2026");
   assert.equal(activeSerata(Date.parse("2026-11-08T12:00:00Z")), null);
+});
+
+test("la prova generale: tre settimane prima, stessi orari, prima della serata vera", () => {
+  const prova = LIST.find((s) => s.prova);
+  const tga = LIST.find((s) => s.id === "tga-2026");
+  assert.ok(prova && Date.parse(prova.fine) < Date.parse(tga.inizio));
+  assert.equal(romeTime(prova.inizio), romeTime(tga.inizio));
+  assert.equal(romeTime(prova.fine), romeTime(tga.fine));
+  assert.equal(activeSerata(Date.parse("2026-11-19T22:00:00Z"))?.id, prova.id);
+  assert.ok(prova.youtube.length);
 });
 
 test("finestra: prima, durante, dopo", () => {
@@ -116,6 +126,7 @@ function fakeFetch(world) {
       const pl = new URL(u).searchParams.get("playlistId");
       return json({ items: (world.yt[pl] || []).map((v) => ({ snippet: { title: v.titolo, resourceId: { videoId: v.id } } })) });
     }
+    if (u.includes("/actions/workflows/")) return world.runs ? json({ workflow_runs: world.runs }) : new Response("", { status: 500 });
     if (u.includes("api.github.com")) return json([]);
     return json({ appnews: { newsitems: [] } });
   };
@@ -133,13 +144,16 @@ test("serataCheck: apertura, prodotto Half-Life, chiusura, una scrittura per cam
     assert.deepEqual(await serataCheck(env, tg, before, [S]), []);           // prima: solo half-life.com
     assert.ok(!world.calls.some((u) => u.includes("ajaxgetfilteredrecommendations")));
     assert.equal(sent.length, 0);
+    const quiet = env.SUBS.writes;
+    await serataCheck(env, tg, before + 600e3, [S]);
+    assert.equal(env.SUBS.writes, quiet);                                     // fuori dalla serata: niente di nuovo, niente scritture
     const start = Date.parse(S.inizio) + 60e3;
     assert.deepEqual(await serataCheck(env, tg, start, [S]), []);
     assert.equal(sent.length, 1);
     assert.match(sent[0], /Stasera The Game Awards 2026/);
     const writes = env.SUBS.writes;
     await serataCheck(env, tg, start + 600e3, [S]);
-    assert.equal(env.SUBS.writes, writes);                                    // niente di nuovo, niente scritture
+    assert.equal(env.SUBS.writes, writes + 1);                                // di sera: una scrittura, la pagella
     assert.equal(sent.length, 1);
     world.tutti = ["1", "42"];
     world.names = { 42: "Half-Life 3" };
@@ -148,6 +162,7 @@ test("serataCheck: apertura, prodotto Half-Life, chiusura, una scrittura per cam
     assert.match(found[0].x, /Half-Life 3/);
     await serataCheck(env, tg, Date.parse(S.fine) + 600e3, [S]);
     assert.match(sent.at(-1), /la serata è finita[\s\S]*è comparso:[\s\S]*Half-Life 3/);
+    assert.match(sent.at(-1), /Pagella[\s\S]*controlli veloci: 3 su 90 attesi[\s\S]*GitHub non ha risposto/);   // senza token
     const n = sent.length;
     await serataCheck(env, tg, Date.parse(S.fine) + 1200e3, [S]);
     assert.equal(sent.length, n);                                             // chiusura una volta sola
@@ -192,6 +207,57 @@ test("fastCheck: una pagina nuova su half-life.com diventa un possibile annuncio
     assert.equal(r.alerts.length, 1);
     assert.match(sent[0], /POSSIBILE ANNUNCIO[\s\S]*half-life.com/);
     assert.ok(JSON.parse(env.SUBS.data.get("annuncio:modo")).voci[0].x.includes("citadel"));
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test("pagella: giri completi dalla lista di GitHub", () => {
+  const at = (m) => new Date(Date.parse(S.inizio) + m * 60e3).toISOString();
+  const runs = [{ created_at: at(5), conclusion: "success" }, { created_at: at(15), conclusion: "failure" },
+    { created_at: at(45), conclusion: null }, { created_at: at(-30), conclusion: "success" }];
+  assert.deepEqual(runsSummary(runs, S), { avviati: 3, riusciti: 1, falliti: 1, altri: 1, buco: 855 });  // dall'ultimo alla fine
+  assert.equal(runsSummary([], S).buco, 900);
+});
+
+test("pagella della prova: pronti, oppure cosa sistemare", () => {
+  const P = { ...S, id: "p", nome: "Prova generale", prova: true };
+  const buona = { controlli: 89, fonti: { "half-life.com": [89, 0], "pagina di Valve su Steam": [85, 4] } };
+  const giri = { avviati: 88, riusciti: 88, falliti: 0, altri: 0, buco: 14 };
+  assert.deepEqual(pagella(P, buona, giri).problemi, []);
+  const ok = closingText(P, [], buona, giri);
+  assert.match(ok, /^🧪 <b>Prova generale: finita/);
+  assert.match(ok, /✅ controlli veloci: 89 su 90[\s\S]*✅ pagina di Valve su Steam: letta 85 volte su 89[\s\S]*✅ giri completi: 88 partiti/);
+  assert.match(ok, /Tutto pronto per la serata vera/);
+  assert.ok(!ok.includes("registro delle previsioni"));
+  const male = closingText(P, [], { controlli: 50, fonti: { "YouTube The Game Awards": [10, 40] } },
+    { avviati: 40, riusciti: 38, falliti: 2, altri: 0, buco: 70 });
+  assert.match(male, /❌ controlli veloci: 50 su 90/);
+  assert.match(male, /Da sistemare prima della serata vera:[\s\S]*cron di Cloudflare[\s\S]*YouTube The Game Awards non risponde[\s\S]*2 giri completi falliti[\s\S]*ogni 10 minuti/);
+  assert.match(openingText(P), /^🧪 <b>Prova generale<\/b>[\s\S]*fino alle 9:00[\s\S]*pagella[\s\S]*l'avviso è vero/);
+  assert.ok(!closingText(S, [], buona, giri).includes("Tutto pronto"));          // la serata vera ha la pagella ma non il verdetto
+});
+
+test("serataCheck: la prova conta controlli e letture e chiude con i giri letti da GitHub", async () => {
+  const realFetch = globalThis.fetch;
+  const P = { ...S, id: "p", nome: "Prova generale", prova: true };
+  const runs = [];
+  for (let m = 2; m < 900; m += 10) runs.push({ created_at: new Date(Date.parse(P.inizio) + m * 60e3).toISOString(), conclusion: "success" });
+  const world = { calls: [], extra: "", tutti: ["1"], arrivo: [], names: {}, yt: { UUtga: [{ id: "a", titolo: "Old" }] }, runs };
+  globalThis.fetch = fakeFetch(world);
+  try {
+    const env = { SUBS: new FakeKV(), OWNER_CHAT_ID: "1", YOUTUBE_API_KEY: "k", GH_DISPATCH_TOKEN: "t" };
+    const sent = [];
+    const tg = async (_e, _c, text) => sent.push(text);
+    for (let t = Date.parse(P.inizio) + 60e3; t < Date.parse(P.fine); t += 600e3) await serataCheck(env, tg, t, [P]);
+    assert.match(sent[0], /^🧪/);
+    const scheda = JSON.parse(env.SUBS.data.get(STATE)).pagella.p;
+    assert.equal(scheda.controlli, 90);
+    assert.deepEqual(scheda.fonti["half-life.com"], [90, 0]);
+    assert.deepEqual(scheda.fonti["YouTube The Game Awards"], [90, 0]);
+    await serataCheck(env, tg, Date.parse(P.fine) + 60e3, [P]);
+    assert.ok(world.calls.some((u) => u.includes("/actions/workflows/hlx-watch.yml/runs?per_page=100&created=")));
+    assert.match(sent.at(-1), /giri completi: 90 partiti, 90 riusciti[\s\S]*Tutto pronto per la serata vera/);
   } finally {
     globalThis.fetch = realFetch;
   }

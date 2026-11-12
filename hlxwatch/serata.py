@@ -6,6 +6,7 @@ controllare ogni 10 minuti e a riavviare i giri. Qui si decide solo cosa dire su
   - "in_corso": la fascia dice che HLX Watch controlla ogni 10 minuti (il sito si rigenera a ogni giro);
   - "dopo": per FASCIA_DOPO giorni la fascia dice che la serata è finita.
 Il registro delle previsioni mostra sempre la prossima serata, anche quando la fascia non c'è ancora.
+Le serate con "prova": true sono le prove generali del bot (pagella al proprietario su Telegram): il sito non le mostra.
 """
 from __future__ import annotations
 
@@ -50,6 +51,8 @@ def current(now: datetime | None = None, serate: list[dict[str, Any]] | None = N
     """La prossima serata (o quella in corso, o quella finita da meno di FASCIA_DOPO giorni), pronta per il sito."""
     now = now or datetime.now(timezone.utc)
     for s in sorted(serate if serate is not None else load(), key=lambda x: x["inizio"]):
+        if s.get("prova"):
+            continue
         try:
             start, show, end = _dt(s["inizio"]), _dt(s["spettacolo"]), _dt(s["fine"])
         except (KeyError, ValueError):
