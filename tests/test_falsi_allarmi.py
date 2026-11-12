@@ -63,3 +63,24 @@ def test_reevaluate_cleans_the_old_false_alarms(tmp_path):
     reevaluate(cfg, db)                                                                 # una seconda volta: niente cambia
     assert {r["text"]: r["score"] for r in db.conn.execute("SELECT text, score FROM findings WHERE change_type = 'hardware_id'")} == triton
     db.close()
+
+
+def test_cs2_and_dota_builds_stay_below_the_alert_threshold(tmp_path):
+    """12/11/2026: 16 avvisi su 27 in un mese erano build nuove di CS2 e Dota 2: ora 45, sul sito ma senza notifica."""
+    from hlxwatch.core.pipeline import Pipeline
+    cfg, db = make(tmp_path)
+    apps = {a["name"]: a for a in cfg.steam_watch_apps}
+    assert apps["cs2"]["build_score"] == 45 and apps["dota2"]["build_score"] == 45
+    assert "build_score" not in apps["alyx"]                                       # Alyx: avviso come prima
+    for game, score in (("cs2", 55), ("dota2", 55), ("alyx", 55)):
+        add(db, game, "depots/branches/public", "build", f"{game}: nuova build 1 sul branch 'public'", score,
+            ["steam_build"], token=f"build:{game}", source="steam_pics")
+    reevaluate(cfg, db)
+    got = {r["game"]: r["score"] for r in db.conn.execute("SELECT game, score FROM findings WHERE change_type = 'build'")}
+    assert got == {"cs2": 45, "dota2": 45, "alyx": 55}
+    builds = [Finding(game=g, source="steam_pics", file_path="depots/branches/public", change_type="build", text="x",
+                      score=s, keywords=["steam_build"]) for g, s in got.items()]
+    for f in builds:
+        f.is_new = True
+    assert [f.game for f in Pipeline(cfg, db).select_alerts(builds)] == ["alyx"]
+    db.close()

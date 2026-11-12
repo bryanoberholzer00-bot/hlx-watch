@@ -70,6 +70,18 @@ class SteamPicsSource:
         return apps
 
     # --------------------------------------------------------------- worker
+    def rescore_builds(self) -> int:
+        """Le build già registrate prendono il punteggio di oggi della loro app (build_score per app nel config)."""
+        default = int(self.cfg.get("steam.build_score", 55))
+        changed = 0
+        for app in self.cfg.steam_watch_apps:
+            score = int(app.get("build_score", default))
+            cur = self.db.conn.execute(
+                "UPDATE findings SET score = ? WHERE source = 'steam_pics' AND change_type = 'build' "
+                "AND keywords = '[\"steam_build\"]' AND game = ? AND score != ?", (score, app["name"], score))
+            changed += cur.rowcount or 0
+        return changed
+
     def call_worker(self, apps: list[int], since: int = -1) -> dict[str, Any]:
         cmd = [sys.executable, "-m", "hlxwatch.sources.steam_pics_worker",
                "--apps", ",".join(str(a) for a in apps), "--since", str(since),
@@ -169,7 +181,8 @@ class SteamPicsSource:
                 game=name, source="steam_pics", file_path=f"depots/branches/{branch}",
                 change_type="baseline" if first_run else "build",
                 text=f"{title}: nuova build {buildid} sul branch '{branch}'",
-                score=int(self.cfg.get("steam.build_score", 55)), keywords=["steam_build"],
+                # punteggio per app: CS2 e Dota 2 hanno una build ogni pochi giorni, sotto la soglia di notifica
+                score=int(app.get("build_score", self.cfg.get("steam.build_score", 55))), keywords=["steam_build"],
                 token=f"build:{appid}:{branch}:{buildid}",
                 context=json.dumps(bdata, ensure_ascii=False)[:1000],
             )

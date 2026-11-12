@@ -374,8 +374,10 @@ steam:
   worker_timeout_seconds: 240            # il login anonimo PICS gira in un sottoprocesso isolato
   build_score: 55                        # punteggio di una nuova build (>= notify_min_score = notifica)
   watch_apps:
-    - {appid: 730,     name: cs2,      title: "Counter-Strike 2"}
-    - {appid: 570,     name: dota2,    title: "Dota 2"}
+    # CS2 e Dota 2 hanno una build ogni pochi giorni: 45 = sul sito e nella Ricerca, senza notifica. Le tracce HLX
+    # dentro i loro file arrivano comunque come avvisi propri (12/11/2026: 16 avvisi di build su 27 in un mese)
+    - {appid: 730,     name: cs2,      title: "Counter-Strike 2", build_score: 45}
+    - {appid: 570,     name: dota2,    title: "Dota 2", build_score: 45}
     - {appid: 1422450, name: deadlock, title: "Deadlock"}
     - {appid: 546560,  name: alyx,     title: "Half-Life: Alyx", ignore_keywords: [half_life, hl_universe, hl_nomi_attaccati]}
     # catalogo Half-Life: nel 2024 l'attività sulle build di Half-Life 2 ha anticipato l'aggiornamento del ventennale,
