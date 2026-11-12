@@ -12,6 +12,10 @@ scrivono a mano nel config, sezione `esiti`.
 
 **Fusione del motore**: la stessa riga compare in CS2, Dota 2 e Deadlock entro pochi giorni. Viaggia con il codice
 condiviso di Source 2, quindi non indica lavoro nuovo su quel gioco: va letta con meno entusiasmo.
+
+**Solo in un gioco**: il contrario. Una riga delle parti che i tre giochi condividono (stringhe dei programmi del
+motore, classi, variabili e protocolli) che negli altri due non è mai comparsa: è lavoro su quel gioco, non codice
+comune in viaggio. Si ricalcola a ogni giro: se la riga arriva più tardi negli altri giochi, diventa una fusione.
 """
 from __future__ import annotations
 
@@ -94,6 +98,42 @@ def merge_partners(index: dict[str, dict[str, str]], game: str, token: str | Non
         except ValueError:
             continue
     return out
+
+
+# ------------------------------------------------------------------ solo in un gioco
+# le aree in cui arrivano le fusioni del motore: stringhe dei programmi, classi, variabili e protocolli
+SHARED_AREAS = ("engine_strings", "schema", "convar")
+SOLO_TYPES = ("added", "present", "file_added", "changed", "pulse", "renamed")
+# righe con il nome del gioco stesso (C_DOTA_..., citadel_...): ovvio che siano solo lì, non si segnano
+OWN_NAMES = {"dota2": re.compile(r"dota", re.I), "deadlock": re.compile(r"citadel|deadlock", re.I),
+             "cs2": re.compile(r"csgo|cs2|(?<![a-z])cs_", re.I)}
+
+
+def games_index(db: Database) -> dict[str, set[str]]:
+    """chiave della traccia (e riga normalizzata) -> giochi in cui è mai comparsa, fra i tre che ricevono le fusioni.
+    Tutte le voci contano, anche quelle del primo giro (baseline) e le righe tolte: una riga che Deadlock aveva già
+    non è "solo in CS2"."""
+    out: dict[str, set[str]] = defaultdict(set)
+    for game, token, text in db.conn.execute(
+            "SELECT game, token, text FROM findings WHERE game IN ('cs2', 'dota2', 'deadlock') "
+            "AND file_path NOT LIKE '%.stringsignore'"):
+        out[trace_key(token, text)].add(game)
+        line = norm(text)
+        if line:
+            out[line].add(game)
+    return out
+
+
+def solo_game(index: dict[str, set[str]], game: str, token: str | None, text: str | None, change_type: str,
+              area: str, file_path: str = "") -> bool:
+    """La riga è in un'area condivisa dai tre giochi, non porta il nome del gioco e gli altri due non l'hanno mai avuta.
+    .stringsignore è l'elenco delle eccezioni di SteamTracking, non un file del gioco."""
+    if game not in MAIN_GAMES or area not in SHARED_AREAS or change_type not in SOLO_TYPES:
+        return False
+    if file_path.endswith(".stringsignore") or OWN_NAMES[game].search(f"{token or ''} {text or ''}"):
+        return False
+    seen = (index.get(trace_key(token, text)) or set()) | (index.get(norm(text)) or set())
+    return not (seen - {game})
 
 
 # ------------------------------------------------------------------ registro degli esiti

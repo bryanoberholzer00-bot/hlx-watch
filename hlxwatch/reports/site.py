@@ -22,7 +22,7 @@ from hlxwatch.repos import tracked_repos
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, parse_iso, utcnow
 from hlxwatch.sources.steam_news import SteamNewsSource
-from hlxwatch.outcomes import engine_merge_index, merge_partners, outcome_register, trace_key
+from hlxwatch.outcomes import engine_merge_index, games_index, merge_partners, outcome_register, solo_game, trace_key
 from hlxwatch.analyzers.codenames import CodenameTracker
 from hlxwatch.links import link_label
 from hlxwatch.fase import trace_kind
@@ -97,6 +97,12 @@ def decorate(item: dict[str, Any], ctx: dict[str, Any] | None = None) -> dict[st
     item["schema_url"] = schema_url(item.get("game") or "", item.get("file_path") or "")
     item["merge"] = (merge_partners(ctx["merge"], item.get("game") or "", item.get("token"), item.get("text"),
                                     item.get("day"), ctx.get("titles")) if ctx else [])
+    # il contrario: riga del codice condiviso che gli altri due giochi non hanno mai avuto (lavoro su questo gioco)
+    game = item.get("game") or ""
+    item["solo"] = ((ctx.get("titles") or {}).get(game, game)
+                    if ctx and ctx.get("games") is not None and not item["merge"]
+                    and solo_game(ctx["games"], game, item.get("token"), item.get("text"),
+                                  item.get("change_type") or "", item["area"], item.get("file_path") or "") else "")
     return item
 
 
@@ -206,6 +212,7 @@ def export_findings(db: Database, limit: int = 25000, ctx: dict[str, Any] | None
             "url": item.get("build_url"), "ul": link_label(item.get("build_url")), "ref": (item.get("build_ref") or "")[:10], "kw": item["keywords"],
             "area": item["area"], "ev": item["evidence_label"], **({"sx": item["schema_url"]} if item["schema_url"] else {}),
             **({"fm": item["merge"]} if item["merge"] else {}),
+            **({"so": 1} if item.get("solo") else {}),
             **({"k": kind} if kind else {}),
             **({"tc": card} if card else {}),
         })
@@ -311,7 +318,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     stats = db.stats()
     analyses = [load_analysis(r) for r in db.analyses(60)]
     days = first_seen_days(db)
-    ctx = {"merge": engine_merge_index(db), "titles": titles}
+    ctx = {"merge": engine_merge_index(db), "games": games_index(db), "titles": titles}
     high = group_rows([decorate(apply_first_seen(_row(r), days), ctx) for r in db.search_findings(min_score=100, limit=300, order="created_at",
                                                              exclude_change_type=("baseline", "present"))])
     recent = group_rows([decorate(apply_first_seen(_row(r), days), ctx) for r in db.search_findings(min_score=50, limit=80, order="created_at",

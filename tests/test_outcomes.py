@@ -99,6 +99,37 @@ def test_engine_merge(tmp_path):
     db.close()
 
 
+def test_solo_in_one_game(tmp_path):
+    """Il contrario della fusione: riga del codice condiviso che gli altri due giochi non hanno mai avuto."""
+    from hlxwatch.outcomes import games_index, solo_game
+    cfg, db = make(tmp_path)
+    fill(db)
+    hammer, fgd = "game/bin/win64/tools/hammer_strings.txt", "DumpSource2/entities/server.fgd"
+    b7, b8 = build(db, "deadlock", "h", d(2026, 10, 9)), build(db, "dota2", "i", d(2021, 1, 1))
+    add(db, b7, "deadlock", hammer, "added", "CHLXRopeHelper", token="CHLXRopeHelper", keywords=("hlx_class",))
+    b9 = build(db, "deadlock", "j", d(2026, 10, 8))           # altro commit: in Panoramica non si accorpa a CHLXRopeHelper
+    add(db, b9, "deadlock", hammer, "added", "CHLXCitadelHelper", token="CHLXCitadelHelper", keywords=("hlx_class",))
+    add(db, b7, "deadlock", fgd, "added", "npc_shared_turret", token="npc_shared_turret", keywords=("npc",), score=40)
+    add(db, b8, "dota2", fgd, "baseline", "npc_shared_turret", token="npc_shared_turret", keywords=("npc",), score=40)
+    add(db, b7, "deadlock", "DumpSource2/.stringsignore", "added", "mod != citadel_hlx", token="hlx")
+    add(db, b7, "deadlock", "game/citadel/scripts/heroes.vdata", "added", "hlx_hero", token="hlx_hero")
+    idx = games_index(db)
+    assert solo_game(idx, "deadlock", "CHLXRopeHelper", "CHLXRopeHelper", "added", "engine_strings")
+    assert not solo_game(idx, "deadlock", "CHLXCitadelHelper", "CHLXCitadelHelper", "added", "engine_strings")  # nome del gioco
+    assert not solo_game(idx, "deadlock", "npc_shared_turret", "npc_shared_turret", "added", "convar")   # Dota l'aveva già
+    assert not solo_game(idx, "cs2", "CHLXBaseProjectileEmitterHelper", "", "added", "engine_strings")  # fusione
+    assert not solo_game(idx, "deadlock", "hlx_hero", "hlx_hero", "added", "data")          # non è codice condiviso
+    assert not solo_game(idx, "steamvr", "CHLXRopeHelper", "CHLXRopeHelper", "added", "engine_strings")
+    assert not solo_game(idx, "deadlock", "hlx", "x", "added", "convar", "DumpSource2/.stringsignore")
+    out = build_site(db, cfg, tmp_path / "site")
+    data = json.loads((out / "findings.json").read_text(encoding="utf-8"))
+    assert {r["token"] for r in data if r.get("so")} >= {"CHLXRopeHelper"}
+    assert not [r for r in data if r.get("so") and (r.get("fm") or r["token"] in ("CHLXCitadelHelper", "hlx_hero"))]
+    assert "solo in Deadlock" in (out / "index.html").read_text(encoding="utf-8")
+    assert 'id="solo"' in (out / "search.html").read_text(encoding="utf-8")
+    db.close()
+
+
 def test_site_esiti_feed_and_merge_label(tmp_path):
     cfg, db = make(tmp_path)
     fill(db)

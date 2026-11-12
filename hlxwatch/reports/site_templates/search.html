@@ -16,6 +16,7 @@
  <label>A <input id="until" type="date"></label>
  <label>Ordina <select id="order"><option value="day">data</option><option value="score">punteggio</option></select></label>
  <label><span>Solo nuove</span><input id="new" type="checkbox"></label>
+ <label title="Righe del codice condiviso da CS2, Dota 2 e Deadlock che gli altri due giochi non hanno mai avuto"><span>Solo in un gioco</span><input id="solo" type="checkbox"></label>
  <label title="In una riga sola: la stessa riga in più file, e le righe dello stesso commit e file (le tracce HLX restano sempre da sole)"><span>Raggruppa</span><input id="group" type="checkbox" checked></label>
 </form>
 <div class="kinds" id="kinds" role="group" aria-label="Tipo di traccia HLX">
@@ -84,6 +85,7 @@ function readParams() {
   if (p.get("type")) $("type").value = p.get("type");
   if (p.get("min")) $("min").value = p.get("min");
   if (p.get("new")) $("new").checked = true;
+  if (p.get("solo")) $("solo").checked = true;
   if (p.get("order")) $("order").value = p.get("order");
   if (p.get("area")) $("area").value = p.get("area");
   if (p.get("since")) $("since").value = p.get("since");
@@ -141,9 +143,9 @@ function dupLabel(r) {
 function render() {
   const q = $("q").value.trim().toLowerCase(), game = $("game").value, type = $("type").value, area = $("area").value;
   const min = parseInt($("min").value || "0", 10), since = $("since").value, until = $("until").value;
-  const onlyNew = $("new").checked, order = $("order").value;
+  const onlyNew = $("new").checked, onlySolo = $("solo").checked, order = $("order").value;
   let base = ALL.filter(r => r.score >= min
-    && (!game || r.game === game) && (!type || r.type === type) && (!area || r.area === area) && (!onlyNew || r.new)
+    && (!game || r.game === game) && (!type || r.type === type) && (!area || r.area === area) && (!onlyNew || r.new) && (!onlySolo || r.so)
     && (!since || r.day >= since) && (!until || r.day <= until)
     && (!q || (r.token || "").toLowerCase().includes(q) || r.text.toLowerCase().includes(q) || r.file.toLowerCase().includes(q)));
   // quante voci per tipo, con gli altri filtri già applicati
@@ -166,7 +168,7 @@ function render() {
     <td><span class="badge ${sev(r.score)}">${r.score}</span></td>
     <td data-l="Data:">${r.al ? '<small class="muted">almeno dal</small><br>' : ""}${esc(r.day)}${r.new ? '<br><span class="new" title="La riga non era mai comparsa nell\'archivio, che parte dal 2016">mai vista prima</span>' : ""}<br><small class="muted">vista ${esc(r.seen)}</small></td>
     <td data-l="Gioco:">${esc(TITLES[r.game] || r.game)}<br><small class="muted">${esc(r.source)}</small></td>
-    <td data-l="Tipo:">${r.k ? `<span class="kind">${KINDS[r.k]}</span><br>` : ""}${esc(r.type)}<br><small class="muted">${esc(AREAS[r.area] || "")}</small>${r.ev && r.ev !== "altro" ? `<br><small title="Tipo di prova">prova: ${esc(r.ev)}</small>` : ""}${r.fm ? `<br><small class="muted" title="La stessa riga è comparsa anche in questi giochi entro 60 giorni: viaggia con il codice condiviso di Source 2, non indica lavoro nuovo su questo gioco">fusione del motore: anche in ${esc(r.fm.map(g => TITLES[g] || g).join(", "))}</small>` : ""}</td>
+    <td data-l="Tipo:">${r.k ? `<span class="kind">${KINDS[r.k]}</span><br>` : ""}${esc(r.type)}<br><small class="muted">${esc(AREAS[r.area] || "")}</small>${r.ev && r.ev !== "altro" ? `<br><small title="Tipo di prova">prova: ${esc(r.ev)}</small>` : ""}${r.fm ? `<br><small class="muted" title="La stessa riga è comparsa anche in questi giochi entro 60 giorni: viaggia con il codice condiviso di Source 2, non indica lavoro nuovo su questo gioco">fusione del motore: anche in ${esc(r.fm.map(g => TITLES[g] || g).join(", "))}</small>` : ""}${r.so ? `<br><small class="solo" title="La riga è nel codice che CS2, Dota 2 e Deadlock condividono, ma gli altri due giochi non l'hanno mai avuta: è lavoro su questo gioco, non codice comune in viaggio. Se arriva più tardi anche negli altri, diventa una fusione del motore">solo in ${esc(TITLES[r.game] || r.game)}</small>` : ""}</td>
     <td><code>${esc((r.token || r.text).slice(0, 80))}</code>${r.token && r.text !== r.token ? `<br><small class="muted">${esc(r.text.slice(0, 120))}</small>` : ""}${r.tc ? `<br><a href="traccia-${esc(r.tc)}.html"><small>scheda della traccia</small></a>` : ""}${r.rel ? relHtml(r) : ""}</td>
     <td data-l="File:"><small>${esc(r.file.slice(0, 90))}${r.line ? ":" + r.line : ""}</small>
         ${r.dup > 1 ? `<br><small class="muted" title="${esc(r.files.join("\n"))}">${dupLabel(r)}</small>` : ""}
