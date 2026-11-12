@@ -16,7 +16,7 @@
  <label>A <input id="until" type="date"></label>
  <label>Ordina <select id="order"><option value="day">data</option><option value="score">punteggio</option></select></label>
  <label><span>Solo nuove</span><input id="new" type="checkbox"></label>
- <label><span>Raggruppa</span><input id="group" type="checkbox" checked></label>
+ <label title="In una riga sola: la stessa riga in più file, e le righe dello stesso commit e file (le tracce HLX restano sempre da sole)"><span>Raggruppa</span><input id="group" type="checkbox" checked></label>
 </form>
 <div class="kinds" id="kinds" role="group" aria-label="Tipo di traccia HLX">
  <span class="muted"><small>Tracce HLX:</small></span>
@@ -41,6 +41,9 @@
  .kinds button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
  .kinds button small{opacity:.75}
  .kind{white-space:nowrap}
+ .gruppo{margin-top:.3rem} .gruppo summary{cursor:pointer;font-size:.8rem;color:var(--accent)}
+ .gruppo ul{list-style:none;padding:0;margin:.3rem 0 0} .gruppo li{margin:.25rem 0;font-size:.85rem}
+ .gruppo .badge{font-size:.7rem;padding:0 .35rem}
  /* sul telefono ogni risultato diventa una scheda: sette colonne in 375 pixel non si leggono */
  @media(max-width:700px){
   #results thead{display:none} #results,#results tbody,#results tr,#results td{display:block;width:auto}
@@ -93,6 +96,33 @@ function groupRows(rows) {
   return [...map.values()];
 }
 
+// Le righe dello stesso commit, file e giorno (es. dodici impostazioni nuove nello stesso gameinfo.gi) diventano una:
+// in vista la voce con il punteggio più alto, le altre sotto "+ altre N righe". Le tracce HLX e quelle con una scheda
+// restano sempre da sole, per non nasconderle. Il giorno serve per le fonti senza commit vero (hwid:SDL:S...).
+function bundleRows(rows) {
+  const out = [], groups = new Map();
+  for (const r of rows) {
+    if (r.k || r.tc || !r.ref) { out.push([r]); continue; }
+    const key = r.ref + "|" + r.file + "|" + r.day;
+    let g = groups.get(key);
+    if (!g) { g = []; groups.set(key, g); out.push(g); }
+    g.push(r);
+  }
+  return out.map(g => {
+    if (g.length === 1) return g[0];
+    const top = g.reduce((a, b) => (b.score > a.score ? b : a));
+    return Object.assign({}, top, {rel: g.filter(r => r !== top), new: g.some(r => r.new)});
+  });
+}
+
+function relHtml(r) {
+  const n = r.rel.length;
+  return `<details class="gruppo"><summary>+ ${n === 1 ? "un'altra riga" : `altre ${n} righe`} nello stesso commit e file</summary><ul>` +
+    r.rel.map(x => `<li><span class="badge ${sev(x.score)}">${x.score}</span> ${x.type !== r.type ? `<small class="muted">${esc(x.type)}</small> ` : ""}` +
+      `<code>${esc((x.token || x.text).slice(0, 80))}</code>${x.new ? ' <span class="new">mai vista prima</span>' : ""}</li>`).join("") +
+    "</ul></details>";
+}
+
 // stesso testo di links.duplicates_label: altri file dello stesso commit, oppure altre righe dello stesso file
 function dupLabel(r) {
   const files = new Set(r.files.filter(f => f !== r.file)).size, lines = r.files.filter(f => f === r.file).length;
@@ -118,7 +148,8 @@ function render() {
   let rows = base.filter(r => kindOk(r, KIND));
   rows.sort(order === "score" ? (a, b) => b.score - a.score || (b.day > a.day ? 1 : -1) : (a, b) => (b.day > a.day ? 1 : b.day < a.day ? -1 : b.id - a.id));
   const total = rows.length;
-  if ($("group").checked) rows = groupRows(rows);
+  // con un testo da cercare ogni riga trovata resta in vista: si accorpano solo le righe uguali in più file
+  if ($("group").checked) rows = q ? groupRows(rows) : bundleRows(groupRows(rows));
   const shown = rows.slice(0, MAX_ROWS);
   $("status").textContent = `${total} voci` + ($("group").checked ? ` (${rows.length} righe raggruppate)` : "") + (rows.length > MAX_ROWS ? `, mostro le prime ${MAX_ROWS}` : "");
   const left = rows.length - shown.length;
@@ -130,7 +161,7 @@ function render() {
     <td data-l="Data:">${r.al ? '<small class="muted">almeno dal</small><br>' : ""}${esc(r.day)}${r.new ? '<br><span class="new" title="La riga non era mai comparsa nell\'archivio, che parte dal 2016">mai vista prima</span>' : ""}<br><small class="muted">vista ${esc(r.seen)}</small></td>
     <td data-l="Gioco:">${esc(TITLES[r.game] || r.game)}<br><small class="muted">${esc(r.source)}</small></td>
     <td data-l="Tipo:">${r.k ? `<span class="kind">${KINDS[r.k]}</span><br>` : ""}${esc(r.type)}<br><small class="muted">${esc(AREAS[r.area] || "")}</small>${r.ev && r.ev !== "altro" ? `<br><small title="Tipo di prova">prova: ${esc(r.ev)}</small>` : ""}${r.fm ? `<br><small class="muted" title="La stessa riga è comparsa anche in questi giochi entro 60 giorni: viaggia con il codice condiviso di Source 2, non indica lavoro nuovo su questo gioco">fusione del motore: anche in ${esc(r.fm.map(g => TITLES[g] || g).join(", "))}</small>` : ""}</td>
-    <td><code>${esc((r.token || r.text).slice(0, 80))}</code>${r.token && r.text !== r.token ? `<br><small class="muted">${esc(r.text.slice(0, 120))}</small>` : ""}${r.tc ? `<br><a href="traccia-${esc(r.tc)}.html"><small>scheda della traccia</small></a>` : ""}</td>
+    <td><code>${esc((r.token || r.text).slice(0, 80))}</code>${r.token && r.text !== r.token ? `<br><small class="muted">${esc(r.text.slice(0, 120))}</small>` : ""}${r.tc ? `<br><a href="traccia-${esc(r.tc)}.html"><small>scheda della traccia</small></a>` : ""}${r.rel ? relHtml(r) : ""}</td>
     <td data-l="File:"><small>${esc(r.file.slice(0, 90))}${r.line ? ":" + r.line : ""}</small>
         ${r.dup > 1 ? `<br><small class="muted" title="${esc(r.files.join("\n"))}">${dupLabel(r)}</small>` : ""}
         ${r.url ? `<br><a href="${esc(r.url)}"><small>${esc(r.ul || "commit")}${r.ul === "commit" ? " " + esc(r.ref.slice(0, 8)) : ""}</small></a>` : ""}

@@ -52,6 +52,10 @@ def test_home_page_has_glance_menu_and_compact_list(tmp_path):
     # 20 voci in "Alta rilevanza" (15 in vista) e le stesse 20 in "Ultime voci" (12 in vista)
     assert html.count('<li class="voce') == 40
     assert "Mostra tutte (5 in più)" in html and "Mostra tutte (8 in più)" in html
+    # Ricerca: le righe dello stesso commit, file e giorno in una sola, ma non le tracce HLX e non con un testo cercato
+    search = (tmp_path / "site" / "search.html").read_text(encoding="utf-8")
+    assert "function bundleRows" in search and 'r.ref + "|" + r.file + "|" + r.day' in search
+    assert "if (r.k || r.tc || !r.ref)" in search and "q ? groupRows(rows) : bundleRows(groupRows(rows))" in search
     db.close()
 
 
