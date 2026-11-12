@@ -177,3 +177,24 @@ lezioni:
     file: "game/hlx/gameinfo.gi"
     testo: 'GameData "hlx.fgd"'
     atteso: voce
+  - id: frame-comandi-app-key
+    data: "2026-11-12"
+    errore: "DOOM VFR con i comandi pronti per Steam Frame ha mandato tre avvisi: le righe app_key e binding_url del profilo valevano 55."
+    controllo: file_sorvegliato
+    file: "drivers/frame_controller/resources/input/frame_controller_profile.json"
+    testo: '"app_key": "steam.app.650000",'
+    atteso: niente
+  - id: frame-comandi-binding-url
+    data: "2026-11-12"
+    errore: "Stesso errore per la riga con il file dei comandi del gioco."
+    controllo: file_sorvegliato
+    file: "drivers/frame_controller/resources/input/frame_controller_profile.json"
+    testo: '"binding_url": "doomvfr_bindings_frame_controller.json"'
+    atteso: niente
+  - id: frame-profilo-dispositivo
+    data: "2026-11-12"
+    errore: "Ignorando i giochi non bisogna perdere le righe sul dispositivo: il tipo di controller nel profilo resta una voce."
+    controllo: file_sorvegliato
+    file: "drivers/frame_controller/resources/input/frame_controller_profile.json"
+    testo: '"controller_type": "frame_controller",'
+    atteso: voce

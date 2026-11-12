@@ -84,3 +84,19 @@ def test_cs2_and_dota_builds_stay_below_the_alert_threshold(tmp_path):
         f.is_new = True
     assert [f.game for f in Pipeline(cfg, db).select_alerts(builds)] == ["alyx"]
     db.close()
+
+
+def test_frame_game_bindings_are_not_alerts(tmp_path):
+    cfg, db = make(tmp_path)
+    prof = "drivers/frame_controller/resources/input/frame_controller_profile.json"
+    rules = watched_rules(cfg)
+    assert not watched_line(rules, prof, '"app_key": "steam.app.650000",')
+    assert not watched_line(rules, prof, '\t\t"binding_url" : "doomvfr_bindings_frame_controller.json"')
+    assert watched_line(rules, prof, '"controller_type": "frame_controller",')
+    add(db, "steamvr", prof, "added", '"app_key": "steam.app.650000"', 55, ["watched_file"])
+    add(db, "steamvr", prof, "added", '"binding_url": "doomvfr_bindings_frame_controller.json"', 55, ["watched_file"])
+    add(db, "steamvr", prof, "added", '"controller_type": "frame_controller",', 55, ["watched_file"])
+    reevaluate(cfg, db)
+    left = [r["text"] for r in db.conn.execute("SELECT text FROM findings WHERE game = 'steamvr'")]
+    assert left == ['"controller_type": "frame_controller",']
+    db.close()

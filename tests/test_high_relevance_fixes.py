@@ -31,14 +31,14 @@ class FakeClient:
         return None
 
 
-def test_controller_bindings_score_60_unless_keyword(tmp_path):
+def test_controller_bindings_score_40_unless_keyword(tmp_path):
     cfg, db = make(tmp_path)
     client = FakeClient(["frame_controller_profile.json"])
     w = StructureWatch(cfg, db, client)
     assert w.run() == []
     client.entries += ["doomvfr_bindings_frame_controller.json", "hlx_bindings_frame_controller.json"]
     found = {f.file_path.rsplit("/", 1)[1]: f.score for f in w.run()}
-    assert found["doomvfr_bindings_frame_controller.json"] == 60          # gioco già uscito: sito, non alta rilevanza
+    assert found["doomvfr_bindings_frame_controller.json"] == 40          # gioco già uscito: sito, senza notifica
     assert found["hlx_bindings_frame_controller.json"] >= 120              # un nome con HLX resta alto
     db.close()
 
@@ -60,7 +60,7 @@ def test_reevaluate_rescores_old_structure_and_localization_entries(tmp_path):
         db.add_finding(f, bid)
     reevaluate(cfg, db)
     score = {r["token"]: r["score"] for r in db.conn.execute("SELECT token, score FROM findings")}
-    assert score == {"structure:a": 60, "structure:b": 100, "locfile:a": 45, "locfile:b": 100}
+    assert score == {"structure:a": 40, "structure:b": 100, "locfile:a": 45, "locfile:b": 100}
     db.close()
 
 

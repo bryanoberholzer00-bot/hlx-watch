@@ -142,6 +142,10 @@ watched_files:                           # ogni riga aggiunta o tolta diventa un
     # È da qui che i data miner di SteamVR hanno ricavato prototipi e specifiche di Deckard
     title: "configurazione dei driver dell'hardware Valve (SteamVR)"
     score: 55
+    # le righe che collegano un gioco ai suoi comandi pronti ("app_key": "steam.app.650000", "binding_url": ...):
+    # il 12/11/2026 DOOM VFR con i comandi per Steam Frame ha mandato tre avvisi. Il gioco resta sul sito (pagina
+    # Hardware e voce del file nuovo a 40 punti); un nome con una parola chiave avvisa comunque
+    ignore: ['^"(app_key|binding_url)"\s*:']
   - pattern: "^game/core/base\\.fgd$"
     # entità di base di tutti i giochi, CS2 compreso: ~50 righe a ogni fusione del motore, sul sito senza notifica
     title: "definizioni condivise delle entità di base (FGD del motore)"

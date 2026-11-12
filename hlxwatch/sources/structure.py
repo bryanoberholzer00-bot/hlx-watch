@@ -46,10 +46,11 @@ DEFAULT_PLACES: list[dict[str, Any]] = [
      "score": 60},
     {"path": "drivers/frame_controller/resources/rendermodels", "kind": "dirs", "title": "modello 3D dei controller Steam Frame", "repos": ["steamvr"]},
     {"path": "drivers/deckard/resources/rendermodels", "kind": "dirs", "title": "modello 3D del visore Deckard", "repos": ["steamvr"]},
-    # un file di comandi per un gioco che non c'era: un gioco nuovo (o non annunciato) che supporta Steam Frame
-    # (anche quelli di giochi già usciti, come DOOM VFR il 2 novembre 2026: 60, e di più con una parola chiave nel nome)
+    # un file di comandi per un gioco che non c'era: quasi sempre un gioco già uscito che ora supporta Steam Frame
+    # (DOOM VFR il 2 novembre 2026). 40: sul sito e nella pagina Hardware, senza notifica; un nome con una parola
+    # chiave (hlx_bindings_...) sale comunque sopra 100
     {"path": "drivers/frame_controller/resources/input", "kind": "files", "title": "gioco con i comandi per i controller Steam Frame", "repos": ["steamvr"],
-     "score": 60},
+     "score": 40},
 ]
 
 
