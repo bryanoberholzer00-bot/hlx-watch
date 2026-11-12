@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Glossario - HLX Watch{% endblock %}
+{% block description %}Le parole di HLX Watch spiegate semplice: HLX, SteamTracking, build, fusione del motore, tipi di prova e altro.{% endblock %}
+{% block content %}
+<style>
+ .gl-cerca{width:100%;max-width:420px;padding:.5rem .7rem;font-size:1rem;border:1px solid var(--line);border-radius:8px;
+  background:var(--card);color:var(--text)}
+ .gl-indice{display:flex;flex-wrap:wrap;gap:.35rem;margin:.6rem 0 0}
+ .gl-indice a{background:var(--code);border-radius:999px;padding:.15rem .65rem;font-size:.85rem;text-decoration:none}
+ dl.gl{margin:0} dl.gl dt{font-weight:700;margin-top:1rem;scroll-margin-top:4rem}
+ dl.gl dt a.ancora{opacity:0;margin-left:.35rem;text-decoration:none;font-weight:400} dl.gl dt:hover a.ancora{opacity:.6}
+ dl.gl dd{margin:.25rem 0 0;line-height:1.5} dl.gl dt:target,dl.gl dt:target+dd{background:var(--hover)}
+ dl.gl dt:target{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+ .gl-vuoto{display:none}
+</style>
+<h1>Glossario</h1>
+
+<section>
+ <p>Le parole che si incontrano nelle pagine e negli avvisi di HLX Watch, spiegate per chi arriva senza sapere niente di
+ data mining. Sono {{ g.count }}, divise in quattro gruppi. Ogni parola ha il suo link (il simbolo # accanto al nome),
+ da usare per indicarla a qualcuno.</p>
+ <label for="gl-q" class="muted"><small>Cerca una parola</small></label><br>
+ <input id="gl-q" class="gl-cerca" type="search" placeholder="per esempio: fusione, build, Deckard" autocomplete="off">
+ <p class="gl-vuoto muted" id="gl-vuoto">Nessuna parola trovata.</p>
+ <nav class="gl-indice" aria-label="Gruppi">{% for grp in g.groups %}<a href="#gruppo-{{ grp.key }}">{{ grp.title }} ({{ grp.terms|length }})</a>{% endfor %}</nav>
+</section>
+
+{% for grp in g.groups %}
+<section id="gruppo-{{ grp.key }}" class="gl-gruppo">
+ <h2>{{ grp.title }}</h2>
+ <dl class="gl">
+ {% for t in grp.terms %}<dt id="{{ t.id }}">{{ t.nome }}<a class="ancora" href="#{{ t.id }}" aria-label="Link a {{ t.nome }}">#</a></dt>
+ <dd>{{ t.testo|safe }}</dd>
+ {% endfor %}
+ </dl>
+</section>
+{% endfor %}
+
+<script>
+// ricerca: mostra solo le parole il cui nome o testo contiene quello che si scrive (senza accenti né maiuscole)
+(function(){
+ var q=document.getElementById('gl-q'), vuoto=document.getElementById('gl-vuoto');
+ var norm=function(s){return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');};
+ var voci=[].map.call(document.querySelectorAll('dl.gl dt'),function(dt){
+  return {dt:dt,dd:dt.nextElementSibling,testo:norm(dt.textContent+' '+dt.nextElementSibling.textContent)};});
+ q.addEventListener('input',function(){
+  var s=norm(q.value.trim()), visti=0;
+  voci.forEach(function(v){var ok=!s||v.testo.indexOf(s)>=0; v.dt.hidden=v.dd.hidden=!ok; if(ok)visti++;});
+  document.querySelectorAll('.gl-gruppo').forEach(function(sec){
+   sec.hidden=!!s&&!sec.querySelector('dt:not([hidden])');});
+  vuoto.style.display=visti?'none':'block';
+ });
+})();
+</script>
+{% endblock %}

@@ -33,7 +33,7 @@ STATE = "site:check"
 TITLE_FAIL = "HLX Watch: problemi nel sito"
 TITLE_OK = "HLX Watch: il sito è di nuovo a posto"
 
-REQUIRED = ("index.html", "en.html", "hlx.html", "termometro.html", "search.html", "metodologia.html",
+REQUIRED = ("index.html", "en.html", "hlx.html", "termometro.html", "search.html", "metodologia.html", "glossario.html",
             "alyx.html", "sistemi.html", "segnali.html", "annuncio.html", "mappa.html", "immagini.html", "previsioni.html", "stato.html", "cronologia.html", "contatore.html", "orologio.html", "bot/contatore.json", "findings.json", "feed.xml", "manifest.webmanifest", "sw.js",
             "bot/termometro.json", "bot/termometro_storico.json", "bot/stato.json", "bot/ultime.json",
             "bot/indice.json")

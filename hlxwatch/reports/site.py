@@ -430,6 +430,10 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     review = {"lezioni": sorted(all_lessons(db), key=lambda x: str(x.get("data", "")), reverse=True),
               "proposte": [dict(p, testo=describe_proposal(p).split("\nPerché:")[0]) for p in proposals(db)][-12:][::-1],
               "correzioni": corrections(db), "tipi": KIND_LABELS}
+    # glossario: le parole del sito spiegate semplice (hlxwatch/glossario.py), con un link per parola
+    from hlxwatch import glossario
+    (out_dir / "glossario.html").write_text(env.get_template("glossario.html").render(g=glossario.data()),
+                                            encoding="utf-8")
     (out_dir / "metodologia.html").write_text(env.get_template("metodologia.html").render(
         review=review,
         repos=tracked_repos(cfg, db), steam_apps=[a.get("title", a.get("name")) for a in cfg.steam_watch_apps],
