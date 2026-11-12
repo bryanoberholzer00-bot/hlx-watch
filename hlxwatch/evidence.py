@@ -27,6 +27,7 @@ AREAS: list[tuple[str, str]] = [
     ("news", "post ufficiali di Valve"),
     ("code", "codice pubblico di Valve"),
     ("web", "siti di Valve"),
+    ("docs", "documenti ufficiali"),
     ("other", "altro"),
 ]
 AREA_LABELS = dict(AREAS)
@@ -45,6 +46,7 @@ _TYPE_AREAS = {"build": "build", "new_app": "build", "new_repo": "build", "struc
                "orphan": "convar", "summary": "other",
                "news": "news", "commit": "code", "appid": "code",
                "domain": "web", "hardware_id": "code", "achievement": "data",
+               "steamos_package": "code", "steamos_repo": "code", "fcc_id": "docs",
                "class_family": "schema"}
 
 
@@ -73,6 +75,7 @@ _EVIDENCE = {
     "news": ("ufficiale", "post ufficiale di Valve su Steam", "post ufficiale"),
     "code": ("codice", "codice pubblico di Valve su GitHub", "codice di Valve"),
     "web": ("siti", "domini nei certificati HTTPS dei siti di Valve", "siti di Valve"),
+    "docs": ("documenti", "documenti ufficiali depositati da Valve (FCC)", "documento FCC"),
     "other": ("altro", "altro", ""),
 }
 

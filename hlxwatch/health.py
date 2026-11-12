@@ -34,6 +34,8 @@ LABELS = {
     "valve_certs": "domini nei certificati HTTPS di Valve",
     "domains": "registri dei domini (RDAP) e domini appena registrati",
     "hardware_ids": "nomi in codice dell'hardware Valve in SDL e Linux",
+    "steamos_packages": "pacchetti di SteamOS (Steam Deck e Steam Machine)",
+    "fcc": "certificazioni FCC dei dispositivi Valve (fccid.io)",
     "achievements": "obiettivi delle app Steam seguite",
     "structure": "struttura dei repository (cartelle, depot, Protobuf)",
     "github": "monitoraggio dei commit GitHub",

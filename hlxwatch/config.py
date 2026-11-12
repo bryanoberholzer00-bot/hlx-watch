@@ -99,7 +99,7 @@ class Config:
         if name == "valveweb":
             return "Siti e domini di Valve"
         if name == "valvehw":
-            return "Hardware Valve (SDL e Linux)"
+            return "Hardware Valve (SDL, Linux, SteamOS, FCC)"
         if name == "hlxwatch":
             return "HLX Watch (prova)"
         for repo in self.get("github.repos", []) or []:

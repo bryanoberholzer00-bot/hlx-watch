@@ -295,6 +295,21 @@ hardware_ids:                            # nomi in codice dell'hardware Valve (i
   score_known: 35                        # nome in codice già noto (altri nomi, archivio o altri file del repository)
   search_code: true                      # cerca il nome negli altri file del repository (ricerca di GitHub)
 
+hardware_valve:                          # hardware Valve fuori dai giochi (hlxwatch/sources/hardware_valve.py)
+  enabled: true
+  steamos:                               # pacchetti di SteamOS (steamdeck-packages.steamos.cloud)
+    interval_hours: 12
+    repos: [jupiter-main, holo-main]
+    score_device: 90                     # pacchetto di supporto con un nome in codice mai visto
+    score_device_known: 40
+    score_repo: 80                       # famiglia di archivi nuova (orion-main)
+    score_version: 40                    # versione nuova di SteamOS (jupiter-3.11)
+    score_package: 30
+  fcc:                                   # certificazioni FCC (fccid.io, il sito ufficiale respinge i programmi)
+    interval_hours: 12
+    grantees: [2AES4]
+    score_new: 80
+
 achievements:                            # obiettivi delle app di steam.watch_apps (API pubblica, senza chiave)
   enabled: true
   interval_hours: 3

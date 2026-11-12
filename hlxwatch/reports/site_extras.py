@@ -140,12 +140,18 @@ def _state_list(db: Database, key: str) -> list[str]:
         return []
 
 
+def _hardware_valve(db: Database) -> dict[str, Any]:
+    from hlxwatch.sources.hardware_valve import latest
+    return latest(db)
+
+
 def hardware_data(cfg: Config, db: Database, limit: int = 150) -> dict[str, Any]:
     seen = json.loads(db.get_state("codenames:seen") or "{}")
     devices = sorted(name for name, info in seen.items() if isinstance(info, dict) and info.get("posto") == "vr_device")
     rows = db.conn.execute(
         "SELECT f.*, b.url AS build_url, b.date AS build_date FROM findings f LEFT JOIN builds b ON b.id = f.build_id "
-        "WHERE f.change_type NOT IN ('baseline', 'present') AND (f.game = 'steamvr' OR f.keywords LIKE '%valve_hardware%' "
+        "WHERE f.change_type NOT IN ('baseline', 'present') AND (f.game IN ('steamvr', 'valvehw') "
+        "OR f.keywords LIKE '%valve_hardware%' "
         "OR (f.change_type = 'codename' AND f.context LIKE '%SteamVR%')) ORDER BY COALESCE(b.date, f.created_at) DESC LIMIT ?",
         (limit,)).fetchall()
     items = []
@@ -158,4 +164,5 @@ def hardware_data(cfg: Config, db: Database, limit: int = 150) -> dict[str, Any]
         "rendermodels": _state_list(db, "structure:steamvr:resources/rendermodels"),
         "frame_games": _state_list(db, "structure:steamvr:drivers/frame_controller/resources/input"),
         "devices": devices, "findings": items, "fcc_grantee": FCC_GRANTEE, "fcc_url": FCC_URL,
+        **_hardware_valve(db),
     }

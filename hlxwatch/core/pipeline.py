@@ -52,6 +52,9 @@ class Pipeline:
         self.domains = DomainsSource(cfg, db)
         from hlxwatch.sources.hardware_ids import HardwareIdsSource
         self.hardware = HardwareIdsSource(cfg, db, self.github.client)
+        from hlxwatch.sources.hardware_valve import FccIdsSource, SteamOSPackagesSource
+        self.steamos = SteamOSPackagesSource(cfg, db)
+        self.fcc = FccIdsSource(cfg, db)
         from hlxwatch.sources.achievements import AchievementsSource
         self.achievements = AchievementsSource(cfg, db)
         from hlxwatch.sources.structure import StructureWatch
@@ -132,6 +135,7 @@ class Pipeline:
 
         # fonti piccole con lo stesso schema: run() con il loro intervallo, errori parziali in .errors
         for key, label, src in (("domains", "domains", self.domains), ("hardware", "hardware_ids", self.hardware),
+                                ("hardware", "steamos_packages", self.steamos), ("hardware", "fcc", self.fcc),
                                 ("achievements", "achievements", self.achievements)):
             if key not in sources or not src.enabled:
                 continue

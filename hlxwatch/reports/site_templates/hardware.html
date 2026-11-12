@@ -32,12 +32,29 @@
 </section>
 </div>
 
-<section>
- <h2>Certificazioni FCC</h2>
+<section id="fcc">
+ <h2>Certificazioni FCC ({{ hw.fcc|length }})</h2>
  <p>Prima di uscire negli Stati Uniti ogni dispositivo radio passa dalla FCC. Il codice di Valve è
- <b>{{ hw.fcc_grantee }}</b>: si cerca nella <a href="{{ hw.fcc_url }}">ricerca ufficiale degli FCC ID</a>. Steam Frame è
- stato autorizzato il 29 luglio 2026. La data FCC però anticipa di poco o di molto l'uscita: la Steam Machine era stata
- approvata il 31 dicembre 2025 ed è uscita a fine giugno 2026.</p>
+ <b>{{ hw.fcc_grantee }}</b>: HLX Watch ne rilegge l'elenco ogni 12 ore da <a href="https://fccid.io/{{ hw.fcc_grantee }}">fccid.io</a>
+ (il sito ufficiale della FCC respinge i programmi) e un codice nuovo diventa una voce. La data FCC anticipa di poco o di
+ molto l'uscita: la Steam Machine era stata approvata il 31 dicembre 2025 ed è uscita a fine giugno 2026.</p>
+ {% if hw.fcc %}<table class="intera">
+  <tr><th>Codice</th><th>Data</th><th>Descrizione</th></tr>
+  {% for r in hw.fcc %}<tr><td><a href="https://fccid.io/{{ r.codice }}"><code>{{ r.codice }}</code></a></td><td>{{ r.data }}</td><td>{{ r.descrizione }}</td></tr>{% endfor %}
+ </table>{% else %}<p class="muted">Elenco non ancora registrato.</p>{% endif %}
+</section>
+
+<section id="steamos">
+ <h2>Dispositivi nei pacchetti di SteamOS ({{ hw.steamos_devices|length }})</h2>
+ <p>L'archivio pubblico da cui si aggiornano Steam Deck e Steam Machine ha pacchetti di supporto per ogni dispositivo,
+ con il nome in codice: <code>jupiter</code> è lo Steam Deck, <code>galileo</code> lo Steam Deck OLED, <code>fremont</code>
+ la Steam Machine, <code>neptune</code> il kernel. HLX Watch rilegge gli elenchi <code>jupiter-main</code> e <code>holo-main</code>
+ ogni 12 ore: un pacchetto di supporto con un nome mai visto, una famiglia di archivi nuova o una versione nuova di SteamOS
+ diventano una voce.</p>
+ {% if hw.steamos_devices %}<table class="intera">
+  <tr><th>Nome in codice</th><th>Pacchetti</th></tr>
+  {% for name, pkgs in hw.steamos_devices.items() %}<tr><td><b>{{ name }}</b></td><td><small>{% for p in pkgs[:8] %}<code>{{ p }}</code>{% if not loop.last %} · {% endif %}{% endfor %}{% if pkgs|length > 8 %} … (+{{ pkgs|length - 8 }}){% endif %}</small></td></tr>{% endfor %}
+ </table>{% else %}<p class="muted">Elenco non ancora registrato.</p>{% endif %}
 </section>
 
 <section>
