@@ -14,7 +14,8 @@
 // dicono che è una prova, la pagella dice se si è pronti per la serata vera e il sito non la mostra.
 // Sempre, a ogni controllo veloce (una richiesta di 20 KB): le pagine dei giochi su half-life.com (/en/alyx,
 // /en/halflife2...). Una pagina nuova di primo livello è un possibile annuncio: Alyx è comparsa lì il giorno
-// dell'annuncio. Con la chiave, anche i video nuovi del canale YouTube di Valve.
+// dell'annuncio. Con la chiave, anche i video nuovi del canale YouTube di Valve e dei canali di chi parla di HLX
+// (COMMENT_CHANNELS: solo un messaggio "da controllare" per il registro delle previsioni, mai un annuncio).
 // Ogni lettura parte da sola: una fonte che non risponde non ferma le altre. Il KV si scrive solo quando cambia qualcosa.
 
 import SERATE from "../../hlxwatch/serate.json" with { type: "json" };
@@ -31,6 +32,15 @@ const STEP_MS = 600000;                 // un controllo veloce e un giro complet
 const MIN_RATE = 0.9;                   // pagella: almeno il 90% dei controlli e delle letture...
 const MAX_GAP_MIN = 25;                 // ...e mai più di 25 minuti senza un giro completo
 export const VALVE_CHANNEL = { id: "UCg0FSqPeiGD_lIiPaaAehQg", nome: "Valve" };
+// Canali di chi parla di HLX (quelli del registro delle previsioni, hlxwatch/previsioni.json). Un loro video nuovo su
+// Half-Life, HLX o Valve è un messaggio "da controllare": le affermazioni vanno messe nel registro. MAI un possibile
+// annuncio: i loro titoli ("Half-Life 3 MASSIVE Leak...") lo farebbero scattare a ogni video.
+export const COMMENT_CHANNELS = [
+  { id: "UCL5RKbiAPqSC_mUIjCpx3xg", nome: "Tyler McVicker" },
+  { id: "UCqpWX1aVv2Nnsp8sxuLUIFg", nome: "Gabe Follower" },
+  { id: "UCMXYdca-8R-ovf079rJDePA", nome: "GAMERANGE" },
+];
+const ABOUT_VALVE = /half[\s_-]*life|(?<![a-z0-9])hlx(?![a-z0-9])|(?<![a-z0-9])hl[\s_-]?3(?![0-9])|\bvalve\b|deadlock|steam (?:frame|machine|deck|controller)/i;
 const HLX_NAME = /hlx|half[\s_-]*life|(?<![a-z0-9])hl[\s_-]?3(?![0-9])/i;
 const HEADERS = { "User-Agent": "Mozilla/5.0 (compatible; hlx-watch-bot; +https://github.com/bryanoberholzer00-bot/hlx-watch)",
   "Accept-Language": "en-US" };
@@ -103,7 +113,7 @@ function item(g, t, text, f, url, ul, now) {
 // Ritorna { annunci, note, nuoveApp, state, changed }: le app nuove vanno poi guardate con appdetails (classifyApp).
 export function compareSerata(state, readings, canali = [], now = Date.now()) {
   const st = { ...state, yt: { ...(state.yt || {}) } };
-  const annunci = [], note = [], nuoveApp = [];
+  const annunci = [], note = [], nuoveApp = [], videoDaControllare = [];
   let changed = false;
   if (readings.pagine && readings.pagine.length) {
     const known = st.pagine || null;
@@ -142,7 +152,9 @@ export function compareSerata(state, readings, canali = [], now = Date.now()) {
       if (known && known.includes(v.id)) continue;
       if (!known) continue;
       const url = `https://www.youtube.com/watch?v=${v.id}`;
-      if (newHalfLife(v.titolo, v.testo)) {
+      if (ch.commento) {                       // canale di commento: solo "da controllare", mai un annuncio
+        if (ABOUT_VALVE.test(`${v.titolo} ${v.testo}`)) videoDaControllare.push({ canale: ch.nome, titolo: v.titolo, url });
+      } else if (newHalfLife(v.titolo, v.testo)) {
         annunci.push(item(`YouTube: ${ch.nome}`, "video", `video nuovo: ${v.titolo}`, `youtube.com/${ch.nome}`, url, "il video", now));
       } else if (ch.tutti || /\bvalve\b/i.test(v.titolo)) {
         note.push(`Video nuovo sul canale ${ch.nome}: <a href="${url}">${esc(v.titolo)}</a>`);
@@ -151,7 +163,7 @@ export function compareSerata(state, readings, canali = [], now = Date.now()) {
     const ids = [...new Set([...list.map((v) => v.id), ...(known || [])])].slice(0, KEEP);
     if (!known || ids.some((id) => !known.includes(id))) { st.yt[ch.id] = ids; changed = true; }
   }
-  return { annunci, note, nuoveApp, state: st, changed };
+  return { annunci, note, nuoveApp, videoDaControllare, state: st, changed };
 }
 
 // Un prodotto nuovo nella pagina di Valve: possibile annuncio con un Half-Life nel nome, altrimenti un messaggio
@@ -219,6 +231,13 @@ export function pagella(s, scheda, giri) {
 }
 
 // ------------------------------------------------------------------ messaggi
+// Video nuovi dei canali di commento: da guardare e, se fanno affermazioni su HLX, da mettere nel registro
+export function videoText(videos) {
+  return "📺 <b>Video nuovo da controllare</b>\n" +
+    videos.slice(0, 5).map((v) => `• ${esc(v.canale)}: <a href="${v.url}">${esc(v.titolo)}</a>`).join("\n") +
+    "\nSe fa affermazioni su HLX, vanno nel registro delle previsioni: lì si vede poi se i file le confermano.";
+}
+
 export function openingText(s) {
   const what = "i post di Steam, la pagina di Valve su Steam, half-life.com, i video su YouTube e i repository nuovi, e " +
     "riavvia il giro completo ogni 10 minuti";
@@ -343,6 +362,7 @@ export async function serataCheck(env, sendTelegram, now = Date.now(), list = LI
   if (env.YOUTUBE_API_KEY) {
     canali.push({ ...VALVE_CHANNEL, tutti: true });
     if (s) canali.push(...(s.youtube || []).map((c) => ({ ...c, tutti: false })));
+    canali.push(...COMMENT_CHANNELS.map((c) => ({ ...c, tutti: false, commento: true })));
   }
   const readings = { pagine: await read("half-life.com", readPages), valve: null, yt: {} };
   if (s) readings.valve = await read("pagina di Valve su Steam", readValve);
@@ -364,6 +384,7 @@ export async function serataCheck(env, sendTelegram, now = Date.now(), list = LI
     changed = true;
   }
   if (note.length) await tell(`${s ? "🏆" : "🌐"} <b>HLX Watch${s ? `: ${esc(s.nome)}` : ""}</b>\n` + note.join("\n"));
+  if (res.videoDaControllare.length) await tell(videoText(res.videoDaControllare));
   const ended = endedSerata(now, list);
   if (ended && state.aperte.includes(ended.id) && !state.chiuse.includes(ended.id)) {
     state.chiuse.push(ended.id);

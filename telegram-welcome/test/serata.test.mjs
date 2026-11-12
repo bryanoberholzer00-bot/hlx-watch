@@ -7,6 +7,7 @@ import { fastCheck } from "../src/fast.js";
 import {
   LIST, STATE, activeSerata, classifyApp, closingText, compareSerata, endedSerata, halfLifePaths, isGamePage,
   openingText, pagella, romeTime, runsSummary, serataCheck, serataStatus, uploadsPlaylist, valveList, videos,
+  COMMENT_CHANNELS, videoText,
 } from "../src/serata.js";
 
 const S = { id: "prova", nome: "The Game Awards 2026", inizio: "2026-12-10T17:00:00Z", spettacolo: "2026-12-11T00:30:00Z",
@@ -258,6 +259,49 @@ test("serataCheck: la prova conta controlli e letture e chiude con i giri letti 
     await serataCheck(env, tg, Date.parse(P.fine) + 60e3, [P]);
     assert.ok(world.calls.some((u) => u.includes("/actions/workflows/hlx-watch.yml/runs?per_page=100&created=")));
     assert.match(sent.at(-1), /giri completi: 90 partiti, 90 riusciti[\s\S]*Tutto pronto per la serata vera/);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test("canali di commento: video da controllare, mai un possibile annuncio", () => {
+  const canali = COMMENT_CHANNELS.map((c) => ({ ...c, tutti: false, commento: true }));
+  const tyler = COMMENT_CHANNELS.find((c) => c.nome === "Tyler McVicker");
+  const first = compareSerata({}, { yt: { [tyler.id]: [{ id: "old", titolo: "HLX Files #20" }] } }, canali, during);
+  assert.equal(first.videoDaControllare.length, 0);                          // la prima lettura impara
+  const next = compareSerata(first.state, { yt: { [tyler.id]: [
+    { id: "a", titolo: "Half-Life 3 MASSIVE Leak - HLX Files #21", testo: "" },
+    { id: "b", titolo: "My new desk setup", testo: "nothing about games" },
+    { id: "c", titolo: "Deadlock is changing", testo: "" },
+    { id: "old", titolo: "HLX Files #20" }] } }, canali, during);
+  assert.equal(next.annunci.length, 0);                                       // mai un possibile annuncio
+  assert.deepEqual(next.videoDaControllare.map((v) => v.url.slice(-1)), ["c", "a"]);
+  assert.equal(next.note.length, 0);
+  const text = videoText(next.videoDaControllare);
+  assert.match(text, /^📺 <b>Video nuovo da controllare<\/b>[\s\S]*Tyler McVicker: <a href="https:\/\/www.youtube.com\/watch\?v=a">Half-Life 3 MASSIVE Leak/);
+  assert.match(text, /registro delle previsioni/);
+});
+
+test("serataCheck: i canali di commento si leggono sempre con la chiave e mandano un messaggio a parte", async () => {
+  const realFetch = globalThis.fetch;
+  const gabe = COMMENT_CHANNELS.find((c) => c.nome === "Gabe Follower");
+  const pl = uploadsPlaylist(gabe.id);
+  const world = { calls: [], extra: "", tutti: [], arrivo: [], names: {}, yt: { [pl]: [{ id: "x1", titolo: "HLX News" }] } };
+  globalThis.fetch = fakeFetch(world);
+  try {
+    const env = { SUBS: new FakeKV(), OWNER_CHAT_ID: "1", YOUTUBE_API_KEY: "k" };
+    const sent = [];
+    const tg = async (_e, _c, text) => sent.push(text);
+    const day = Date.parse("2026-11-20T12:00:00Z");                             // fuori da ogni serata
+    assert.deepEqual(await serataCheck(env, tg, day, [S]), []);
+    assert.ok(world.calls.some((u) => u.includes(`playlistId=${pl}`)));
+    assert.equal(sent.length, 0);
+    world.yt[pl] = [{ id: "x2", titolo: "New Half-Life 3 is Still Real - HLX News" }, { id: "x1", titolo: "HLX News" }];
+    assert.deepEqual(await serataCheck(env, tg, day + 600e3, [S]), []);        // nessun possibile annuncio
+    assert.equal(sent.length, 1);
+    assert.match(sent[0], /Video nuovo da controllare[\s\S]*Gabe Follower[\s\S]*x2/);
+    await serataCheck(env, tg, day + 1200e3, [S]);
+    assert.equal(sent.length, 1);                                             // una volta sola
   } finally {
     globalThis.fetch = realFetch;
   }
