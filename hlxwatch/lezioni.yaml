@@ -7,6 +7,7 @@
 #   tipo         il tipo della traccia HLX (fase.trace_kind): gioco, motore, alyx, strumenti, dubbio, nessuno
 #   parola       le parole chiave trovate in una riga di un file (contiene / non_contiene / punteggio_max / _min)
 #   cosa_cambia  la riga "Cosa cambia" sotto gli avvisi delle build (build_notes.describe), per un elenco di file
+#   app_nuova    il punteggio del nome di un'app Steam nuova (steam_webapi.name_rule): nome, sviluppatore, editore
 lezioni:
   - id: mod-hlx-motore
     data: "2026-11-05"
@@ -125,3 +126,25 @@ lezioni:
       - filename: "game/hlvr/pak01_dir.txt"
         patch: "-panorama/localization/hlvr_french.txt CRC:001 size:1\n+panorama/localization/hlvr_french.txt CRC:002 size:2"
     atteso: ["solo traduzioni (1 lingua)"]
+  - id: app-untitled-di-altri
+    data: "2026-11-12"
+    errore: "«Untitled Telemetry App» (strumento per iRacing di Babaika) aveva 120 punti come app sospetta: la parola segnaposto «untitled» valeva per chiunque."
+    controllo: app_nuova
+    nome: "Untitled Telemetry App"
+    sviluppatore: "Babaika"
+    editore: "Babaika"
+    punteggio_max: 0
+  - id: app-untitled-di-valve
+    data: "2026-11-12"
+    errore: "Correggendo «untitled» non bisogna perdere le app segnaposto di Valve."
+    controllo: app_nuova
+    nome: "Untitled Project"
+    sviluppatore: "Valve"
+    editore: "Valve"
+    punteggio_min: 120
+  - id: app-hlx-privata
+    data: "2026-11-12"
+    errore: "Un'app con HLX nel nome e autore sconosciuto (privata) deve restare al punteggio pieno."
+    controllo: app_nuova
+    nome: "HLX"
+    punteggio_min: 120

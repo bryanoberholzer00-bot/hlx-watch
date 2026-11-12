@@ -390,9 +390,12 @@ steam:
     applist_refresh_hours: 24            # con la chiave: ricarica la lista completa al massimo una volta al giorno
     max_lookup_per_run: 300              # nuove app di cui chiedere i dettagli a PICS per scansione
     flag_developers: ["Valve"]           # developer/publisher che fanno scattare l'allarme
-    flag_name_patterns: ["hlx", "half[- _]?life", "hl3", "untitled", "unnamed", "source ?2", "test ?app", "valve"]
+    flag_name_patterns: ["hlx", "half[- _]?life", "hl3"]          # sempre: pieni per Valve o autore sconosciuto
+    flag_name_patterns_weak: ["untitled", "unnamed", "source ?2", "test ?app", "valve"]   # segnaposto: solo per Valve
     score_developer: 90
     score_name: 120
+    score_name_other: 60                 # parola forte nel nome di un'app di un altro autore (progetto di fan)
+    score_name_weak_unknown: 50          # parola segnaposto con autore sconosciuto: registrata, senza avviso
     score_private: 25                    # app nuova ma con info non visibili in anonimo
 
 local:

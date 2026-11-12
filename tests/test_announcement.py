@@ -165,3 +165,53 @@ def test_after_page(tmp_path):
     p = announcement.after_page(db, mode, None)
     assert p["attiva"] and p["giorno"] == 2 and [n["testo"] for n in p["novita"]] == ["dopo"]
     db.close()
+
+
+def test_placeholder_names_count_only_for_valve(tmp_path, monkeypatch):
+    """12/11/2026: "Untitled Telemetry App" (strumento per iRacing di Babaika) aveva 120 punti per la parola untitled."""
+    from hlxwatch.sources.steam_webapi import name_rule
+    cfg, db = make(tmp_path, monkeypatch)
+    ncfg = cfg.get("steam.new_apps", {})
+    assert name_rule(ncfg, "Untitled Telemetry App", "Babaika", "Babaika")[0] == 0
+    assert name_rule(ncfg, "Untitled Project", "Valve", "Valve")[0] == 120
+    assert name_rule(ncfg, "Untitled Project", None, None)[0] == 50                 # autore sconosciuto: senza avviso
+    assert name_rule(ncfg, "HLX", None, None)[0] == 120
+    assert name_rule(ncfg, "Half-Life Fan Remake", "Fans", "?")[0] == 60             # parola forte, altro autore
+    assert name_rule(ncfg, "Test App 3", "Someone", None)[0] == 0 and name_rule(ncfg, "Pressure Valve", "Indie", None)[0] == 0
+    db.insert_apps([(5000011, None), (5000012, None)], checked=False)
+    db.set_state("steam:appid_frontier", 5000012)
+    other = {"common": {"name": "Untitled Telemetry App", "type": "application",
+                        "associations": {"0": {"type": "developer", "name": "Babaika"}}}}
+    found = {f.token: f for f in SteamNewAppsSource(cfg, db, FakePics({5000011: other, 5000012: valve_app("Untitled")})).run([])}
+    assert "app:5000011" not in found and found["app:5000012"].score == 120
+    db.close()
+
+
+def test_reevaluate_lowers_old_placeholder_alerts(tmp_path):
+    import json
+    from hlxwatch.models import BuildInfo
+    from hlxwatch.reevaluate import reevaluate
+    from hlxwatch.storage.db import utcnow
+    cfg, db = make(tmp_path)
+    for appid, text, kws in ((5544150, "Nuova app 5544150: Untitled Telemetry App [Application] dev=Babaika pub=Babaika",
+                              ["suspicious_name", "private_app"]),
+                             (5544151, "Nuova app 5544151: Untitled Thing [Game] dev=? pub=?", ["suspicious_name"]),
+                             (5544152, "Nuova app 5544152: HLX [Game] dev=? pub=?", ["suspicious_name"])):
+        b = db.upsert_build(BuildInfo(game="steam", source="steam", ref=f"app:{appid}", date=utcnow(), message=text))
+        db.add_finding(Finding(game="steam", source="steam_apps", file_path=f"app/{appid}", change_type="new_app",
+                               text=text, score=120, keywords=kws, token=f"app:{appid}"), b)
+    reevaluate(cfg, db)
+    left = {r["token"]: (r["score"], json.loads(r["keywords"])) for r in db.conn.execute(
+        "SELECT token, score, keywords FROM findings WHERE change_type = 'new_app'")}
+    assert "app:5544150" not in left                                   # nessun segnale rimasto: via
+    assert left["app:5544151"] == (50, ["suspicious_name"]) and left["app:5544152"][0] == 120
+    db.close()
+
+
+def test_lessons_include_the_placeholder_case(tmp_path):
+    from hlxwatch.lezioni import Checker, static_lessons
+    cfg, db = make(tmp_path)
+    lessons = [x for x in static_lessons() if x.get("controllo") == "app_nuova"]
+    assert {x["id"] for x in lessons} >= {"app-untitled-di-altri", "app-untitled-di-valve", "app-hlx-privata"}
+    assert all(Checker(cfg).check(x) is None for x in lessons)
+    db.close()

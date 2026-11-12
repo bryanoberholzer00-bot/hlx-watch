@@ -9,6 +9,7 @@ I dettagli (nome, developer, publisher, tipo) arrivano da PICS in anonimo tramit
 """
 from __future__ import annotations
 
+import json
 import logging
 import re
 from datetime import timedelta
@@ -36,6 +37,69 @@ def _association(common: dict[str, Any], kind: str) -> str | None:
     return ", ".join(names) if names else None
 
 
+
+# Nomi delle app nuove. Le parole forti (hlx, half-life, hl3) contano sempre: piene per Valve o per un autore
+# sconosciuto (app privata), a metà per gli altri (un progetto di fan). Le parole deboli (untitled, unnamed, test app,
+# source 2, valve) sono nomi segnaposto comuni a chiunque: contano solo per Valve, poco per un autore sconosciuto, per
+# nulla per gli altri. Il 12/11/2026 "Untitled Telemetry App" (uno strumento per iRacing di Babaika) aveva 120 punti.
+WEAK_NAME_PATTERNS = ["untitled", "unnamed", "source ?2", "test ?app", "valve"]
+NEW_APP_TEXT = re.compile(r"^Nuova app (\d+): (.*) \[[^\]]*\] dev=(.*) pub=(.*)$")
+
+
+def name_rule(ncfg: dict[str, Any], name: str | None, developer: Any, publisher: Any) -> tuple[int, str]:
+    """Punteggio e motivo per il nome di un'app nuova (0 e "" se il nome non dice niente)."""
+    if not name:
+        return 0, ""
+    weak_src = ncfg.get("flag_name_patterns_weak")
+    weak_list = list(weak_src if weak_src is not None else WEAK_NAME_PATTERNS)
+    strong = [p for p in (ncfg.get("flag_name_patterns") or []) if p not in weak_list]
+    flag_devs = [str(d).lower() for d in (ncfg.get("flag_developers") or ["Valve"])]
+    authors = [str(a) for a in (developer, publisher) if a and str(a) != "?"]
+    valve = any(d in a.lower() for a in authors for d in flag_devs)
+    full = int(ncfg.get("score_name", 120))
+    for pattern in strong:
+        if re.search(pattern, name, re.IGNORECASE):
+            if valve or not authors:
+                return full, f"nome '{name}' corrisponde a /{pattern}/"
+            return int(ncfg.get("score_name_other", 60)), f"nome '{name}' corrisponde a /{pattern}/ (autore: {', '.join(authors)})"
+    for pattern in weak_list:
+        if re.search(pattern, name, re.IGNORECASE):
+            if valve:
+                return full, f"nome '{name}' corrisponde a /{pattern}/ (app di Valve)"
+            if not authors:
+                return int(ncfg.get("score_name_weak_unknown", 50)), f"nome '{name}' corrisponde a /{pattern}/ (autore sconosciuto)"
+            return 0, ""
+    return 0, ""
+
+
+def rescore_name_findings(cfg: Config, db: Database) -> int:
+    """Riapplica name_rule alle app già registrate per il nome: abbassa (o toglie) quelle che non lo meritano più.
+    Si toccano solo le voci con i soli segnali suspicious_name, private_app o valve_app."""
+    ncfg: dict[str, Any] = cfg.get("steam.new_apps", {}) or {}
+    others = {"private_app": int(ncfg.get("score_private", 25)), "valve_app": int(ncfg.get("score_developer", 90))}
+    changed = 0
+    rows = db.conn.execute("SELECT id, text, score, keywords FROM findings WHERE change_type = 'new_app' "
+                           "AND keywords LIKE '%\"suspicious_name\"%'").fetchall()
+    for r in rows:
+        m = NEW_APP_TEXT.match(r["text"] or "")
+        keywords = json.loads(r["keywords"] or "[]")
+        if not m or not set(keywords) <= {"suspicious_name", *others}:
+            continue
+        name = None if m.group(2) == "(senza nome)" else m.group(2)
+        new, _ = name_rule(ncfg, name, m.group(3), m.group(4))
+        rest = [k for k in keywords if k != "suspicious_name"]
+        score = max([new, *(others[k] for k in rest)])
+        if score >= r["score"]:
+            continue
+        if score <= 0 or (not new and rest == ["private_app"]):
+            db.conn.execute("DELETE FROM findings WHERE id = ?", (r["id"],))
+        else:
+            db.conn.execute("UPDATE findings SET score = ?, keywords = ? WHERE id = ?",
+                            (score, json.dumps(keywords if new else rest), r["id"]))
+        changed += 1
+    return changed
+
+
 class SteamNewAppsSource:
     name = "steam_apps"
 
@@ -45,7 +109,6 @@ class SteamNewAppsSource:
         self.pics = pics
         self.ncfg: dict[str, Any] = cfg.get("steam.new_apps", {}) or {}
         self.matcher = KeywordMatcher(cfg.keywords)
-        self.name_patterns = [re.compile(p, re.IGNORECASE) for p in (self.ncfg.get("flag_name_patterns") or [])]
         self.flag_devs = [str(d).lower() for d in (self.ncfg.get("flag_developers") or ["Valve"])]
         self._warned_no_key = False
 
@@ -178,13 +241,11 @@ class SteamNewAppsSource:
                 reasons.append(f"developer/publisher: {who}")
                 tags.append("valve_app")
                 break
-        if name:
-            for pattern in self.name_patterns:
-                if pattern.search(name):
-                    score = max(score, int(self.ncfg.get("score_name", 120)))
-                    reasons.append(f"nome '{name}' corrisponde a /{pattern.pattern}/")
-                    tags.append("suspicious_name")
-                    break
+        name_score, name_reason = name_rule(self.ncfg, name, developer, publisher)
+        if name_score:
+            score = max(score, name_score)
+            reasons.append(name_reason)
+            tags.append("suspicious_name")
         if not info or info.get("_missing_token"):
             score = max(score, int(self.ncfg.get("score_private", 25)))
             reasons.append("informazioni non pubbliche (richiede token)")

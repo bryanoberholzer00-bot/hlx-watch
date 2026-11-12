@@ -94,6 +94,16 @@ class Checker:
             if lesson.get("punteggio_min") is not None and score < int(lesson["punteggio_min"]):
                 problems.append(f"punteggio {score}, il minimo è {lesson['punteggio_min']}")
             return "; ".join(problems) or None
+        if kind == "app_nuova":
+            from hlxwatch.sources.steam_webapi import name_rule
+            score, _ = name_rule(self.cfg.get("steam.new_apps", {}) or {}, lesson.get("nome"),
+                                 lesson.get("sviluppatore"), lesson.get("editore"))
+            problems = []
+            if lesson.get("punteggio_max") is not None and score > int(lesson["punteggio_max"]):
+                problems.append(f"punteggio del nome {score}, il massimo è {lesson['punteggio_max']}")
+            if lesson.get("punteggio_min") is not None and score < int(lesson["punteggio_min"]):
+                problems.append(f"punteggio del nome {score}, il minimo è {lesson['punteggio_min']}")
+            return "; ".join(problems) or None
         if kind == "cosa_cambia":
             from hlxwatch.build_notes import describe
             got = describe(list(lesson.get("files") or []))
