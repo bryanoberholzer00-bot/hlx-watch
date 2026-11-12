@@ -41,7 +41,13 @@
  .kinds button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
  .kinds button small{opacity:.75}
  .kind{white-space:nowrap}
- .gruppo{margin-top:.3rem} .gruppo summary{cursor:pointer;font-size:.8rem;color:var(--accent)}
+ .gruppo{margin-top:.4rem}
+ .gruppo summary{display:inline-block;cursor:pointer;font-size:.8rem;padding:.2rem .65rem;border:1px solid var(--accent);
+  border-radius:999px;color:var(--accent);background:var(--code);list-style:none;user-select:none}
+ .gruppo summary::-webkit-details-marker{display:none}
+ .gruppo summary::before{content:"▸ ";} .gruppo[open] summary::before{content:"▾ ";}
+ .gruppo summary:hover{background:var(--accent);color:#fff}
+ .gruppo[open] .apri{display:none} .gruppo:not([open]) .chiudi{display:none}
  .gruppo ul{list-style:none;padding:0;margin:.3rem 0 0} .gruppo li{margin:.25rem 0;font-size:.85rem}
  .gruppo .badge{font-size:.7rem;padding:0 .35rem}
  /* sul telefono ogni risultato diventa una scheda: sette colonne in 375 pixel non si leggono */
@@ -117,7 +123,7 @@ function bundleRows(rows) {
 
 function relHtml(r) {
   const n = r.rel.length;
-  return `<details class="gruppo"><summary>+ ${n === 1 ? "un'altra riga" : `altre ${n} righe`} nello stesso commit e file</summary><ul>` +
+  return `<details class="gruppo"><summary><span class="apri">Mostra</span><span class="chiudi">Nascondi</span> ${n === 1 ? "un'altra riga" : `altre ${n} righe`} dello stesso commit e file</summary><ul>` +
     r.rel.map(x => `<li><span class="badge ${sev(x.score)}">${x.score}</span> ${x.type !== r.type ? `<small class="muted">${esc(x.type)}</small> ` : ""}` +
       `<code>${esc((x.token || x.text).slice(0, 80))}</code>${x.new ? ' <span class="new">mai vista prima</span>' : ""}</li>`).join("") +
     "</ul></details>";

@@ -139,10 +139,16 @@ def test_names_over_the_limit_wait_for_the_next_run(tmp_path):
 
 
 class FakeGitHub:
-    def __init__(self, files):
-        self.files = files
+    def __init__(self, files, search=None):
+        self.files, self.search, self.searched = files, search or {}, []
 
     def get_json(self, path, params=None):
+        if path == "/search/code":                                   # ricerca del codice: {parola: [percorsi]}
+            word = params["q"].split()[0]
+            self.searched.append(word)
+            if self.search == "errore":
+                raise RuntimeError("GitHub 403: limite della ricerca")
+            return {"items": [{"path": p} for p in self.search.get(word, [])]}
         name = path.split("/contents/", 1)[1]
         if name not in self.files:
             return None
@@ -166,8 +172,55 @@ def test_new_valve_hardware_codename(tmp_path):
     found = src.run(force=True)
     assert [f.token for f in found] == ["hwid:steam_hlx_headset"]
     assert found[0].score >= 60 and "0x1310" in found[0].text
+    assert "già noto" not in found[0].text and not gh.searched     # parola HLX: punteggio pieno, niente ricerche
     gh.files["src/joystick/usb_ids.h"] = "niente"                  # formato cambiato: errore, non "tutto tolto"
     assert src.run(force=True) == [] and src.errors
+    db.close()
+
+
+HW_SPEC = {"files": [{"name": "SDL", "repo": "libsdl-org/SDL", "branch": "main", "path": "src/joystick/usb_ids.h",
+                      "pattern": r"#define\s+USB_PRODUCT_VALVE_(\w+)\s+(0x[0-9a-fA-F]+)"}]}
+
+
+def test_hardware_name_already_known_is_said_and_scores_less(tmp_path):
+    """L'11/11/2026 SDL ha aggiunto STEAM_TRITON a usb_ids.h, ma Triton aveva già un suo driver in SDL da mesi."""
+    from hlxwatch.models import BuildInfo, Finding
+    cfg, db = make(tmp_path, hardware_ids=HW_SPEC)
+    gh = FakeGitHub({"src/joystick/usb_ids.h": SDL},
+                    search={"triton": ["src/joystick/usb_ids.h", "src/joystick/hidapi/SDL_hidapi_steam_triton.c"]})
+    src = HardwareIdsSource(cfg, db, gh)
+    src.run()
+    # 1. nome in codice negli altri file del repository (ricerca di GitHub)
+    gh.files["src/joystick/usb_ids.h"] = SDL + "#define USB_PRODUCT_VALVE_STEAM_TRITON 0x1302\n"
+    [f] = src.run(force=True)
+    assert f.score == 35 and "già noto" in f.text and "SDL_hidapi_steam_triton.c" in f.text
+    assert "usb_ids.h e altri" not in f.text                         # il file stesso non conta
+    # 2. lo stesso nome in codice in un nome già letto: niente ricerca
+    gh.searched.clear()
+    gh.files["src/joystick/usb_ids.h"] += "#define USB_PRODUCT_VALVE_STEAM_TRITON_BLE 0x1303\n"
+    [f] = src.run(force=True)
+    assert f.score == 35 and "come STEAM_TRITON" in f.text and not gh.searched
+    # 3. nell'archivio (per esempio nelle stringhe del client Steam)
+    b = db.upsert_build(BuildInfo(game="steam", source="github", ref="c" * 40, date=utcnow()))
+    db.add_finding(Finding(game="steam", source="github", file_path="webui/strings.txt", change_type="added",
+                           text='"Controller_Calypso" "Calypso"', score=20, keywords=[]), b)
+    gh.files["src/joystick/usb_ids.h"] += "#define USB_PRODUCT_VALVE_STEAM_CALYPSO_DONGLE 0x1306\n"
+    [f] = src.run(force=True)
+    assert f.score == 35 and "nell'archivio dal" in f.text and json.loads(f.context)["gia_noto"]
+    # 3b. un nome in codice già nella lista dell'hardware Valve in config (Ibex): già noto, senza ricerche
+    gh.searched.clear()
+    gh.files["src/joystick/usb_ids.h"] += "#define USB_PRODUCT_VALVE_STEAM_IBEX_DONGLE 0x1309\n"
+    [f] = src.run(force=True)
+    assert f.score == 35 and "tra i nomi dell'hardware Valve già noti" in f.text and not gh.searched
+    # 4. davvero nuovo: punteggio pieno e "mai visto prima"; una ricerca che non risponde non ferma niente
+    gh.search = "errore"
+    gh.files["src/joystick/usb_ids.h"] += "#define USB_PRODUCT_VALVE_STEAM_OBERON 0x1307\n"
+    [f] = src.run(force=True)
+    assert f.score == 60 and "mai visto prima" in f.text and not src.errors
+    # 5. senza nome in codice (solo parole generiche): nessuna frase in più
+    gh.files["src/joystick/usb_ids.h"] += "#define USB_PRODUCT_VALVE_STEAM_CONTROLLER_V2 0x1308\n"
+    [f] = src.run(force=True)
+    assert f.score == 60 and f.text.endswith("(0x1308)")
     db.close()
 
 

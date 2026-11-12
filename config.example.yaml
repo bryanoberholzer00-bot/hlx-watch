@@ -291,7 +291,9 @@ domains:                                 # registri dei domini (RDAP) e domini a
 hardware_ids:                            # nomi in codice dell'hardware Valve (identificativi USB) in SDL e nel kernel Linux
   enabled: true
   interval_hours: 6
-  score_new: 60
+  score_new: 60                          # nome in codice mai visto prima
+  score_known: 35                        # nome in codice già noto (altri nomi, archivio o altri file del repository)
+  search_code: true                      # cerca il nome negli altri file del repository (ricerca di GitHub)
 
 achievements:                            # obiettivi delle app di steam.watch_apps (API pubblica, senza chiave)
   enabled: true
