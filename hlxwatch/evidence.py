@@ -47,6 +47,7 @@ _TYPE_AREAS = {"build": "build", "new_app": "build", "new_repo": "build", "struc
                "news": "news", "commit": "code", "appid": "code",
                "domain": "web", "hardware_id": "code", "achievement": "data",
                "steamos_package": "code", "steamos_repo": "code", "fcc_id": "docs",
+               "steamworks_page": "docs", "steamworks_text": "docs",
                "class_family": "schema"}
 
 
@@ -75,7 +76,7 @@ _EVIDENCE = {
     "news": ("ufficiale", "post ufficiale di Valve su Steam", "post ufficiale"),
     "code": ("codice", "codice pubblico di Valve su GitHub", "codice di Valve"),
     "web": ("siti", "domini nei certificati HTTPS dei siti di Valve", "siti di Valve"),
-    "docs": ("documenti", "documenti ufficiali depositati da Valve (FCC)", "documento FCC"),
+    "docs": ("documenti", "documenti ufficiali di Valve (FCC, documentazione di Steamworks)", "documento ufficiale"),
     "other": ("altro", "altro", ""),
 }
 

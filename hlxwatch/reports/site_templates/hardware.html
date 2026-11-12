@@ -44,6 +44,15 @@
  </table>{% else %}<p class="muted">Elenco non ancora registrato.</p>{% endif %}
 </section>
 
+<section id="steamworks">
+ <h2>Dispositivi nella documentazione di Steamworks ({{ hw.steamworks_hw|length }})</h2>
+ <p>La documentazione pubblica per gli sviluppatori ha una sezione <a href="https://partner.steamgames.com/doc/steamhardware">Steam Hardware</a>
+ con le pagine di ogni dispositivo. HLX Watch ne rilegge l'indice ogni 12 ore: una pagina per un dispositivo mai visto,
+ o una riga nuova nell'elenco dei dispositivi di Valve, diventa una voce.</p>
+ {% if hw.steamworks_hw %}<p>{% for name, n in hw.steamworks_hw.items() %}<a href="https://partner.steamgames.com/doc/steamhardware/{{ name }}"><code>{{ name }}</code></a> <small class="muted">({{ n }} pagine)</small>{% if not loop.last %} · {% endif %}{% endfor %}</p>
+ {% else %}<p class="muted">Elenco non ancora registrato.</p>{% endif %}
+</section>
+
 <section id="steamos">
  <h2>Dispositivi nei pacchetti di SteamOS ({{ hw.steamos_devices|length }})</h2>
  <p>L'archivio pubblico da cui si aggiornano Steam Deck e Steam Machine ha pacchetti di supporto per ogni dispositivo,

@@ -11,11 +11,17 @@ Nella ricerca sui metodi dei data miner (2020-2026) l'hardware di Valve è uscit
     2AES4: Steam Controller e Steam Machine sono comparsi lì mesi prima di uscire, Steam Frame il 29/07/2026. Il sito
     ufficiale della FCC respinge i programmi (Access Denied); fccid.io ripubblica gli stessi dati e il suo robots.txt
     permette la pagina del richiedente. Si salvano solo codice, data e descrizione (non il nome del contatto).
+  - **documentazione di Steamworks** (partner.steamgames.com/doc, pubblica): il menu di ogni pagina contiene l'indice
+    completo (~350 pagine), quindi basta /doc/home per vedere ogni pagina nuova; la sezione /doc/steamhardware/ ha una
+    pagina per dispositivo (steamdeck, steamframe, steammachine). Si legge anche il testo di /doc/steamhardware, dove
+    Valve elenca i suoi dispositivi ("the upcoming Steam Machine and Steam Frame"). Il pacchetto dell'SDK e il suo
+    registro delle modifiche richiedono l'accesso da sviluppatore: non si leggono.
 Geekbench ("Valve Fremont" nei test) è stato valutato e scartato: risponde con un controllo anti-robot di Cloudflare.
 Il primo giro di ogni fonte registra quello che c'è già, senza avvisi.
 """
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import logging
@@ -38,6 +44,7 @@ GAME = "valvehw"
 HEADERS = {"User-Agent": f"Mozilla/5.0 (compatible; hlx-watch/{__version__}; +https://github.com/bryanoberholzer00-bot/hlx-watch)"}
 MIRROR = "https://steamdeck-packages.steamos.cloud/archlinux-mirror/"
 FCC_PAGE = "https://fccid.io/{grantee}"
+DOCS = "https://partner.steamgames.com"
 
 # archivi di SteamOS: prefisso (jupiter, holo, core...) e versione (main, rel, staging, 3.10, staging-2026-10-29...)
 REPO_NAME = re.compile(r"^(?P<prefix>[a-z][a-z0-9-]*?)-(?:debug-|testing-|unstable-)*"
@@ -314,6 +321,120 @@ class FccIdsSource(_Base):
         return found
 
 
+# ------------------------------------------------------------------ documentazione di Steamworks
+def parse_doc_index(html: str) -> list[str]:
+    """Le pagine della documentazione (/doc/...) elencate nel menu, che contiene l'indice completo."""
+    paths = {p.rstrip("/") for p in re.findall(r'href="(?:https://partner\.steamgames\.com)?(/doc/[^"#?]+)"', html)}
+    return sorted(p for p in paths if p != "/doc")
+
+
+def parse_doc_text(html: str) -> list[str]:
+    """Le righe del testo principale di una pagina, senza menu e piè di pagina."""
+    m = re.search(r'<div[^>]*class="[^"]*documentation_bbcode[^"]*"[^>]*>', html)
+    if not m:
+        return []
+    seg = html[m.end():]
+    end = seg.find("Steamworks is the set of tools")
+    seg = seg[:end if end > 0 else 20000]
+    import html as htmlmod
+    text = htmlmod.unescape(re.sub(r"<(br|/p|/div|/li|/h\d|/tr)[^>]*>", "\n", seg, flags=re.I))
+    text = re.sub(r"<[^>]+>", " ", text)
+    lines = [" ".join(line.split()) for line in text.splitlines()]
+    return [line for line in lines if len(line) > 2]
+
+
+def doc_device(path: str) -> str:
+    """/doc/steamhardware/steamframe/input -> "steamframe"; "" per le pagine generiche (compat, proton, debugging...).
+    I dispositivi di Valve si chiamano tutti Steam qualcosa: steamdeck, steamframe, steammachine."""
+    parts = path.split("/")
+    if len(parts) > 3 and parts[2] == "steamhardware" and parts[3].startswith("steam") and len(parts[3]) > 5:
+        return parts[3]
+    return ""
+
+
+class SteamworksDocsSource(_Base):
+    name = "steamworks_docs"
+    section = "steamworks"
+    last_key = "steamworks:last_run"
+
+    def __init__(self, cfg: Config, db: Database, session: requests.Session | None = None):
+        super().__init__(cfg, db, session)
+        self.pages: list[str] = list(self.scfg.get("pages") or ["/doc/steamhardware"])
+        self.score_device = int(self.scfg.get("score_device_page", 90))
+        self.score_hardware = int(self.scfg.get("score_hardware_page", 60))
+        self.score_page = int(self.scfg.get("score_page", 30))
+        self.score_text = int(self.scfg.get("score_text", 40))
+        from hlxwatch.analyzers import KeywordMatcher
+        self.matcher = KeywordMatcher(cfg.keywords)
+
+    def _boost(self, score: int, text: str, path: str) -> tuple[int, list[str]]:
+        """Le parole chiave valgono solo se alzano il punteggio (HLX, Half-Life...)."""
+        res = self.matcher.analyze_line(text, file_path=path, change_type="added")
+        return (max(score, res.score), list(res.keywords)) if res and res.score > score else (score, [])
+
+    def check(self) -> list[Finding]:
+        found: list[Finding] = []
+        index = parse_doc_index(_get(self.session, f"{DOCS}/doc/home").text)
+        if len(index) < 50:
+            raise RuntimeError(f"indice della documentazione con {len(index)} pagine: formato cambiato?")
+        found += self._compare_index(index)
+        for page in self.pages:
+            lines = parse_doc_text(_get(self.session, f"{DOCS}{page}").text)
+            if not lines:
+                raise RuntimeError(f"testo di {page} non trovato: formato cambiato?")
+            found += self._compare_text(page, lines)
+        return found
+
+    def _compare_index(self, index: list[str]) -> list[Finding]:
+        key = "steamworks:pages"
+        raw = self.db.get_state(key)
+        old = set(json.loads(raw)) if raw else set()
+        self.db.set_state(key, json.dumps(sorted(old | set(index))))      # le pagine tolte restano: niente falsi "nuovi"
+        if raw is None:
+            log.info("[steamworks] %d pagine della documentazione registrate", len(index))
+            return []
+        devices = {doc_device(p) for p in old} - {""}
+        out = []
+        for path in sorted(set(index) - old):
+            device = doc_device(path)
+            if device and device not in devices:
+                score, what = self.score_device, f"pagina per un dispositivo nuovo «{device}»"
+                devices.add(device)
+            elif path.startswith("/doc/steamhardware/"):
+                score, what = self.score_hardware, "pagina nuova sull'hardware"
+            else:
+                score, what = self.score_page, "pagina nuova"
+            words = path.replace("/doc/", "").replace("/", " ").replace("_", " ")
+            score, keywords = self._boost(score, f"{path} {words}", path)
+            text = f"Steamworks: {what}: {path}"
+            out.append(self._add(source="steamworks_docs", change_type="steamworks_page",
+                                 keyword=keywords[0] if keywords else "steamworks_page", token=f"steamworks:{path}",
+                                 text=text, score=score, path="partner.steamgames.com/doc", url=f"{DOCS}{path}",
+                                 ref=f"steamworks:page:{path}", context={"pagina": path}))
+        return out
+
+    def _compare_text(self, page: str, lines: list[str]) -> list[Finding]:
+        key = f"steamworks:text:{page}"
+        raw = self.db.get_state(key)
+        self.db.set_state(key, json.dumps(lines))
+        if raw is None:
+            return []
+        old = set(json.loads(raw))
+        out = []
+        for line in lines:
+            if line in old:
+                continue
+            score, keywords = self._boost(self.score_text, line, page)
+            out.append(self._add(source="steamworks_docs", change_type="steamworks_text",
+                                 keyword=keywords[0] if keywords else "steamworks_text",
+                                 token=f"steamworks:{page}:{line[:60]}", text=f"Steamworks {page}: riga nuova: {line[:300]}",
+                                 score=score, path=f"partner.steamgames.com{page}", url=f"{DOCS}{page}",
+                                 ref=f"steamworks:text:{page}:{hashlib.sha1(line.encode()).hexdigest()[:12]}",
+                                 context={"pagina": page, "riga": line[:500]}))
+            old.add(line)
+        return out
+
+
 def latest(db: Database) -> dict[str, Any]:
     """Per la pagina Hardware: i codici FCC registrati e i pacchetti di supporto dei dispositivi in SteamOS."""
     fcc: list[dict[str, str]] = []
@@ -329,4 +450,10 @@ def latest(db: Database) -> dict[str, Any]:
                 devices.setdefault(codename, [])
                 if VARIANT.sub("", name) not in devices[codename]:
                     devices[codename].append(VARIANT.sub("", name))
-    return {"fcc": fcc, "steamos_devices": {k: sorted(v) for k, v in sorted(devices.items())}}
+    docs: dict[str, int] = {}                       # dispositivo -> pagine nella documentazione di Steamworks
+    for p in json.loads(db.get_state("steamworks:pages") or "[]"):
+        device = doc_device(p)
+        if device:
+            docs[device] = docs.get(device, 0) + 1
+    return {"fcc": fcc, "steamos_devices": {k: sorted(v) for k, v in sorted(devices.items())},
+            "steamworks_hw": dict(sorted(docs.items()))}

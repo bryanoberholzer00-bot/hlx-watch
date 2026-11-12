@@ -324,6 +324,13 @@ hardware_valve:                          # hardware Valve fuori dai giochi (hlxw
     interval_hours: 12
     grantees: [2AES4]
     score_new: 80
+  steamworks:                            # documentazione pubblica di Steamworks (partner.steamgames.com/doc)
+    interval_hours: 12
+    pages: [/doc/steamhardware]          # pagine di cui si segue il testo (l'indice si legge sempre)
+    score_device_page: 90                # pagina per un dispositivo nuovo in /doc/steamhardware/
+    score_hardware_page: 60
+    score_page: 30
+    score_text: 40
 
 achievements:                            # obiettivi delle app di steam.watch_apps (API pubblica, senza chiave)
   enabled: true

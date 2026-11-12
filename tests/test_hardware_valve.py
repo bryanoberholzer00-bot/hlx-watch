@@ -169,3 +169,57 @@ def test_reevaluate_keeps_the_new_entries(tmp_path):
     left = {r[0] for r in db.conn.execute("SELECT token FROM findings WHERE game = 'valvehw'")}
     assert left == {"fcc:2aes4-1017", "steamos:orion-hw-support", "steamos:orion-main"}
     db.close()
+
+
+# ------------------------------------------------------------------ documentazione di Steamworks
+def doc_page(paths, text_lines):
+    nav = "".join(f'<a href="https://partner.steamgames.com{p}">{p}</a>' for p in paths)
+    body = "".join(f"<p>{line}</p>" for line in text_lines)
+    return (f'<html><div id="docNavigation">{nav}</div><div class="documentation_bbcode">{body}</div>'
+            "<div>Steamworks is the set of tools and services built by Valve</div></html>")
+
+
+class DocsWeb:
+    def __init__(self):
+        self.paths = ["/doc/home", "/doc/steamhardware", "/doc/steamhardware/steamdeck", "/doc/steamhardware/steamframe",
+                      "/doc/steamhardware/steamframe/input"] + [f"/doc/features/page{i}" for i in range(60)]
+        self.lines = ["The Steam hardware lineup includes Steam Deck, Steam Controller, and the upcoming Steam Frame.",
+                      "Steam Deck", "Steam Frame"]
+
+    def get(self, url, headers=None, timeout=None):
+        return Resp(doc_page(self.paths, self.lines))
+
+
+def test_steamworks_docs(tmp_path):
+    from hlxwatch.sources.hardware_valve import SteamworksDocsSource, latest, parse_doc_index, parse_doc_text
+    web = DocsWeb()
+    html = doc_page(web.paths, web.lines)
+    assert "/doc/steamhardware/steamframe" in parse_doc_index(html) and len(parse_doc_index(html)) == 65
+    assert parse_doc_text(html)[0].startswith("The Steam hardware lineup") and "Steamworks is" not in " ".join(parse_doc_text(html))
+    cfg, db = make(tmp_path)
+    src = SteamworksDocsSource(cfg, db, web)
+    assert src.run() == [] and not src.errors                                     # primo giro: registra
+    web.paths += ["/doc/steamhardware/steamorion", "/doc/steamhardware/steamorion/devkits",
+                  "/doc/steamhardware/steamframe/engines", "/doc/store/new_rules", "/doc/features/hlx_preview"]
+    web.lines[0] = "The Steam hardware lineup includes Steam Deck, Steam Controller, Steam Frame and the upcoming Steam Orion."
+    found = {f.token: f for f in src.run(force=True)}
+    assert found["steamworks:/doc/steamhardware/steamorion"].score == 90
+    assert "steamorion" in found["steamworks:/doc/steamhardware/steamorion"].text
+    assert found["steamworks:/doc/steamhardware/steamorion/devkits"].score == 60          # stesso dispositivo: una sola a 90
+    assert found["steamworks:/doc/steamhardware/steamframe/engines"].score == 60
+    assert found["steamworks:/doc/store/new_rules"].score == 30
+    assert found["steamworks:/doc/features/hlx_preview"].score >= 100                      # le parole HLX contano
+    [line] = [f for f in found.values() if f.change_type == "steamworks_text"]
+    assert line.score == 40 and "Steam Orion" in line.text
+    assert src.run(force=True) == []                                                       # niente di nuovo
+    assert latest(db)["steamworks_hw"] == {"steamdeck": 1, "steamframe": 3, "steamorion": 2}
+    web.paths = ["/doc/home"]                                                             # formato cambiato: errore
+    assert src.run(force=True) == [] and src.errors
+    db.close()
+
+
+def test_generic_hardware_pages_are_not_devices():
+    from hlxwatch.sources.hardware_valve import doc_device
+    assert doc_device("/doc/steamhardware/steamframe/input") == "steamframe"
+    assert doc_device("/doc/steamhardware/compat/verified") == "" and doc_device("/doc/steamhardware/proton") == ""
+    assert doc_device("/doc/steamhardware") == "" and doc_device("/doc/features/steamvr") == ""
