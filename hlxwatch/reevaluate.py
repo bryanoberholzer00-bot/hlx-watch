@@ -75,9 +75,12 @@ def reevaluate(cfg: Config, db: Database) -> dict[str, int]:
     # dopo una modifica al config valgono anche per quelle già registrate
     from hlxwatch.analyzers.localization import LocalizationTracker
     from hlxwatch.sources.structure import StructureWatch
+    from hlxwatch.sources.github_tracking import rescore_watched
+    from hlxwatch.sources.hardware_ids import HardwareIdsSource
     from hlxwatch.sources.steam_webapi import rescore_name_findings
     rules = (StructureWatch(cfg, db, None).rescore_existing() + LocalizationTracker(cfg, db).rescore_existing()
-             + rescore_name_findings(cfg, db))
+             + rescore_name_findings(cfg, db) + rescore_watched(cfg, db)
+             + HardwareIdsSource(cfg, db, None).rescore_existing())
     db.conn.commit()
     stats = {"esaminate": len(rows), "eliminate": len(drop), "aggiornate": rescored + rules, "private": len(private),
              "tolte_false": len(contradictions)}

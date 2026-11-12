@@ -146,6 +146,30 @@ class HardwareIdsSource:
                     return f"compare in {spec['repo']}: {paths[0]}{more}"
         return ""
 
+    def rescore_existing(self) -> int:
+        """Le voci registrate prima del controllo "già noto" (11/11/2026: STEAM_TRITON e STEAM_TRITON_BLE a 60):
+        si riapplica il controllo senza la ricerca su GitHub (niente rete durante la rivalutazione)."""
+        search, self.search_code = self.search_code, False
+        changed = 0
+        try:
+            for r in self.db.conn.execute("SELECT id, file_path, text, context FROM findings WHERE change_type = 'hardware_id' "
+                                          "AND keywords = '[\"hardware_id\"]' AND text NOT LIKE '%nome in codice%'").fetchall():
+                try:
+                    name = json.loads(r["context"] or "{}").get("nome") or ""
+                except ValueError:
+                    continue
+                spec = next((s for s in self.files if f"{s['repo']}/{s['path']}" == r["file_path"]), None)
+                if not name or spec is None or not self.codenames(name):
+                    continue
+                seen = self.known(spec, name)
+                if seen:
+                    self.db.conn.execute("UPDATE findings SET score = ?, text = ? WHERE id = ?",
+                                         (self.score_known, f"{r['text']}: nome in codice già noto, {seen}", r["id"]))
+                    changed += 1
+        finally:
+            self.search_code = search
+        return changed
+
     def _finding(self, spec: dict[str, Any], name: str, value: str) -> Finding:
         label = spec.get("name") or spec["repo"]
         text = f"Hardware Valve: nome nuovo in {label}: {name} ({value})"

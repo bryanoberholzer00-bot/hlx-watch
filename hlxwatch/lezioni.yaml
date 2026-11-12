@@ -8,6 +8,7 @@
 #   parola       le parole chiave trovate in una riga di un file (contiene / non_contiene / punteggio_max / _min)
 #   cosa_cambia  la riga "Cosa cambia" sotto gli avvisi delle build (build_notes.describe), per un elenco di file
 #   app_nuova    il punteggio del nome di un'app Steam nuova (steam_webapi.name_rule): nome, sviluppatore, editore
+#   file_sorvegliato  una riga di un file sorvegliato diventa una voce ("voce") o no ("niente")
 lezioni:
   - id: mod-hlx-motore
     data: "2026-11-05"
@@ -148,3 +149,31 @@ lezioni:
     controllo: app_nuova
     nome: "HLX"
     punteggio_min: 120
+  - id: gameinfo-impostazioni-di-rete
+    data: "2026-11-12"
+    errore: "Tredici impostazioni di rete di CS2 in gameinfo.gi (\"net_limit_...\" \"256\", ForceUseBuildVersion 1) sono arrivate come avvisi da 50 punti."
+    controllo: file_sorvegliato
+    file: "game/csgo/gameinfo.gi"
+    testo: '"net_limit_sv_recvbuffer_kb" "128"'
+    atteso: niente
+  - id: gameinfo-numero
+    data: "2026-11-12"
+    errore: "Stesso errore per le impostazioni senza virgolette con un numero."
+    controllo: file_sorvegliato
+    file: "game/csgo/gameinfo.gi"
+    testo: "ForceUseBuildVersion\t1"
+    atteso: niente
+  - id: gameinfo-percorso-di-gioco
+    data: "2026-11-12"
+    errore: "Ignorando le impostazioni non bisogna perdere i percorsi del gioco: un Game hlx in gameinfo.gi resta un avviso."
+    controllo: file_sorvegliato
+    file: "game/csgo/gameinfo.gi"
+    testo: "Game\thlx"
+    atteso: voce
+  - id: gameinfo-fgd
+    data: "2026-11-12"
+    errore: "Anche GameData con il file FGD del gioco (chiave senza virgolette) resta una voce."
+    controllo: file_sorvegliato
+    file: "game/hlx/gameinfo.gi"
+    testo: 'GameData "hlx.fgd"'
+    atteso: voce

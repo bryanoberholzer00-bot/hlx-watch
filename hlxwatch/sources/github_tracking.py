@@ -36,6 +36,30 @@ log = logging.getLogger(__name__)
 TRIVIAL_LINE = re.compile(r"[\s{}\[\]()/,;]*")      # parentesi e punteggiatura: non sono righe di contenuto
 
 
+def watched_rules(cfg: Config) -> list[tuple[re.Pattern[str], str, int, list[re.Pattern[str]]]]:
+    """I file sorvegliati del config: (percorso, titolo, punteggio, righe da ignorare)."""
+    return [(re.compile(str(w["pattern"]), re.IGNORECASE), str(w.get("title", w["pattern"])),
+             int(w.get("score", 50)), [re.compile(str(x)) for x in (w.get("ignore") or [])])
+            for w in (cfg.get("watched_files", []) or []) if w.get("pattern")]
+
+
+def watched_line(rules: list[tuple[re.Pattern[str], str, int, list[re.Pattern[str]]]], path: str, text: str) -> bool:
+    """La riga di un file sorvegliato diventa una voce (False: file non sorvegliato, riga ignorata o vuota)."""
+    rule = next((r for r in rules if r[0].search(path)), None)
+    stripped = (text or "").strip()
+    return bool(rule and stripped and not TRIVIAL_LINE.fullmatch(stripped) and not any(x.search(stripped) for x in rule[3]))
+
+
+def rescore_watched(cfg: Config, db: Database) -> int:
+    """Toglie le voci 'file sorvegliato' che le regole di oggi ignorano (dopo un ignore nuovo nel config)."""
+    rules = watched_rules(cfg)
+    drop = [r["id"] for r in db.conn.execute(
+        "SELECT id, file_path, text FROM findings WHERE keywords = '[\"watched_file\"]'").fetchall()
+        if not watched_line(rules, r["file_path"] or "", r["text"] or "")]
+    db.conn.executemany("DELETE FROM findings WHERE id = ?", [(i,) for i in drop])
+    return len(drop)
+
+
 def format_key(text: str) -> str:
     """Una riga senza spazi né maiuscole, e con i tipi delle FGD unificati: nel 2026 Valve ha riscritto
     "choices" in "intchoices" in tutte le FGD, e quelle righe non sono modifiche di contenuto."""
@@ -251,9 +275,7 @@ class GitHubTrackingSource:
         self.renames_enabled = bool(rcfg.get("enabled", True))
         self.rename_score = int(rcfg.get("score", 100))
         self._repo_by_name = {r["name"]: r for r in tracked_repos(cfg, db)}
-        self.watched = [(re.compile(str(w["pattern"]), re.IGNORECASE), str(w.get("title", w["pattern"])),
-                         int(w.get("score", 50)), [re.compile(str(x)) for x in (w.get("ignore") or [])])
-                        for w in (cfg.get("watched_files", []) or []) if w.get("pattern")]
+        self.watched = watched_rules(cfg)
         self.context_lines = int(cfg.get("general.context_lines", 2))
         self.max_findings = int(cfg.get("general.max_findings_per_file", 400))
         self.fallback_max = int(cfg.get("github.fallback_max_bytes", 25 * 1024 * 1024))

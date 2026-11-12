@@ -73,20 +73,24 @@ def name_rule(ncfg: dict[str, Any], name: str | None, developer: Any, publisher:
 
 
 def rescore_name_findings(cfg: Config, db: Database) -> int:
-    """Riapplica name_rule alle app già registrate per il nome: abbassa (o toglie) quelle che non lo meritano più.
-    Si toccano solo le voci con i soli segnali suspicious_name, private_app o valve_app."""
+    """Riapplica le regole di oggi alle app già registrate: il nome (name_rule) e le parole chiave che il config ora
+    esclude per i dati delle app (path_excludes su pics/app/, come hl_nomi_attaccati dopo il falso allarme VoXenCo).
+    Abbassa o toglie le voci che non lo meritano più; non tocca quelle con altre parole chiave ancora valide."""
     ncfg: dict[str, Any] = cfg.get("steam.new_apps", {}) or {}
     others = {"private_app": int(ncfg.get("score_private", 25)), "valve_app": int(ncfg.get("score_developer", 90))}
+    excludes = {k.id: k.path_excludes for k in KeywordMatcher(cfg.keywords).keywords}
     changed = 0
-    rows = db.conn.execute("SELECT id, text, score, keywords FROM findings WHERE change_type = 'new_app' "
-                           "AND keywords LIKE '%\"suspicious_name\"%'").fetchall()
+    rows = db.conn.execute("SELECT id, text, score, keywords FROM findings WHERE change_type = 'new_app'").fetchall()
     for r in rows:
         m = NEW_APP_TEXT.match(r["text"] or "")
-        keywords = json.loads(r["keywords"] or "[]")
-        if not m or not set(keywords) <= {"suspicious_name", *others}:
+        if not m:
             continue
+        keywords = [k for k in json.loads(r["keywords"] or "[]")
+                    if not any(ex.search(f"pics/app/{m.group(1)}") for ex in excludes.get(k, []))]
+        if not set(keywords) <= {"suspicious_name", *others}:
+            continue                          # un'altra parola chiave ancora valida: il punteggio resta
         name = None if m.group(2) == "(senza nome)" else m.group(2)
-        new, _ = name_rule(ncfg, name, m.group(3), m.group(4))
+        new = name_rule(ncfg, name, m.group(3), m.group(4))[0] if "suspicious_name" in keywords else 0
         rest = [k for k in keywords if k != "suspicious_name"]
         score = max([new, *(others[k] for k in rest)])
         if score >= r["score"]:

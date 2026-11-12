@@ -104,6 +104,11 @@ class Checker:
             if lesson.get("punteggio_min") is not None and score < int(lesson["punteggio_min"]):
                 problems.append(f"punteggio del nome {score}, il minimo è {lesson['punteggio_min']}")
             return "; ".join(problems) or None
+        if kind == "file_sorvegliato":
+            from hlxwatch.sources.github_tracking import watched_line, watched_rules
+            got = "voce" if watched_line(watched_rules(self.cfg), str(lesson.get("file") or ""), str(lesson.get("testo") or "")) else "niente"
+            want = str(lesson.get("atteso") or "niente")
+            return None if got == want else f"{got} invece di {want}"
         if kind == "cosa_cambia":
             from hlxwatch.build_notes import describe
             got = describe(list(lesson.get("files") or []))
