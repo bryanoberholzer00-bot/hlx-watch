@@ -209,6 +209,11 @@ steam_news:                              # post ufficiali di Valve su Steam (ISt
 revisione:                               # revisione settimanale con l'AI (revisione.py), dopo il riepilogo del lunedì
   enabled: true                          # al massimo 3 correzioni proposte, ognuna da approvare con ✅ su Telegram
   url: "https://hlx-watch-bot.bryan-oberholzer00.workers.dev/proposte.json"   # scelte registrate dal bot
+  conteggio:                             # a ogni giro, senza AI: un tipo di voce con almeno `minimo` avvisi in
+    enabled: true                        # `giorni` giorni, nessuno con tracce HLX, si propone subito da silenziare
+    minimo: 3
+    giorni: 7
+    esclusi: ["alyx|build|"]             # tenuti apposta: le build di Half-Life: Alyx avvisano sempre (12/11/2026)
 
 contatore:                               # contatore di Valve (contatore.py): SourceRevision dei steam.inf di CS2,
   enabled: true                          # Dota 2 e Deadlock; avviso quando il ritmo supera del 30% l'anno prima

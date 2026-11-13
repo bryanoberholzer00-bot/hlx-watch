@@ -16,11 +16,18 @@ A ogni giro si leggono le scelte: una proposta approvata si applica (stato revis
 esempio del registro degli errori (lezioni.py), così l'errore non torna. Le proposte senza risposta scadono dopo
 14 giorni. Tutto ciò che arriva dal modello è controllato qui: la voce deve essere tra quelle mandate, il tipo
 tra quelli ammessi, i testi brevi.
+
+Controllo a conteggio (check_noise), senza AI, a ogni giro: se negli ultimi 7 giorni almeno 3 avvisi dello stesso tipo
+di voce (gioco, modifica, parola chiave, area dei file: lo stesso tipo del pulsante 👎) sono partiti senza nessuna
+traccia HLX, arriva subito la proposta di silenziarlo, con gli stessi pulsanti. Così un falso allarme che si ripete
+(13 impostazioni di rete di CS2 il 12/11/2026) si ferma prima della revisione del lunedì, anche senza credito AI.
+Un tipo rifiutato con ❌ non si ripropone più.
 """
 from __future__ import annotations
 
 import json
 import logging
+from collections import Counter
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -41,6 +48,8 @@ DEFAULT_URL = "https://hlx-watch-bot.bryan-oberholzer00.workers.dev/proposte.jso
 MAX_PROPOSALS = 3
 MAX_ITEMS = 40
 EXPIRE = timedelta(days=14)
+GROUP_MIN = 3                                   # controllo a conteggio: avvisi dello stesso tipo...
+GROUP_DAYS = 7                                  # ...in questi giorni
 KIND_LABELS = {"gioco": "🎮 pezzo di gioco", "motore": "⚙️ pezzo di motore", "alyx": "🔁 eredità di Alyx",
                "strumenti": "🛠️ strumenti di lavoro", "dubbio": "❔ da capire"}
 
@@ -253,21 +262,103 @@ def describe_proposal(p: dict[str, Any]) -> str:
     return what + f"\nPerché: {p['perche']}"
 
 
-def send(notifiers: list, items: list[dict[str, Any]], week: str) -> bool:
-    lines = [f"Revisione della settimana: {len(items)} {'correzione proposta' if len(items) == 1 else 'correzioni proposte'}"
-             " per gli errori di HLX Watch.", ""]
+def send(notifiers: list, items: list[dict[str, Any]], week: str, *, title: str | None = None,
+         intro: str | None = None, footer: str | None = None) -> bool:
+    intro = intro or (f"Revisione della settimana: {len(items)} "
+                      f"{'correzione proposta' if len(items) == 1 else 'correzioni proposte'} per gli errori di HLX Watch.")
+    lines = [intro, ""]
     buttons = []
     for n, p in enumerate(items, 1):
         lines += [f"{n}. {describe_proposal(p)}", ""]
         buttons.append([{"text": f"✅ Applica {n}", "callback_data": f"p:{p['pid']}:s"},
                         {"text": f"❌ No {n}", "callback_data": f"p:{p['pid']}:n"}])
-    lines.append("Una correzione applicata diventa un esempio del registro degli errori: non può tornare.")
+    lines.append(footer or "Una correzione applicata diventa un esempio del registro degli errori: non può tornare.")
     sent = False
     for notifier in notifiers:
         if hasattr(notifier, "send_buttons"):
-            sent = notifier.send_buttons(f"HLX Watch: revisione della settimana {week}", lines,
+            sent = notifier.send_buttons(title or f"HLX Watch: revisione della settimana {week}", lines,
                                          {"inline_keyboard": buttons}) or sent
     return sent
+
+
+# ------------------------------------------------------------------ controllo a conteggio
+def _count_cfg(cfg: Config) -> dict[str, Any]:
+    return ((cfg.get("revisione", {}) or {}).get("conteggio", {}) or {})
+
+
+def noisy_groups(cfg: Config, db: Database, now: datetime | None = None) -> list[dict[str, Any]]:
+    """I tipi di voce che negli ultimi giorni hanno mandato molti avvisi, nessuno con una traccia HLX o un possibile
+    annuncio: proposte di silenzio già pronte (senza pid). Esclusi i tipi già silenziati (👎 o correzione) e quelli
+    già proposti: in attesa, applicati o rifiutati."""
+    from hlxwatch import noise
+    ccfg = _count_cfg(cfg)
+    minimum, days = int(ccfg.get("minimo", GROUP_MIN)), int(ccfg.get("giorni", GROUP_DAYS))
+    kept = tuple(str(x) for x in (ccfg.get("esclusi") or []) if x)   # tipi tenuti apposta (inizio della chiave)
+    since = (now or utcnow()) - timedelta(days=days)
+    active = {**noise.rules(db), **corrections(db)["silenzi"]}
+    decided = {p.get("chiave") for p in proposals(db)
+               if p.get("azione") == "silenzio" and p.get("stato") in ("attesa", "applicata", "rifiutata")}
+    groups: dict[str, list[tuple[Finding, str]]] = {}
+    for row in db.conn.execute("SELECT * FROM findings WHERE notified = 1 AND created_at >= ? ORDER BY id",
+                               (iso(since),)):
+        f = _row_finding(row)
+        if noise.protected(f.keywords):
+            continue
+        rule = noise.rule_of(f.game, f.change_type, f.keywords, f.file_path)
+        if rule in active or rule in decided or rule.startswith(kept or ("\0",)):
+            continue
+        groups.setdefault(rule, []).append((f, str(row["created_at"] or "")))
+    out = []
+    for rule, items in sorted(groups.items(), key=lambda kv: (-len(kv[1]), kv[0])):
+        if len(items) < minimum:
+            continue
+        last = items[-1][0]
+        files = Counter(f.file_path or "?" for f, _ in items)
+        where = ", ".join(p for p, _ in files.most_common(3))
+        if len(files) > 3:
+            where += f" e altri {len(files) - 3} file"
+        first = min(c for _, c in items)[:10]
+        day = f"{first[8:10]}/{first[5:7]}" if len(first) == 10 else first
+        out.append({"azione": "silenzio", "chiave": rule, "descrizione": noise.describe(cfg, rule), "voce": last.id,
+                    "esempio": (last.token or last.text or "").strip()[:120], "gioco": cfg.game_title(last.game),
+                    "perche": f"{len(items)} avvisi dal {day} ({where}), nessuno con parole HLX.",
+                    "fonte": "conteggio", "avvisi": len(items)})
+    return out[:MAX_PROPOSALS]
+
+
+def check_noise(cfg: Config, db: Database, notifiers: list, *, send_it: bool = True,
+                now: datetime | None = None) -> list[dict[str, Any]]:
+    """A ogni giro: propone su Telegram di silenziare i tipi di voce che mandano molti avvisi senza tracce HLX.
+    Le proposte si salvano solo se il messaggio parte (altrimenti nessuno potrebbe rispondere)."""
+    if not _count_cfg(cfg).get("enabled", True):
+        return []
+    found = noisy_groups(cfg, db, now)
+    if not found or not send_it:
+        return found
+    now = now or utcnow()
+    taken = {p.get("pid") for p in proposals(db)}
+    n = 51                                       # 51-99: i pid della revisione del lunedì finiscono con 1-3
+    for p in found:
+        while f"p{now:%y%m%d}{n}" in taken:
+            n += 1
+        if n > 99:
+            found = found[:found.index(p)]
+            break
+        p.update({"pid": f"p{now:%y%m%d}{n}", "stato": "attesa", "creata": iso(now), "settimana": now.date().isoformat()})
+        taken.add(p["pid"])
+    if not found:
+        return []
+    days = int(_count_cfg(cfg).get("giorni", GROUP_DAYS))
+    one = len(found) == 1
+    intro = (f"{'Un tipo di voce ha' if one else f'{len(found)} tipi di voce hanno'} mandato molti avvisi negli ultimi "
+             f"{days} giorni senza nessuna traccia HLX: {'forse è rumore' if one else 'forse sono rumore'}.")
+    if send(notifiers, found, "", title="HLX Watch: controllo dei falsi allarmi", intro=intro,
+            footer="Con ✅ le voci restano sul sito ma non mandano più avvisi. Con ❌ non te lo chiedo più."):
+        _save_proposals(db, proposals(db) + found)
+        log.info("Falsi allarmi: %d tipi di voce proposti da silenziare", len(found))
+        return found
+    log.warning("Falsi allarmi: messaggio non partito, proposte non salvate")
+    return []
 
 
 def run_review(cfg: Config, db: Database, notifiers: list, *, client: Any = None, force: bool = False,

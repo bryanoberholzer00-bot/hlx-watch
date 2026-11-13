@@ -207,3 +207,50 @@ def test_unanswered_proposals_expire(tmp_path):
     assert proposals(db)[0]["stato"] == "scaduta" and corrections(db)["tipi"] == {}
     assert db.get_state(LEARNED) in (None, "", "[]")
     db.close()
+
+
+# ------------------------------------------------------------------ controllo a conteggio
+def test_repeated_alerts_without_hlx_are_proposed_for_silence(tmp_path):
+    from hlxwatch.revisione import check_noise, noisy_groups
+    cfg, db = make(tmp_path)
+    b = db.upsert_build(BuildInfo(game="cs2", source="github", ref="net", date=utcnow()))
+    ids = []
+    for n in range(4):                       # quattro impostazioni di rete in gameinfo.gi: rumore
+        ids.append(db.add_finding(Finding(game="cs2", source="github", file_path="game/csgo/gameinfo.gi",
+                                          change_type="added", text=f'"net_limit_{n}" "128"', score=50,
+                                          keywords=["watched_file"]), b).id)
+    for n in range(5):                       # cinque tracce HLX: mai
+        ids.append(db.add_finding(Finding(game="cs2", source="github", file_path="game/csgo/pak01_dir/x.txt",
+                                          change_type="added", text=f"hlx_cosa_{n}", token=f"hlx_cosa_{n}", score=110,
+                                          keywords=["hlx_prefix"]), b).id)
+    for n in range(3):                       # tre build di Alyx: tenute apposta (esclusi nel config)
+        ids.append(db.add_finding(Finding(game="alyx", source="steam_pics", file_path="depots/branches/public",
+                                          change_type="build", text=f"alyx {n}", score=60, keywords=["steam_build"]), b).id)
+    for n in range(2):                       # due build: sotto la soglia
+        ids.append(db.add_finding(Finding(game="dota2", source="steam_pics", file_path="depots/branches/public",
+                                          change_type="build", text=f"build {n}", score=60, keywords=["steam_build"]), b).id)
+    db.add_finding(Finding(game="cs2", source="github", file_path="game/csgo/gameinfo.gi", change_type="added",
+                           text='"net_mai_inviata" "1"', score=40, keywords=["watched_file"]), b)   # non mandata
+    db.mark_notified(ids)
+    found = noisy_groups(cfg, db)
+    assert [(p["gioco"], p["avvisi"]) for p in found] == [("Counter-Strike 2", 4)]
+    assert "game/csgo/gameinfo.gi" in found[0]["perche"] and "nessuno con parole HLX" in found[0]["perche"]
+    assert check_noise(cfg, db, [], send_it=False) and proposals(db) == []        # anteprima: niente salvato
+    telegram = Telegram()
+    sent = check_noise(cfg, db, [telegram])
+    pid = sent[0]["pid"]
+    title, lines, markup = telegram.sent[0]
+    assert "falsi allarmi" in title and markup["inline_keyboard"][0][1]["callback_data"] == f"p:{pid}:n"
+    import re
+    assert re.fullmatch(r"p\d{6,8}\d{1,2}", pid)                                  # la forma che il bot accetta
+    assert check_noise(cfg, db, [telegram]) == []                                 # già in attesa: non si ripete
+    # rifiutata: non si ripropone più; approvata: silenzia e diventa un esempio del registro
+    assert apply_decisions(cfg, db, [telegram], session=Bot(decisions={pid: {"d": "n"}})) == 0
+    assert proposals(db)[0]["stato"] == "rifiutata" and noisy_groups(cfg, db) == []
+    db.set_state(PROPOSALS, json.dumps([{**proposals(db)[0], "stato": "attesa"}]))
+    assert apply_decisions(cfg, db, [telegram], session=Bot(decisions={pid: {"d": "s"}})) == 1
+    noisy = Finding(game="cs2", source="github", file_path="game/csgo/gameinfo.gi", change_type="added",
+                    text='"net_altra" "1"', score=50, keywords=["watched_file"], is_new=True)
+    assert Pipeline(cfg, db).select_alerts([noisy]) == []
+    assert Checker(cfg, db).run()["ok"]
+    db.close()

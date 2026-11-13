@@ -178,6 +178,12 @@ def cmd_cron(args: argparse.Namespace) -> int:
         run_review(cfg, db, pipeline.notifiers if not args.no_notify else [], send_it=not args.no_notify)
     except Exception:
         log.exception("Revisione settimanale fallita")
+    # falsi allarmi: i tipi di voce che mandano molti avvisi senza tracce HLX, proposti subito da silenziare
+    try:
+        from hlxwatch.revisione import check_noise
+        check_noise(cfg, db, pipeline.notifiers if not args.no_notify else [], send_it=not args.no_notify)
+    except Exception:
+        log.exception("Controllo dei falsi allarmi fallito")
     # contatore di Valve: il numero delle modifiche (Perforce) nei steam.inf di oggi, e l'avviso sulle ondate
     try:
         from hlxwatch.contatore import run as run_counter
@@ -466,6 +472,17 @@ def cmd_review(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_noise_check(args: argparse.Namespace) -> int:
+    """Controllo dei falsi allarmi: i tipi di voce che mandano molti avvisi senza tracce HLX (anteprima)."""
+    cfg, db = _open(args)
+    from hlxwatch.revisione import describe_proposal, noisy_groups
+    found = noisy_groups(cfg, db)
+    print(f"{len(found)} tipi di voce da silenziare (anteprima: niente viene inviato)")
+    for n, p in enumerate(found, 1):
+        print(f"{n}. {describe_proposal(p)}")
+    return 0
+
+
 def cmd_restore_check(args: argparse.Namespace) -> int:
     """Prova di ripristino dell'ultima copia settimanale (una volta a settimana, salvo --forza)."""
     cfg, db = _open(args)
@@ -612,6 +629,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("revisione", help="revisione con l'AI degli avvisi della settimana: proposte di correzione")
     p.add_argument("--invia", action="store_true", help="manda le proposte su Telegram con i pulsanti")
     p.set_defaults(func=cmd_review)
+
+    p = sub.add_parser("falsi-allarmi", help="tipi di voce con molti avvisi senza tracce HLX (anteprima)")
+    p.set_defaults(func=cmd_noise_check)
 
     p = sub.add_parser("prova-ripristino", help="scarica l'ultima copia settimanale dell'archivio e verifica che si apra")
     p.add_argument("--forza", action="store_true", help="anche se non è passata una settimana dall'ultima prova")

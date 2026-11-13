@@ -173,6 +173,9 @@ TERMS: list[dict[str, str]] = [
     {"id": "falso-allarme", "nome": "Falso allarme", "gruppo": "lettura", "testo":
      "Un avviso partito per un motivo sbagliato (per esempio un'app chiamata «Untitled» di un altro sviluppatore). Ogni "
      "falso allarme corretto entra nel registro degli errori, ricontrollato a ogni giro perché non torni."},
+    {"id": "controllo-falsi-allarmi", "nome": "Controllo dei falsi allarmi", "gruppo": "lettura", "testo":
+     "A ogni giro HLX Watch conta gli avvisi degli ultimi 7 giorni per tipo di voce. Se un tipo ne ha mandati almeno 3 "
+     "senza nessuna traccia HLX, arriva su Telegram la proposta di silenziarlo, con i pulsanti ✅ e ❌."},
 ]
 
 

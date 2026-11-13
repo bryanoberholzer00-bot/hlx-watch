@@ -343,6 +343,10 @@
  una nota nella pagina <a href="esiti.html">Esiti</a>, oppure niente più avvisi per un tipo di voce di rumore. Le tracce
  HLX forti e i possibili annunci non si possono mai silenziare. Nessuna correzione si applica da sola: arriva su
  Telegram con i pulsanti ✅ Applica e ❌ No, e quella approvata entra nell'elenco qui sotto.</p>
+ <p>Il <b>controllo dei falsi allarmi</b> non aspetta il lunedì e non usa l'AI: a ogni giro conta gli avvisi degli
+ ultimi 7 giorni per tipo di voce (gioco, modifica, parola chiave, area dei file). Se un tipo ne ha mandati almeno 3,
+ nessuno con una traccia HLX o un possibile annuncio, arriva subito la proposta di silenziarlo, con gli stessi
+ pulsanti. Un tipo rifiutato non si ripropone.</p>
  {% if review.proposte %}<h3>Ultime proposte della revisione</h3>
  <ul>{% for p in review.proposte %}<li><small class="muted">{{ p.creata[:10] }} ·
   {{ {"attesa": "in attesa di risposta", "applicata": "applicata", "rifiutata": "non applicata", "scaduta": "scaduta senza risposta"}[p.stato] }}</small><br>
