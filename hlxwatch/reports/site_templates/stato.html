@@ -16,6 +16,10 @@
  table.giri td,table.giri th{font-size:.88rem;white-space:nowrap} .tabwrap{overflow-x:auto}
  .esito-ok{color:#2e9d4f;font-weight:600} .esito-ko{color:#d64545;font-weight:600} .esito-corso{color:#e5893b;font-weight:600}
  .sorveglianza li{margin:.3rem 0}
+ table.pagella td,table.pagella th{font-size:.9rem;white-space:nowrap}
+ .barra{display:flex;width:160px;height:.8rem;border-radius:3px;overflow:hidden;background:var(--line)}
+ .b-hlx{background:#2e9d4f} .b-utile{background:#4a7fd4} .b-rumore{background:#d64545}
+ .chiave{display:inline-block;width:.8rem;height:.8rem;border-radius:2px;vertical-align:middle}
 </style>
 <div class="breve">
 <h1>Stato di HLX Watch</h1>
@@ -41,6 +45,29 @@ stato di ogni fonte. La prima parte si aggiorna ogni volta che apri la pagina; l
 <section id="fonti">
  <h2>Le fonti</h2>
  {% include "_fonti.html" %}
+</section>
+
+<section id="pagella">
+ <h2>Pagella degli avvisi</h2>
+ <p class="muted">Mese per mese, che cosa erano gli avvisi arrivati su Telegram, giudicati con quello che si sa oggi:
+ un falso allarme spesso si scopre dopo. <b>Rumore</b> sono gli avvisi tolti dalle regole, con il punteggio abbassato
+ sotto la soglia o di un tipo silenziato (👎 o ✅); <b>altre novità</b> sono quelli validi senza parole HLX (hardware,
+ build di Alyx, app di Valve).</p>
+ {% if pagella.mesi %}
+ <div class="tabwrap"><table class="pagella">
+  <tr><th>Mese</th><th>Avvisi</th><th>Tracce HLX</th><th>Altre novità</th><th>Rumore</th><th></th></tr>
+  {% for m in pagella.mesi %}<tr><td>{{ m.nome }}{% if m.parziale %} <small class="muted">*</small>{% endif %}</td>
+   <td>{{ m.n }}</td><td>{{ m.hlx }}</td><td>{{ m.utile }}</td><td>{{ m.rumore }} <small class="muted">({{ m.perc }}%)</small></td>
+   <td><div class="barra" title="{{ m.hlx }} tracce HLX, {{ m.utile }} altre novità, {{ m.rumore }} rumore">
+    {% if m.hlx %}<span class="b-hlx" style="flex:{{ m.hlx }}"></span>{% endif %}{% if m.utile %}<span class="b-utile" style="flex:{{ m.utile }}"></span>{% endif %}{% if m.rumore %}<span class="b-rumore" style="flex:{{ m.rumore }}"></span>{% endif %}</div></td></tr>{% endfor %}
+ </table></div>
+ <p class="muted"><small><span class="chiave b-hlx"></span> tracce HLX · <span class="chiave b-utile"></span> altre novità ·
+ <span class="chiave b-rumore"></span> rumore.{% if pagella.dal %} * Mese incompleto: il registro degli avvisi parte dal
+ {{ pagella.dal[8:10] }}/{{ pagella.dal[5:7] }}/{{ pagella.dal[:4] }}; prima mancano gli avvisi già tolti dalle regole, quindi il
+ rumore vero era di più (il controllo del 12/11/2026 ne aveva contati 29 su 43 nei 30 giorni prima).{% endif %}</small></p>
+ {% if pagella.peggiori %}<h3>I tipi di voce più rumorosi</h3>
+ <ul>{% for p in pagella.peggiori %}<li>{{ p.tipo }}: {{ p.n }} {{ "avviso" if p.n == 1 else "avvisi" }}</li>{% endfor %}</ul>{% endif %}
+ {% else %}<p class="muted">Ancora nessun avviso annotato.</p>{% endif %}
 </section>
 
 <section id="sorveglianza">

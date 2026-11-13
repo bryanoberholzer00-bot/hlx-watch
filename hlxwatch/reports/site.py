@@ -356,8 +356,9 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     )
     (out_dir / "index.html").write_text(index_html, encoding="utf-8")
     # stato di HLX Watch: giri su GitHub e bot letti dal browser, le fonti dall'ultimo giro
+    from hlxwatch.pagella_avvisi import report as alert_report
     (out_dir / "stato.html").write_text(env.get_template("stato.html").render(
-        status=status, repo=str(cfg.get("general.repo", "") or "bryanoberholzer00-bot/hlx-watch"),
+        status=status, pagella=alert_report(cfg, db), repo=str(cfg.get("general.repo", "") or "bryanoberholzer00-bot/hlx-watch"),
         bot_url=str((cfg.get("fast_check", {}) or {}).get("status_url") or "")), encoding="utf-8")
     (out_dir / "hardware.html").write_text(env.get_template("hardware.html").render(hw=hardware_data(cfg, db)),
                                            encoding="utf-8")

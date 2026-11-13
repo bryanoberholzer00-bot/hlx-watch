@@ -267,6 +267,11 @@ class Pipeline:
                                        or f"HLX Watch: {len(result.alerts)} novità da controllare")
                 if sent:
                     self.db.mark_notified(f.id for f in result.alerts if f.id is not None)
+                    try:                   # pagella degli avvisi: ogni avviso mandato si annota e si giudica dopo
+                        from hlxwatch.pagella_avvisi import record
+                        record(self.db, result.alerts)
+                    except Exception:
+                        log.exception("Pagella degli avvisi: annotazione non riuscita")
                 status["notify"] = None if sent else "invio a Telegram/Discord non riuscito"
             elif notify:
                 log.info("%d voci supererebbero la soglia ma nessun notificatore è configurato", len(result.alerts))
