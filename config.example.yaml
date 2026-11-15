@@ -288,6 +288,8 @@ valve_certs:                             # domini nei certificati HTTPS dei siti
   interval_hours: 3                      # poche richieste anonime all'ora: una lettura ogni 3 ore basta
   score_new_domain: 120                  # dominio mai visto (es. il sito di un gioco nuovo)
   score_new_subdomain: 30                # sottodominio nuovo di un dominio noto: solo archivio
+  fallback_hosts: [half-life.com, steampowered.com]   # riserva se Cert Spotter non risponde: il certificato che
+                                         # questi siti servono (lo stesso per quasi tutti i siti dei giochi Valve)
 
 domains:                                 # registri dei domini (RDAP) e domini appena registrati (WhoisDS), una volta al giorno
   enabled: true

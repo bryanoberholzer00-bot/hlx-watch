@@ -11,13 +11,23 @@ chiave gratuita (variabile CERTSPOTTER_API_KEY) i limiti sono più alti. Non si 
   - poi un dominio mai visto (es. un nuovo gioco.com) è una voce sopra la soglia di notifica; con HLX o Half-Life nel
     nome è un possibile annuncio. Un sottodominio nuovo di un dominio già noto resta in archivio con pochi punti,
     a meno che le parole chiave lo valutino di più.
+
+Riserva, quando Cert Spotter non risponde per nessun dominio (il 15/11/2026 SSLMate ha sospeso il piano gratuito per
+carico, errore 503 "service_outage"): ci si collega ai siti di Valve come un browser e si leggono i nomi nel certificato
+che servono. Quasi tutti i siti dei giochi (half-life.com, steampowered.com, counter-strike.net, aperturescience.com...)
+usano lo stesso certificato, con 48 nomi a novembre 2026: un sito nuovo messo in linea compare lì. Vede meno di Cert
+Spotter (solo i certificati in uso, non quelli appena emessi né quelli dei siti di prova beta.* e preview.*, che non
+sono raggiungibili), ma non dipende da nessun servizio esterno. La prima lettura registra i nomi senza avvisi; i nomi
+nuovi entrano tra quelli noti, così quando Cert Spotter riparte non avvisano una seconda volta.
 """
 from __future__ import annotations
 
 import json
 import logging
 import os
-from datetime import timedelta
+import socket
+import ssl
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import requests
@@ -38,6 +48,21 @@ KNOWN_KEY = "certs:known"
 LAST_KEY = "certs:last_run"
 READY_KEY = "certs:ready"          # la prima lettura completa (solo registrazione) è finita
 MAX_PAGES = 10
+TLS_SEEN = "certs:tls:visti"       # nomi letti dai certificati serviti dai siti (riserva)
+FALLBACK_HOSTS = ["half-life.com", "steampowered.com"]
+
+
+def served_certificate(host: str, timeout: float = 10) -> dict[str, Any]:
+    """Il certificato che il sito serve adesso: nomi, numero di serie, valido dal."""
+    ctx = ssl.create_default_context()
+    with socket.create_connection((host, 443), timeout=timeout) as raw:
+        with ctx.wrap_socket(raw, server_hostname=host) as tls:
+            cert = tls.getpeercert() or {}
+    names = [v for k, v in cert.get("subjectAltName", ()) if k == "DNS"]
+    since = None
+    if cert.get("notBefore"):
+        since = iso(datetime.fromtimestamp(ssl.cert_time_to_seconds(cert["notBefore"]), tz=timezone.utc))
+    return {"id": f"tls:{cert.get('serialNumber', '')}", "not_before": since, "dns_names": names}
 
 
 def normalize(name: str) -> str:
@@ -69,6 +94,8 @@ class ValveCertsSource:
             self.session.headers["Authorization"] = f"Bearer {key}"
         self.matcher = KeywordMatcher(cfg.keywords)
         self.errors: list[str] = []
+        self.fallback_hosts = [str(h) for h in self.ccfg.get("fallback_hosts", FALLBACK_HOSTS)]
+        self.read_served = served_certificate
 
     @property
     def enabled(self) -> bool:
@@ -110,6 +137,7 @@ class ValveCertsSource:
         bases = {base_domain(n) for n in known}
         findings: list[Finding] = []
         complete = True
+        failed = 0
         for domain in self.domains:
             after_key = f"certs:after:{domain}"
             try:
@@ -117,6 +145,7 @@ class ValveCertsSource:
             except Exception as exc:
                 log.warning("Cert Spotter: %s non letto: %s", domain, exc)
                 self.errors.append(f"{domain}: {exc}")
+                failed += 1
                 continue
             complete &= done
             for cert in certs:
@@ -131,6 +160,8 @@ class ValveCertsSource:
                 bases.update(base_domain(n) for n in new)
             if certs:
                 self.db.set_state(after_key, str(certs[-1]["id"]))
+        if self.domains and failed == len(self.domains) and not first:
+            findings += self.fallback(known, bases)
         self.db.set_state(KNOWN_KEY, json.dumps(sorted(known)))
         if complete and not self.errors:
             self.db.set_state(LAST_KEY, iso(utcnow()))
@@ -141,7 +172,36 @@ class ValveCertsSource:
                      "" if complete else " (lettura da completare al prossimo giro)")
         return findings
 
-    def _findings(self, new: list[str], bases: set[str], cert: dict[str, Any]) -> list[Finding]:
+    def fallback(self, known: set[str], bases: set[str]) -> list[Finding]:
+        """Riserva: i nomi nei certificati che i siti di Valve servono adesso (aggiorna known e bases)."""
+        raw = self.db.get_state(TLS_SEEN)
+        first = raw is None
+        seen: set[str] = set(json.loads(raw)) if raw else set()
+        findings: list[Finding] = []
+        read = []
+        for host in self.fallback_hosts:
+            try:
+                cert = self.read_served(host)
+            except Exception as exc:
+                log.warning("Certificati di Valve, riserva: %s non letto: %s", host, exc)
+                continue
+            read.append(host)
+            names = sorted({normalize(n) for n in cert.get("dns_names") or []})
+            new = [n for n in names if n not in known and n not in seen]
+            seen.update(names)
+            if new and not first:
+                known.update(new)
+                findings += self._findings(new, bases, cert, via=host)
+                bases.update(base_domain(n) for n in new)
+        if read:
+            self.db.set_state(TLS_SEEN, json.dumps(sorted(seen)))
+            note = f"riserva attiva: letti i certificati di {', '.join(read)}"
+            self.errors = [f"{e} ({note})" for e in self.errors]
+            log.info("Certificati di Valve: Cert Spotter non risponde, %s (%d nomi%s)", note, len(seen),
+                     ", prima lettura senza avvisi" if first else "")
+        return findings
+
+    def _findings(self, new: list[str], bases: set[str], cert: dict[str, Any], via: str | None = None) -> list[Finding]:
         by_base: dict[str, list[str]] = {}
         for name in new:
             by_base.setdefault(base_domain(name), []).append(name)
@@ -170,7 +230,9 @@ class ValveCertsSource:
                               score=min(score, 250), keywords=keywords, token=f"domain:{subject}",
                               context=json.dumps({"nomi": names, "certificato": cert.get("id"),
                                                   "valido_dal": cert.get("not_before"),
-                                                  "domini_nel_certificato": len(cert.get("dns_names") or [])},
+                                                  "domini_nel_certificato": len(cert.get("dns_names") or []),
+                                                  **({"letto_da": f"certificato servito da {via} (riserva: Cert "
+                                                                  "Spotter non rispondeva)"} if via else {})},
                                                  ensure_ascii=False))
             finding.build = build
             # possibile annuncio solo con un Half-Life nuovo nel nome (hlx, hl3, halflife3...), come per i post di Steam
