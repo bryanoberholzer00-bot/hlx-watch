@@ -159,7 +159,10 @@ function render() {
   // con un testo da cercare ogni riga trovata resta in vista: si accorpano solo le righe uguali in più file
   if ($("group").checked) rows = q ? groupRows(rows) : bundleRows(groupRows(rows));
   const shown = rows.slice(0, MAX_ROWS);
-  $("status").textContent = `${total} voci` + ($("group").checked ? ` (${rows.length} righe raggruppate)` : "") + (rows.length > MAX_ROWS ? `, mostro le prime ${MAX_ROWS}` : "");
+  // singolare e plurale; il raggruppamento si dice solo se ha unito qualcosa
+  $("status").textContent = `${total} ${total === 1 ? "voce" : "voci"}` +
+    ($("group").checked && rows.length < total ? ` (raggruppate in ${rows.length} ${rows.length === 1 ? "riga" : "righe"})` : "") +
+    (rows.length > MAX_ROWS ? `, mostro le prime ${MAX_ROWS}` : "");
   const left = rows.length - shown.length;
   $("more").hidden = left <= 0;
   $("more").textContent = `Mostra altre ${Math.min(PAGE, left)}`;
