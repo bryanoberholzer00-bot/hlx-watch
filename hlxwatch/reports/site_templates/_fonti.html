@@ -22,4 +22,4 @@
  {% if status.rumore %}<p><small>Tipi di voce silenziati con il pulsante 👎 su Telegram (niente avvisi, ma restano qui e nella ricerca):
  {% for r in status.rumore.values() %}{{ r.descrizione }} (es. <code>{{ r.esempio[:50] }}</code>){% if not loop.last %}; {% endif %}{% endfor %}.
  Per annullare, ripremi il pulsante sotto il messaggio.</small></p>{% endif %}
- {% if status.problems %}<p><small><b>Fonti con errori:</b> {% for p in status.problems %}{{ p.source }} ({{ p.fails }} run di fila{% if p.last_ok %}, ultimo ok {{ p.last_ok }}{% endif %}){% if not loop.last %}; {% endif %}{% endfor %}</small></p>{% endif %}
+ {% if status.problems %}<p><small><b>Fonti con errori:</b> {% for p in status.problems %}{{ p.label or p.source }} ({{ p.fails }} run di fila{% if p.last_ok %}, ultimo ok {{ p.last_ok }}{% endif %}{% if p.riserva %}; <b>riserva attiva</b>: i dati arrivano da una fonte di scorta, con qualche limite{% endif %}){% if not loop.last %}; {% endif %}{% endfor %}</small></p>{% endif %}

@@ -89,7 +89,7 @@ stato di ogni fonte. La prima parte si aggiorna ogni volta che apri la pagina; l
 
 <script>
 (function(){
- var REPO={{ repo|tojson }}, BOT={{ bot_url|tojson }}, OGNI=30;
+ var REPO={{ repo|tojson }}, BOT={{ bot_url|tojson }}, OGNI=30, FONTI={{ (status.problems or [])|tojson }};
  function $(id){return document.getElementById(id);}
  function min(ms){return Math.round(ms/60000);}
  function fa(m){ if(m<1) return "adesso"; if(m<60) return m+" min fa"; var h=Math.floor(m/60); if(h<48) return h+" h "+(m%60)+" min fa"; return Math.floor(h/24)+" giorni fa"; }
@@ -143,7 +143,14 @@ stato di ogni fonte. La prima parte si aggiorna ogni volta che apri la pagina; l
   else if(busy && min(now-new Date(busy.created_at))>75){ verdetto("guasto","Un giro è in corso da "+min(now-new Date(busy.created_at))+" minuti",testi.bloccato); }
   else if(okAge===null || okAge>80){ verdetto("attenzione","Nessun giro riuscito "+(okAge===null?"tra gli ultimi":"da "+fa(okAge).replace(" fa","")),"Di solito ce n'è uno ogni 30 minuti. Se dura, il proprietario riceve un avviso."); }
   else if(bot && !botOk){ verdetto("attenzione","Il bot su Cloudflare "+(bot.irraggiungibile?"non risponde":"è fermo"),"I giri su GitHub continuano, ma più di rado, e gli avvisi veloci dell'annuncio non partono."); }
-  else { verdetto("ok","Tutto funziona","Ultimo giro riuscito "+fa(okAge)+". Un giro ogni "+((bot&&bot.avvio&&bot.avvio.ogni)||OGNI)+" minuti"+(bot&&bot.avvio&&bot.avvio.ore_calde?" (ore calde)":"")+", sorvegliato dal bot."); }
+  else {
+   var giri="Ultimo giro riuscito "+fa(okAge)+". Un giro ogni "+((bot&&bot.avvio&&bot.avvio.ogni)||OGNI)+" minuti"+(bot&&bot.avvio&&bot.avvio.ore_calde?" (ore calde)":"")+", sorvegliato dal bot.";
+   var rotte=FONTI.filter(function(p){return !p.riserva;}), scorta=FONTI.filter(function(p){return p.riserva;});
+   function nomi(l){ return l.map(function(p){return p.label||p.source;}).join(", "); }
+   if(rotte.length){ verdetto("attenzione","I giri funzionano, ma "+(rotte.length==1?"una fonte non risponde":rotte.length+" fonti non rispondono"),"Con errori: "+nomi(rotte)+" (dettagli in “Le fonti”). "+giri); }
+   else if(scorta.length){ verdetto("ok","Tutto funziona, "+(scorta.length==1?"una fonte va con la riserva":scorta.length+" fonti vanno con la riserva"),nomi(scorta)+": la fonte principale è ferma e i dati arrivano da quella di scorta. "+giri); }
+   else { verdetto("ok","Tutto funziona",giri); }
+  }
  });
 })();
 </script>
