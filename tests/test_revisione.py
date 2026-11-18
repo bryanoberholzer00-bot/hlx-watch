@@ -9,6 +9,7 @@ from hlxwatch.core import Pipeline
 from hlxwatch.lezioni import LEARNED, Checker, learned, run_check, static_lessons
 from hlxwatch.models import BuildInfo, Finding
 from hlxwatch.revisione import (CORRECTIONS, PROPOSALS, apply_decisions, corrections, proposals, run_review,
+                                undo_silences,
                                 silenced)
 from hlxwatch.storage import Database
 from hlxwatch.storage.db import iso, utcnow
@@ -253,4 +254,21 @@ def test_repeated_alerts_without_hlx_are_proposed_for_silence(tmp_path):
                     text='"net_altra" "1"', score=50, keywords=["watched_file"], is_new=True)
     assert Pipeline(cfg, db).select_alerts([noisy]) == []
     assert Checker(cfg, db).run()["ok"]
+    db.close()
+
+
+
+def test_undo_silences_removes_rule_lesson_and_blocks_new_proposal(tmp_path):
+    cfg, db = make(tmp_path)
+    key = "dota2|added|watched_file|convar"
+    db.set_state(CORRECTIONS, json.dumps({"silenzi": {key: {"descrizione": "d", "esempio": "e", "dal": "p26111851"},
+                                                      "cs2|build|steam_build|": {"dal": "p1"}}}))
+    db.set_state(LEARNED, json.dumps([{"id": "p26111851", "atteso": "silenziato"}, {"id": "p1"}]))
+    db.set_state(PROPOSALS, json.dumps([{"azione": "silenzio", "chiave": key, "pid": "p26111851", "stato": "applicata"}]))
+    cfg.raw.setdefault("revisione", {})["silenzi_tolti"] = [key]
+    assert undo_silences(cfg, db) == [key]
+    assert list(corrections(db)["silenzi"]) == ["cs2|build|steam_build|"]
+    assert [x["id"] for x in learned(db)] == ["p1"]
+    assert proposals(db)[0]["stato"] == "rifiutata"
+    assert undo_silences(cfg, db) == []                       # una volta sola
     db.close()

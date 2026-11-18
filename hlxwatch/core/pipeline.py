@@ -98,7 +98,8 @@ class Pipeline:
             from hlxwatch import noise
             noise.refresh(self.cfg, self.db)            # voti 👎 dal bot: quali tipi di voce non avvisano più
             try:                                        # proposte della revisione approvate con ✅ su Telegram
-                from hlxwatch.revisione import apply_decisions
+                from hlxwatch.revisione import apply_decisions, undo_silences
+                undo_silences(self.cfg, self.db)       # silenzi approvati e poi tolti a mano nel config
                 apply_decisions(self.cfg, self.db, self.notifiers)
             except Exception:
                 log.exception("Proposte della revisione: scelte non applicate")

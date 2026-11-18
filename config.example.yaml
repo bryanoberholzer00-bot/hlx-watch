@@ -215,6 +215,9 @@ revisione:                               # revisione settimanale con l'AI (revis
     minimo: 3
     giorni: 7
     esclusi: ["alyx|build|"]             # tenuti apposta: le build di Half-Life: Alyx avvisano sempre (12/11/2026)
+  silenzi_tolti:                         # silenzi approvati con ✅ e poi annullati: tornano ad avvisare, non si ripropongono
+    - "dota2|added|watched_file|convar"    # file dei nemici di Dota 2 (ai_*.fgd), seguiti apposta (18/11/2026)
+    - "dota2|removed|watched_file|convar"
 
 contatore:                               # contatore di Valve (contatore.py): SourceRevision dei steam.inf di CS2,
   enabled: true                          # Dota 2 e Deadlock; avviso quando il ritmo supera del 30% l'anno prima
