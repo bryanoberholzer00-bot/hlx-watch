@@ -201,10 +201,10 @@ test("fastCheck: una pagina nuova su half-life.com diventa un possibile annuncio
     const env = { SUBS: new FakeKV(), OWNER_CHAT_ID: "1" };
     const sent = [];
     const tg = async (_e, _c, text) => sent.push(text);
-    await fastCheck(env, "https://example/", "https://bot", tg);
+    await fastCheck(env, "https://example/", "https://bot", tg, []);
     assert.equal(sent.length, 0);
     world.extra = '<a href="https://www.half-life.com/en/citadel">X</a>';
-    const r = await fastCheck(env, "https://example/", "https://bot", tg);
+    const r = await fastCheck(env, "https://example/", "https://bot", tg, []);
     assert.equal(r.alerts.length, 1);
     assert.match(sent[0], /POSSIBILE ANNUNCIO[\s\S]*half-life.com/);
     assert.ok(JSON.parse(env.SUBS.data.get("annuncio:modo")).voci[0].x.includes("citadel"));

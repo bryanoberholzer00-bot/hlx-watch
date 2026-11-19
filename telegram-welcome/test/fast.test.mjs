@@ -76,13 +76,13 @@ test("fastCheck manda Telegram e scrive /fast/annuncio.json", async () => {
     const env = { SUBS: new FakeKV(), OWNER_CHAT_ID: "1" };
     const sent = [];
     const tg = async (_env, chat, text) => sent.push(text);
-    await fastCheck(env, "https://example/", "https://bot", tg);          // primo giro (stato + battito)
+    await fastCheck(env, "https://example/", "https://bot", tg, []);          // primo giro (stato + battito)
     assert.ok(env.SUBS.data.get("fast:ok"));
     const writes = env.SUBS.writes;
-    await fastCheck(env, "https://example/", "https://bot", tg);
+    await fastCheck(env, "https://example/", "https://bot", tg, []);
     assert.equal(env.SUBS.writes, writes);                              // nessuna novità, nessuna scrittura
     steamPosts = [{ gid: "9", title: "Half-Life 3", contents: "", feedname: "steam_community_announcements", date: Math.floor(Date.now() / 1000) }];
-    await fastCheck(env, "https://example/", "https://bot", tg);
+    await fastCheck(env, "https://example/", "https://bot", tg, []);
     assert.equal(sent.length, 2);                                       // l'avviso e la modalità annuncio
     assert.match(sent[0], /POSSIBILE ANNUNCIO/);
     assert.match(sent[1], /modalità annuncio attiva/);
@@ -115,14 +115,14 @@ test("battito: un avviso se il controllo veloce si ferma, uno quando riparte", a
     assert.equal(await fastWatchdog(env, tg, t + 3600e3), null);        // già avvisato
     assert.equal(sent.length, 1);
     assert.match(sent[0], /fermo da 3 ore/);
-    await fastCheck(env, "https://example/", "https://bot", tg);        // riparte
+    await fastCheck(env, "https://example/", "https://bot", tg, []);        // riparte
     assert.equal(sent.length, 2);
     assert.match(sent[1], /ripartito/);
     assert.equal(env.SUBS.data.has("fast:fermo"), false);
     st = await (await fastStatus(env)).json();
     assert.equal(st.fermo, false);
     const writes = env.SUBS.writes;
-    await fastCheck(env, "https://example/", "https://bot", tg);
+    await fastCheck(env, "https://example/", "https://bot", tg, []);
     assert.equal(env.SUBS.writes, writes);                              // battito al massimo una volta l'ora
   } finally {
     globalThis.fetch = realFetch;
