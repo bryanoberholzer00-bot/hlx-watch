@@ -1,0 +1,52 @@
+# Guardiano della coda di HLX Watch.
+#
+# Il 15/11/2026 il giro #992 è rimasto "Queued" per 8 ore: GitHub non gli ha mai assegnato una macchina.
+# Siccome HLX Watch gira un giro alla volta (concurrency "hlx-watch"), tutti i giri dopo sono rimasti in
+# attesa dietro di lui e il sito è restato fermo. Il limite di tempo del giro vale solo dopo la partenza,
+# quindi niente lo fermava.
+#
+# Questo workflow, in un gruppo di concorrenza tutto suo, ogni ora cancella i giri di HLX Watch rimasti
+# "queued" (in attesa di una macchina) da più di 30 minuti. I giri "pending" (in fila dietro un giro che sta
+# girando davvero, per esempio una scansione completa lunga) non li tocca. L'attesa si misura dall'ultimo
+# cambio di stato (updated_at), non dalla creazione: un giro rimasto in fila 40 minuti dietro una scansione
+# lunga, appena passa "queued", non va cancellato.
+name: Guardiano coda
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+concurrency:
+  group: guardiano
+  cancel-in-progress: true
+
+jobs:
+  guardiano:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Cancella i giri bloccati in coda
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          MAX_MINUTI: "30"
+        run: |
+          set -u
+          now=$(date +%s)
+          gh api "repos/$REPO/actions/workflows/hlx-watch.yml/runs?status=queued&per_page=100" \
+            --jq '.workflow_runs[] | [.id, .run_number, .updated_at] | @tsv' |
+          while IFS=$'\t' read -r id num since; do
+            age=$(( (now - $(date -d "$since" +%s)) / 60 ))
+            if [ "$age" -lt "$MAX_MINUTI" ]; then
+              echo "#$num in coda da $age minuti: lo lascio"
+              continue
+            fi
+            echo "#$num in coda da $age minuti: lo cancello"
+            gh api -X POST "repos/$REPO/actions/runs/$id/cancel" >/dev/null 2>&1 \
+              || gh api -X POST "repos/$REPO/actions/runs/$id/force-cancel" >/dev/null 2>&1 \
+              || echo "  #$num non si può cancellare (giro fantasma mai entrato in coda): ignorato"
+          done
