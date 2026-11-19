@@ -7,7 +7,9 @@
 #
 # Questo workflow, in un gruppo di concorrenza tutto suo, ogni ora cancella i giri di HLX Watch rimasti
 # "queued" (in attesa di una macchina) da più di 30 minuti. I giri "pending" (in fila dietro un giro che sta
-# girando davvero, per esempio una scansione completa lunga) non li tocca.
+# girando davvero, per esempio una scansione completa lunga) non li tocca. L'attesa si misura dall'ultimo
+# cambio di stato (updated_at), non dalla creazione: un giro rimasto in fila 40 minuti dietro una scansione
+# lunga, appena passa "queued", non va cancellato.
 name: Guardiano coda
 
 on:
@@ -36,9 +38,9 @@ jobs:
           set -u
           now=$(date +%s)
           gh api "repos/$REPO/actions/workflows/hlx-watch.yml/runs?status=queued&per_page=100" \
-            --jq '.workflow_runs[] | [.id, .run_number, .created_at] | @tsv' |
-          while IFS=$'\t' read -r id num created; do
-            age=$(( (now - $(date -d "$created" +%s)) / 60 ))
+            --jq '.workflow_runs[] | [.id, .run_number, .updated_at] | @tsv' |
+          while IFS=$'\t' read -r id num since; do
+            age=$(( (now - $(date -d "$since" +%s)) / 60 ))
             if [ "$age" -lt "$MAX_MINUTI" ]; then
               echo "#$num in coda da $age minuti: lo lascio"
               continue
