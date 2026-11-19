@@ -100,8 +100,13 @@ def source_status(cfg: Config, db: Database, fast: dict[str, Any] | None = None)
         if not isinstance(info, dict):
             continue                 # health:upstream_alerted e simili sono solo "1"/"0"
         if int(info.get("fails") or 0) > 0:
-            problems.append({"source": key.split(":", 1)[1], "fails": int(info["fails"]),
-                             "last_ok": local_day(info.get("last_ok")) if info.get("last_ok") else None})
+            from hlxwatch.health import LABELS
+            source = key.split(":", 1)[1]
+            error = str(info.get("last_error") or "")
+            problems.append({"source": source, "label": LABELS.get(source, source), "fails": int(info["fails"]),
+                             "last_ok": local_day(info.get("last_ok")) if info.get("last_ok") else None,
+                             # la fonte principale è ferma ma una di riserva la sostituisce (es. certificati HTTPS)
+                             "riserva": "riserva attiva" in error})
     gap = db.get_state("steam:changes_gap_at")
     try:
         gap_hours = float(db.get_state("steam:changes_gap_hours") or "nan")

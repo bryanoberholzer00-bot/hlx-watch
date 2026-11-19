@@ -168,7 +168,9 @@ function telegramText(alerts, site) {
   return lines.join("\n");
 }
 
-export async function fastCheck(env, site, origin, sendTelegram) {
+// serate: l'elenco delle serate (hlxwatch/serate.json se non indicato); i test passano [] perché una serata vera o una
+// prova in corso il giorno in cui girano (19/11/2026) aggiunge i suoi messaggi di apertura e chiusura.
+export async function fastCheck(env, site, origin, sendTelegram, serate = undefined) {
   if (!env.SUBS) return null;
   const state = JSON.parse((await env.SUBS.get(STATE)) || "{}");
   const news = [];
@@ -187,7 +189,7 @@ export async function fastCheck(env, site, origin, sendTelegram) {
   if (result.changed) await env.SUBS.put(STATE, JSON.stringify(result.state));
   // half-life.com sempre; nella serata di un evento anche la pagina di Valve su Steam e YouTube (src/serata.js)
   try {
-    result.alerts.push(...(await serataCheck(env, sendTelegram)));
+    result.alerts.push(...(await serataCheck(env, sendTelegram, Date.now(), serate)));
   } catch (err) {
     console.log("controllo veloce: serata non controllata", String(err));
   }

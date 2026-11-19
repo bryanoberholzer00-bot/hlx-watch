@@ -94,3 +94,28 @@ def test_generic_noise_filter():
     assert not is_generic({"score": 50, "keywords": '["npc", "hlx"]'}, generic)
     assert not is_generic({"score": 120, "keywords": '["npc"]'}, generic)
     assert not is_generic({"score": 55, "keywords": '["steam_build"]'}, generic)
+
+
+
+def test_present_lines_per_file_family_and_no_save_extension(tmp_path):
+    """19/11/2026: i nomi attaccati di Half-Life (80 punti) arrivano all'AI, l'estensione save/%s.hl3 no,
+    e il limite è per file, non per cartella."""
+    cfg, db = make(tmp_path)
+    build = db.recent_builds(1)[0]
+    rows = [("game/bin/win64/tools/hammer_strings.txt", "CRangerTrapCableHelper", 80, ["hl_nomi_attaccati"]),
+            ("game/bin/win64/resourcecompiler_strings.txt", "ai_flyer_flanking_route_hint", 80, ["hl_nomi_attaccati"]),
+            ("game/bin/win64/server_strings.txt", "save/%s.hl3", 90, ["hl3"]),
+            ("game/bin/win64/tools/hammer_strings.txt", "npc_generico_qualunque", 60, ["npc"])]
+    for path, text, score, kw in rows:
+        db.add_finding(Finding(game="dota2", source="fullscan", file_path=path, change_type="present", text=text,
+                               token=text, score=score, keywords=kw), build["id"])
+    for i in range(5):                               # tante righe nello stesso file: ne passano 3
+        db.add_finding(Finding(game="dota2", source="fullscan", file_path="game/bin/win64/toolframework2_strings.txt",
+                               change_type="present", text=f"content/hlx/materials/x{i}.vmat", token=f"x{i}", score=115,
+                               keywords=["hlx_path"]), build["id"])
+    data, ids = collect_input(db, utcnow() - timedelta(days=1))
+    tokens = [e["token"] for e in data["gia_presenti_nel_contenuto_attuale"]]
+    assert "CRangerTrapCableHelper" in tokens and "ai_flyer_flanking_route_hint" in tokens
+    assert "save/%s.hl3" not in tokens and "npc_generico_qualunque" not in tokens
+    assert sum(t.startswith("x") for t in tokens) == 3
+    db.close()

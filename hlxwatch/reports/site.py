@@ -132,8 +132,15 @@ def bundle_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 def glance(termo: dict[str, Any], status: dict[str, Any]) -> dict[str, Any]:
     """Riquadro in cima alla pagina iniziale: termometro, ultima traccia forte e salute delle fonti in una riga."""
     problems: list[str] = []
-    if status.get("problems"):
-        problems.append(f"{len(status['problems'])} fonti con errori")
+    warnings: list[str] = []
+    broken = [p for p in status.get("problems") or [] if not p.get("riserva")]
+    backup = [p for p in status.get("problems") or [] if p.get("riserva")]
+    if len(broken) == 1:
+        problems.append(f"1 fonte con errori ({broken[0].get('label') or broken[0].get('source')})")
+    elif broken:
+        problems.append(f"{len(broken)} fonti con errori")
+    for p in backup:
+        warnings.append(f"{p.get('label') or p.get('source')}: fonte principale ferma, riserva attiva")
     stale = [r["title"] for r in status.get("repos", []) if r.get("stale")]
     if stale:
         problems.append("ferme: " + ", ".join(stale))
@@ -158,7 +165,7 @@ def glance(termo: dict[str, Any], status: dict[str, Any]) -> dict[str, Any]:
             hours = (utcnow() - last).total_seconds() / 3600
     if hours is None or hours > 12:
         problems.append("nessuna scansione da più di 12 ore" if hours is not None else "nessuna scansione")
-    return {"termo": termo, "problems": problems, "ok": not problems}
+    return {"termo": termo, "problems": problems, "warnings": warnings, "ok": not problems}
 
 
 def write_feed(db: Database, out_dir: Path, site_url: str, ctx: dict[str, Any], limit: int = 40) -> int:

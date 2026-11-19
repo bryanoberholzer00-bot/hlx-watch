@@ -38,6 +38,19 @@ def test_glance_flags_problems():
            "problems": [{"source": "steam_pics"}], "fast": {"irraggiungibile": True}}
     g = glance(termo, old)
     assert not g["ok"] and len(g["problems"]) == 4
+    assert "1 fonte con errori" in g["problems"][0]
+
+
+def test_glance_source_on_backup_is_a_warning_not_an_error():
+    termo = {"indice": 10}
+    status = {"last_scan": iso(utcnow() - timedelta(hours=1)), "repos": [],
+              "problems": [{"source": "valve_certs", "label": "domini nei certificati HTTPS di Valve", "riserva": True}]}
+    g = glance(termo, status)
+    assert g["ok"] and g["warnings"] == ["domini nei certificati HTTPS di Valve: fonte principale ferma, riserva attiva"]
+    status["problems"].append({"source": "fcc", "label": "certificazioni FCC"})
+    status["problems"].append({"source": "ai", "label": "analisi AI"})
+    g = glance(termo, status)
+    assert not g["ok"] and g["problems"] == ["2 fonti con errori"]
 
 
 def test_home_page_has_glance_menu_and_compact_list(tmp_path):

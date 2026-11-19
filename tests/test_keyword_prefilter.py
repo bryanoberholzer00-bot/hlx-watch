@@ -36,3 +36,22 @@ def test_backreference_disables_prefilter():
     m = KeywordMatcher(kw)
     assert m.prefilter is None
     assert [x.keyword.id for x in m.find("xxababxx")] == ["doppia"]
+
+
+def test_level_transition_keyword():
+    """18/11/2026: in Dota 2 i fori dei proiettili seguono il giocatore nel livello dopo (base.fgd)."""
+    import yaml
+    from hlxwatch.analyzers import KeywordMatcher
+    from hlxwatch.config import PACKAGE_ROOT
+    cfg = yaml.safe_load((PACKAGE_ROOT / "config.actions.yaml").read_text(encoding="utf-8"))
+    m = KeywordMatcher(cfg["keywords"])
+    line = ('\tmove_world_decals(boolean) : "Move World Decals With Player" : 0 : "When a player crosses into another '
+            'level, the world decals inside this trigger (bullet holes etc.) move by the landmark offset "+')
+    r = m.analyze_line(line, file_path="game/core/base.fgd")
+    assert r is not None and "level_transition" in r.keywords and r.score >= 50
+    r = m.analyze_line("@SolidClass base(Trigger) = trigger_changelevel :", file_path="game/core/base.fgd")
+    assert r is not None and "level_transition" in r.keywords
+    # nei dump di stringhe e nelle traduzioni no: il comando changelevel e "al livello successivo" degli eroi
+    assert m.analyze_line("changelevel", file_path="game/csgo/bin/win64/server_strings.txt") is None
+    r = m.analyze_line('"DOTA_Tooltip_x" "Upgrades to the next level"', file_path="game/dota/resource/localization/dota_english.txt")
+    assert r is None or "level_transition" not in r.keywords

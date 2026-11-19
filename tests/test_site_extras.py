@@ -64,6 +64,10 @@ def test_source_status_and_hardware(tmp_path):
     assert st["deadlock"]["last_commit"] is None and st["deadlock"]["stale"]       # l'archeologia non conta
     assert not st["steamvr"]["stale"]                                               # solo i giochi principali
     assert [p["source"] for p in source_status(cfg, db)["problems"]] == ["github"]
+    db.set_state("health:valve_certs", json.dumps({"fails": 4, "last_error": "half-life.com: 503 (riserva attiva: letti ...)"}))
+    probs = {p["source"]: p for p in source_status(cfg, db)["problems"]}
+    assert probs["valve_certs"]["riserva"] and not probs["github"]["riserva"]
+    assert probs["valve_certs"]["label"] == "domini nei certificati HTTPS di Valve"
 
     db.set_state("structure:steamvr:drivers", json.dumps(["deckard", "frame_hmd"]))
     db.set_state("codenames:seen", json.dumps({"deckard": {"posto": "vr_device"}, "csgo": {"posto": "mod"}}))

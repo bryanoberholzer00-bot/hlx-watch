@@ -93,3 +93,46 @@ def test_methodology_lists_the_new_sources(tmp_path):
     met = (build_site(db, cfg, tmp_path / "s") / "metodologia.html").read_text(encoding="utf-8")
     assert "Cert Spotter" in met and "App Steam nel codice di Proton" in met
     db.close()
+
+
+
+class Down(FakeSession):
+    def get(self, url, params=None, timeout=None):
+        self.calls += 1
+        return Resp({"code": "service_outage"}, 503)
+
+
+def test_fallback_reads_served_certificates_when_cert_spotter_is_down(tmp_path):
+    cfg, db = make(tmp_path)
+    s = FakeSession()
+    s.certs = [cert(1, "half-life.com", "www.half-life.com", "counter-strike.net")]
+    src = ValveCertsSource(cfg, db, session=s)
+    assert src.run() == []                                   # prima lettura con Cert Spotter: registrazione
+    served = {"id": "tls:AB", "not_before": "2026-11-15T10:00:00Z",
+              "dns_names": ["half-life.com", "www.half-life.com", "counter-strike.net", "help.steampowered.com"]}
+    down = ValveCertsSource(cfg, db, session=Down())
+    down.read_served = lambda host: served
+    assert down.run(force=True) == []                        # prima lettura della riserva: senza avvisi
+    assert down.errors and "riserva attiva" in down.errors[0]
+    served["dns_names"] = served["dns_names"] + ["hlx-game.com", "www.hlx-game.com"]
+    found = down.run(force=True)
+    assert [f.file_path for f in found] == ["hlx-game.com"] and found[0].score >= 120
+    assert "riserva" in found[0].context
+    # quando Cert Spotter riparte, lo stesso certificato non avvisa una seconda volta
+    s.certs.append(cert(2, "half-life.com", "hlx-game.com", "www.hlx-game.com"))
+    assert ValveCertsSource(cfg, db, session=s).run(force=True) == []
+    db.close()
+
+
+def test_fallback_only_when_every_domain_fails(tmp_path):
+    cfg, db = make(tmp_path)
+    s = FakeSession()
+    s.certs = [cert(1, "half-life.com")]
+    ValveCertsSource(cfg, db, session=s).run()
+    s.limited = True                                         # limite di richieste: non è un guasto
+    src = ValveCertsSource(cfg, db, session=s)
+    called = []
+    src.read_served = lambda host: called.append(host) or {"dns_names": []}
+    src.run(force=True)
+    assert called == [] and src.errors == []
+    db.close()

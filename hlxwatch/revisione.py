@@ -446,6 +446,30 @@ def lesson_of(db: Database, p: dict[str, Any]) -> dict[str, Any]:
             "parole": json.loads(row["keywords"] or "[]") if row else [], "atteso": "silenziato"}
 
 
+def undo_silences(cfg: Config, db: Database) -> list[str]:
+    """Toglie i silenzi approvati con ✅ elencati in revisione.silenzi_tolti (il ✅ non ha un pulsante per annullare).
+    Toglie anche la lezione nata dal silenzio (altrimenti il registro degli errori segnalerebbe il ritorno degli
+    avvisi come errore) e segna la proposta come rifiutata, così il controllo dei falsi allarmi non la ripropone."""
+    keys = {str(k) for k in ((cfg.get("revisione", {}) or {}).get("silenzi_tolti") or []) if k}
+    corr = corrections(db)
+    gone = sorted(k for k in keys if k in corr["silenzi"])
+    if not gone:
+        return []
+    from hlxwatch.lezioni import LEARNED, learned
+    pids = {str(corr["silenzi"][k].get("dal") or "") for k in gone} - {""}
+    for k in gone:
+        del corr["silenzi"][k]
+    db.set_state(CORRECTIONS, json.dumps(corr, ensure_ascii=False))
+    db.set_state(LEARNED, json.dumps([x for x in learned(db) if x.get("id") not in pids], ensure_ascii=False))
+    items = proposals(db)
+    for p in items:
+        if p.get("azione") == "silenzio" and p.get("chiave") in gone:
+            p["stato"], p["tolta"] = "rifiutata", iso(utcnow())
+    _save_proposals(db, items)
+    log.info("Revisione: silenzi tolti a mano: %s", ", ".join(gone))
+    return gone
+
+
 def apply_decisions(cfg: Config, db: Database, notifiers: list, session: Any = None) -> int:
     """Applica le proposte approvate, segna quelle rifiutate o scadute. Restituisce quante ne ha applicate."""
     items = proposals(db)

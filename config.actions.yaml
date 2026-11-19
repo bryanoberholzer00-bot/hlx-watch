@@ -214,6 +214,9 @@ revisione:                               # revisione settimanale con l'AI (revis
     minimo: 3
     giorni: 7
     esclusi: ["alyx|build|"]             # tenuti apposta: le build di Half-Life: Alyx avvisano sempre (12/11/2026)
+  silenzi_tolti:                         # silenzi approvati con ✅ e poi annullati: tornano ad avvisare, non si ripropongono
+    - "dota2|added|watched_file|convar"    # file dei nemici di Dota 2 (ai_*.fgd), seguiti apposta (18/11/2026)
+    - "dota2|removed|watched_file|convar"
 
 contatore:                               # contatore di Valve (contatore.py): SourceRevision dei steam.inf di CS2,
   enabled: true                          # Dota 2 e Deadlock; avviso quando il ritmo supera del 30% l'anno prima
@@ -303,6 +306,8 @@ valve_certs:                             # domini nei certificati HTTPS dei siti
   interval_hours: 3                      # poche richieste anonime all'ora: una lettura ogni 3 ore basta
   score_new_domain: 120                  # dominio mai visto (es. il sito di un gioco nuovo)
   score_new_subdomain: 30                # sottodominio nuovo di un dominio noto: solo archivio
+  fallback_hosts: [half-life.com, steampowered.com]   # riserva se Cert Spotter non risponde: il certificato che
+                                         # questi siti servono (lo stesso per quasi tutti i siti dei giochi Valve)
 
 domains:                                 # registri dei domini (RDAP) e domini appena registrati (WhoisDS), una volta al giorno
   enabled: true
@@ -561,6 +566,16 @@ keywords:
       excludes: ["hlx_kill_"]            # gli obiettivi HLX_KILL_* di Half-Life 2 restano a 30 punti
       # cosmetici, traduzioni, elenchi di file e dump di librerie esterne: lì queste parole sono normali
       path_excludes: ["items_game\\.txt$", "csgo_english\\.txt$", "/localization/", "readonly_tools_asset_info", "pak01_dir\\.txt$", "^manifests/", "Qt5Core_strings", "nvngx_dlss_strings", "readme", "\\.md$"]
+    - id: level_transition
+      # passaggi tra livelli di una campagna (ascensori, camere stagne, mappa dopo mappa): il modo di Half-Life di
+      # cucire i livelli. Le entità ci sono dai tempi di Alyx (trigger_changelevel, info_landmark): avvisa quando
+      # quelle righe cambiano o se ne aggiungono di nuove. Il 18/11/2026 base.fgd di Dota 2 ha aggiunto
+      # move_world_decals: i fori dei proiettili seguono il giocatore nel livello dopo (Dota e CS2 non hanno livelli).
+      pattern: "(?<![a-z0-9_])(trigger_changelevel|trigger_transition|info_landmark|changelevel|move_world_decals|onmaptransition)(?![a-z0-9_])|level[ _-]?transitions?|landmark\\s+offset|(?:into|to|from|across)\\s+(?:another|the\\s+next|the\\s+previous|a\\s+new)\\s+(?:level|map)(?![a-z])"
+      weight: 50
+      description: "passaggi tra livelli di una campagna"
+      # dump di stringhe dei binari (comando changelevel), traduzioni ("al livello successivo" degli eroi), cosmetici
+      path_excludes: ["_strings\\.txt$", "(^|/)strings/", "/localization/", "/resource/", "_english\\.txt$", "items_game\\.txt$", "/scripts/npc/", "/dota_addons/", "/particles/econ/", "readme", "\\.md$"]
     - id: l4d3
       pattern: '(?<![a-z0-9])(left[ _-]?4[ _-]?dead[ _-]?3|l4d3)(?![a-z0-9])'
       weight: 60
