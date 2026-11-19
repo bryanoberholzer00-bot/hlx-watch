@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -158,6 +159,31 @@ def _evidence(rows: list[dict[str, Any]], start: int, label: str, db: Database |
     return out, by_id
 
 
+# righe "già presenti" per l'AI: da 90 punti, oppure sotto se hanno parole della famiglia di Half-Life (i nomi
+# attaccati come CRangerTrapCableHelper valgono 80). Al massimo PRESENT_PER_FILE per gioco e gruppo: nei dump di
+# stringhe il gruppo è il programma (hammer, resourcecompiler...), altrove la cartella dei primi 3 livelli, perché i
+# residui hl3 di Alyx sono centinaia di file piccoli. Prima il gruppo era sempre la cartella, e game/bin/win64
+# teneva 3 righe per tutti i programmi. Fuori l'estensione dei salvataggi save/%s.hl3, che l'AI riconosce già da
+# sola ogni giorno e occupava 5 posti su 14 (19/11/2026).
+PRESENT_MIN = 90
+PRESENT_FAMILY = ("hlx", "hl_nomi_attaccati")
+PRESENT_PER_FILE = 3
+SAVE_EXTENSION = re.compile(r"^save/%s\.hl\d$", re.IGNORECASE)
+
+
+def present_ok(row: dict[str, Any]) -> bool:
+    if SAVE_EXTENSION.match((row.get("text") or "").strip()):
+        return False
+    if int(row.get("score") or 0) >= PRESENT_MIN:
+        return True
+    return any(str(k).startswith(PRESENT_FAMILY) for k in json.loads(row.get("keywords") or "[]"))
+
+
+def present_group(item: dict[str, Any]) -> tuple[str, str]:
+    path = str(item.get("file") or "")
+    return str(item.get("gioco") or ""), path if path.endswith("_strings.txt") else "/".join(path.split("/")[:3])
+
+
 def collect_input(db: Database, since: datetime, max_items: int = 60,
                   generic: list[str] | None = None) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
     generic_set = set(generic if generic is not None else DEFAULT_GENERIC)
@@ -171,15 +197,16 @@ def collect_input(db: Database, since: datetime, max_items: int = 60,
                                                          exclude_change_type=("baseline", "present"))]
     history, ids2 = _evidence(history_rows, len(recent) + 1, "storico", db=db, skip=recent_keys)
     history = history[:40]
-    present_rows = [dict(r) for r in db.search_findings(change_type="present", min_score=90, limit=2000, order="score")]
+    present_rows = [r for r in (dict(x) for x in db.search_findings(change_type="present", min_score=50, limit=3000,
+                                                                     order="score")) if present_ok(r)]
     present, ids3 = _evidence(present_rows, len(recent) + len(history) + 1, "già presenti", db=db)
-    # le centinaia di righe quasi identiche (es. file di animazione) bastano poche volte
-    seen_folders: dict[str, int] = {}
+    # le centinaia di righe quasi identiche (es. file di animazione) bastano poche volte per gruppo
+    seen_groups: dict[tuple[str, str], int] = {}
     present_short = []
     for item in present:
-        folder = "/".join(item["file"].split("/")[:3])
-        seen_folders[folder] = seen_folders.get(folder, 0) + 1
-        if seen_folders[folder] <= 3:
+        group = present_group(item)
+        seen_groups[group] = seen_groups.get(group, 0) + 1
+        if seen_groups[group] <= PRESENT_PER_FILE:
             present_short.append(item)
     ids.update(ids2)
     ids.update(ids3)
