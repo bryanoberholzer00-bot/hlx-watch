@@ -90,6 +90,13 @@ def test_history_then_new_images(tmp_path):
     assert immagini.scan(cfg, db, client, [n]) == {"dota2": 1}           # asset_hla, dopo lo storico
     s = immagini.summary(db, {"2026-03-24"})
     assert s["n"] == 2 and s["giorni"][0]["hlx"] and s["giorni"][0]["immagini"][0]["nome"] == "asset_hla.png"
+    # con le tracce: il nome della traccia uscita nello stesso aggiornamento (±1 giorno), una volta sola
+    traces = [{"label": "CHLXCoverPreviewHelper", "slug": "chlxcoverpreviewhelper", "first": "2026-03-23T22:00:00Z"},
+              {"label": "CHLXCoverPreviewHelper", "slug": "chlxcoverpreviewhelper", "first": "2026-03-24T10:00:00Z"},
+              {"label": "lontana", "slug": "x", "first": "2026-03-10T10:00:00Z"}]
+    s = immagini.summary(db, None, hlx_traces=traces)
+    assert s["giorni"][0]["hlx"] and [t["label"] for t in s["giorni"][0]["tracce"]] == ["CHLXCoverPreviewHelper"]
+    assert not s["giorni"][-1]["hlx"] and s["giorni"][-1]["tracce"] == []
     db.close()
 
 

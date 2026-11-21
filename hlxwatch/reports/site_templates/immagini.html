@@ -12,6 +12,8 @@
  .img-voce .n{font-size:.78rem;word-break:break-all} .img-voce small{display:block;color:var(--muted);font-size:.7rem}
  .etichette .img-voce img{width:32px;height:32px;image-rendering:pixelated}
  .hlxtag{display:inline-block;padding:0 .35rem;border-radius:4px;font-size:.72rem;margin-left:.3rem}
+ .contesto{margin:.2rem 0 .5rem;padding:.25rem .5rem;border-left:3px solid var(--muted);font-size:.82rem;color:var(--muted)}
+ .contesto code{font-size:.78rem}
 </style>
 <div class="breve">
 <h1>Le immagini degli strumenti</h1>
@@ -53,15 +55,18 @@ sono state disegnate. Aggiornato {{ generated }}.</p>
  <h2>Giorno per giorno</h2>
  {% for d in im.giorni %}<div class="img-giorno">
   <h3>{{ d.giorno[8:10] }}/{{ d.giorno[5:7] }}/{{ d.giorno[:4] }} · {{ d.immagini|length }} {{ "immagine" if d.immagini|length == 1 else "immagini" }}
-   <small class="muted">({{ d.giochi|join(", ") }})</small>{% if d.hlx %}<span class="hlxtag avviso">traccia HLX vicina</span>{% endif %}</h3>
+   <small class="muted">({{ d.giochi|join(", ") }})</small></h3>
+  {% if d.hlx %}<p class="contesto">Nello stesso aggiornamento, fuori da queste immagini, {% if d.tracce|length > 1 %}sono comparse anche {{ d.tracce|length }} tracce HLX{% else %}è comparsa anche una traccia HLX{% endif %}{% if d.tracce %}:
+   {% for t in d.tracce[:3] %}{% if t.slug %}<a href="traccia-{{ t.slug }}.html"><code>{{ t.label[:60] }}</code></a>{% else %}<code>{{ t.label[:60] }}</code>{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% if d.tracce|length == 4 %} e un'altra{% elif d.tracce|length > 4 %} e altre {{ d.tracce|length - 3 }}{% endif %}{% endif %}.
+   Le icone non nominano HLX: dicono solo su cosa lavoravano gli strumenti in quei giorni.</p>{% endif %}
   <div class="img-griglia">
   {% for o in d.immagini %}<a class="img-voce" href="{{ o.url }}" rel="noopener" title="{{ o.percorso }}"><img src="{{ o.url }}" alt="" loading="lazy">
    <span class="n">{{ o.nome }}{% if o.creata %}<small>disegnata {{ o.creata[8:10] }}/{{ o.creata[5:7] }}/{{ o.creata[:4] }}{% if o.anticipo is not none and o.anticipo > 0 %} ({{ o.anticipo }} giorni prima){% endif %}</small>{% endif %}</span></a>{% endfor %}
   </div>
  </div>{% endfor %}
  <p class="muted"><small>Un'immagine conta dal primo giorno in cui è uscita, in qualunque gioco. Il giorno del disegno è
- quello scritto da Photoshop nell'immagine (ora di Seattle): non c'è in tutte. "Traccia HLX vicina": entro un giorno da una
- traccia HLX. Le immagini sono mostrate dai file pubblici di SteamTracking.</small></p>
+ quello scritto da Photoshop nell'immagine (ora di Seattle): non c'è in tutte. La nota grigia sotto un giorno segnala
+ una traccia HLX comparsa entro un giorno, in un altro file dello stesso aggiornamento: non riguarda le icone. Le immagini sono mostrate dai file pubblici di SteamTracking.</small></p>
 </section>
 {% endif %}
 {% endblock %}

@@ -189,7 +189,32 @@ def _notify(cfg: Any, notifiers: list, alerts: list[dict[str, Any]]) -> None:
                 "🖼️ " + "\n".join(lines) + f"\n\nTutte: {site}/immagini.html")
 
 
-def summary(db: Any, hlx_days: set[str] | None = None, limit: int = 400) -> dict[str, Any] | None:
+def nearby_traces(day: str, traces: list[dict[str, Any]], width: int = 1) -> list[dict[str, Any]]:
+    """Le tracce HLX comparse a non più di `width` giorni: sono uscite nello stesso aggiornamento delle immagini,
+    non sono le immagini. Una per pezzo (CHLXCoverPreviewHelper e GetAttributeTable_CHLXCoverPreviewHelper contano
+    una volta, col nome più corto), nell'ordine in cui sono comparse."""
+    from datetime import date, timedelta
+    from hlxwatch.fase import piece_key
+    try:
+        d = date.fromisoformat(day)
+    except ValueError:
+        return []
+    window = {(d + timedelta(days=k)).isoformat() for k in range(-width, width + 1)}
+    out: dict[str, dict[str, Any]] = {}
+    for t in sorted(traces or [], key=lambda t: str(t.get("first") or "")):
+        label = str(t.get("label") or "").strip()
+        if str(t.get("first") or "")[:10] not in window or not label:
+            continue
+        key = piece_key(label)
+        if key not in out:
+            out[key] = {"label": label, "slug": t.get("slug")}
+        elif len(label) < len(out[key]["label"]):
+            out[key] = {"label": label, "slug": t.get("slug") or out[key]["slug"]}
+    return list(out.values())
+
+
+def summary(db: Any, hlx_days: set[str] | None = None, limit: int = 400,
+            hlx_traces: list[dict[str, Any]] | None = None) -> dict[str, Any] | None:
     """Le immagini nuove, una per percorso (il primo gioco e il primo giorno), raggruppate per giorno di uscita."""
     from datetime import date
     from hlxwatch.sources.storia_file import near
@@ -218,8 +243,12 @@ def summary(db: Any, hlx_days: set[str] | None = None, limit: int = 400) -> dict
                 pass
     days: dict[str, dict[str, Any]] = {}
     for o in items[:limit]:
-        d = days.setdefault(o["giorno"], {"giorno": o["giorno"], "immagini": [], "giochi": set(),
-                                          "hlx": bool(hlx_days) and near(o["giorno"], hlx_days or set())})
+        if o["giorno"] not in days:
+            # le tracce HLX uscite nello stesso aggiornamento (±1 giorno), con nome e scheda: le icone non sono HLX
+            nearby = nearby_traces(o["giorno"], hlx_traces or [])
+            days[o["giorno"]] = {"giorno": o["giorno"], "immagini": [], "giochi": set(), "tracce": nearby,
+                                 "hlx": bool(nearby) or (bool(hlx_days) and near(o["giorno"], hlx_days or set()))}
+        d = days[o["giorno"]]
         d["immagini"].append(o)
         d["giochi"] |= set(o["giochi"])
     for d in days.values():

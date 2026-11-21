@@ -404,7 +404,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     pers = storia_file.overview(db, hlx_days)
     # le immagini degli strumenti (icone nuove degli editor, con il giorno del disegno)
     from hlxwatch.sources import immagini
-    (out_dir / "immagini.html").write_text(env.get_template("immagini.html").render(im=immagini.summary(db, hlx_days)),
+    (out_dir / "immagini.html").write_text(env.get_template("immagini.html").render(im=immagini.summary(db, hlx_days, hlx_traces=outcomes["traces"])),
                                            encoding="utf-8")
     # il registro delle previsioni: cosa dicono i video su HLX e cosa dicono i dati (hlxwatch/previsioni.json)
     from hlxwatch import previsioni
