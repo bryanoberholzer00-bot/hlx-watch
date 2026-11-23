@@ -106,3 +106,11 @@ def test_disabled(tmp_path):
     c.add(CONVARS, [("+", "x")])
     assert c.files == {} and ar.fill_step(cfg, db, FakeClient()) == 0
     db.close()
+
+
+def test_fill_only_game_repositories(tmp_path):
+    cfg, db = make(tmp_path)
+    build(db, "steamworks", "e", 18)
+    keep = build(db, "deadlock", "f", 19)
+    assert [r["id"] for r in ar.fill_candidates(cfg, db, 10)] == [keep]
+    db.close()

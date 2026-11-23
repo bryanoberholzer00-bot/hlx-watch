@@ -46,6 +46,7 @@ MAX_LINES_PER_FILE = 60000
 # (archivio_righe.max_mb), si tolgono per primi i più vecchi. Comandi, entità, FGD e Protobuf (pochi KB) restano sempre.
 BULKY = re.compile(r"_strings\.txt$|^DumpSource2/schemas/")
 DEFAULT_MAX_MB = 20
+DEFAULT_GAMES = ["cs2", "dota2", "deadlock", "alyx", "steamvr", "protobufs"]
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS line_archive (
     build_id  INTEGER NOT NULL,
@@ -203,11 +204,15 @@ def stats(db: Database) -> dict[str, Any]:
 def fill_candidates(cfg: Any, db: Database, limit: int) -> list[Any]:
     """Commit di GitHub già nell'archivio, non ancora archiviati, dal più recente all'indietro fino a `dal`."""
     ensure_schema(db)
-    since = str((cfg.get("archivio_righe", {}) or {}).get("dal", "2026-09-01"))
+    acfg = cfg.get("archivio_righe", {}) or {}
+    since = str(acfg.get("dal", "2026-09-01"))
+    # solo i repository con quei file: il client di Steam e la documentazione non ne hanno (richieste sprecate)
+    games = [str(g) for g in (acfg.get("giochi") or DEFAULT_GAMES)]
+    marks = ",".join("?" * len(games))
     return db.conn.execute(
         "SELECT b.id, b.game, b.ref FROM builds b LEFT JOIN line_archive_builds a ON a.build_id = b.id "
-        "WHERE b.source = 'github' AND length(b.ref) = 40 AND a.build_id IS NULL AND b.date >= ? "
-        "ORDER BY b.date DESC LIMIT ?", (since, limit)).fetchall()
+        f"WHERE b.source = 'github' AND length(b.ref) = 40 AND a.build_id IS NULL AND b.date >= ? AND b.game IN ({marks}) "
+        "ORDER BY b.date DESC LIMIT ?", (since, *games, limit)).fetchall()
 
 
 def fill_step(cfg: Any, db: Database, client: Any = None, limit: int | None = None) -> int:

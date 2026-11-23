@@ -223,6 +223,7 @@ archivio_righe:                          # archivio completo delle righe nuove (
   dal: "2026-09-01"                      # i commit già visti si riempiono all'indietro fino a questa data
   commit_per_giro: 6                     # quanti commit vecchi per giro (pochi: a ogni giro due richieste per commit)
   max_mb: 20                             # tetto: oltre, si tolgono per primi schemi e dump dei commit più vecchi
+  giochi: [cs2, dota2, deadlock, alyx, steamvr, protobufs]   # repository da riempire (gli altri non hanno quei file)
 
 contatore:                               # contatore di Valve (contatore.py): SourceRevision dei steam.inf di CS2,
   enabled: true                          # Dota 2 e Deadlock; avviso quando il ritmo supera del 30% l'anno prima
