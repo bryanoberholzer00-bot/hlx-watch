@@ -327,3 +327,20 @@ test("half-life.com: una pagina qualunque non è un annuncio", () => {
   assert.equal(res.annunci.length, 0);
   assert.equal(res.note.length, 1);
 });
+
+test("video vecchi mai visti (lettura più lunga): nessun messaggio", () => {
+  const now = Date.parse("2026-11-23T22:00:00Z");
+  const canali = [{ id: "UCvalve", nome: "Valve", tutti: true }];
+  const state = { yt: { UCvalve: ["n1"] } };
+  const yt = { UCvalve: [
+    { id: "n2", titolo: "Steam Frame - Launch Trailer", testo: "", quando: "2026-11-23T18:00:00Z" },
+    { id: "n1", titolo: "già visto", testo: "", quando: "2026-11-20T18:00:00Z" },
+    { id: "o1", titolo: "Introducing Steam Deck", testo: "", quando: "2021-07-15T17:00:00Z" },
+    { id: "o2", titolo: "Half-Life 3 fan joke", testo: "", quando: "2019-05-01T10:00:00Z" },
+  ] };
+  const res = compareSerata(state, { pagine: null, valve: null, yt }, canali, now);
+  assert.equal(res.note.length, 1);
+  assert.match(res.note[0], /Steam Frame - Launch Trailer/);
+  assert.equal(res.annunci.length, 0);                 // anche "Half-Life 3" nel titolo: video del 2019, non nuovo
+  assert.ok(res.state.yt.UCvalve.includes("o1"));       // ricordato comunque, per non ricontrollarlo
+});

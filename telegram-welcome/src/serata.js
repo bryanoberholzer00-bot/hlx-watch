@@ -45,6 +45,7 @@ const HLX_NAME = /hlx|half[\s_-]*life|(?<![a-z0-9])hl[\s_-]?3(?![0-9])/i;
 const HEADERS = { "User-Agent": "Mozilla/5.0 (compatible; hlx-watch-bot; +https://github.com/bryanoberholzer00-bot/hlx-watch)",
   "Accept-Language": "en-US" };
 const KEEP = 60;
+const OLD_VIDEO_MS = 2 * 24 * 3600 * 1000;      // oltre due giorni dal caricamento un video non è "nuovo"
 const DAY_MS = 86400000;
 
 // ------------------------------------------------------------------ quando
@@ -154,6 +155,10 @@ export function compareSerata(state, readings, canali = [], now = Date.now()) {
     for (const v of [...list].reverse()) {
       if (known && known.includes(v.id)) continue;
       if (!known) continue;
+      // un video caricato da più di due giorni non è nuovo, anche se il bot non l'ha mai visto (lettura più lunga,
+      // video vecchio rimesso nella lista): il 23/11/2026 passare da 10 a 50 video ha mandato 40 video del 2019-2023
+      const at = Date.parse(v.quando || "");
+      if (Number.isFinite(at) && at < now - OLD_VIDEO_MS) continue;
       const url = `https://www.youtube.com/watch?v=${v.id}`;
       if (ch.commento) {                       // canale di commento: solo "da controllare", mai un annuncio
         if (ABOUT_VALVE.test(`${v.titolo} ${v.testo}`)) videoDaControllare.push({ canale: ch.nome, titolo: v.titolo, url });
