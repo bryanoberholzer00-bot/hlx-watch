@@ -59,6 +59,7 @@ class HardwareIdsSource:
         self.search_code = bool(self.hcfg.get("search_code", True))
         self.matcher = KeywordMatcher(cfg.keywords)
         self.errors: list[str] = []
+        self.new_names: set[str] = set()          # nomi nuovi della lettura in corso: non sono prove "già noto"
 
     @property
     def enabled(self) -> bool:
@@ -103,7 +104,11 @@ class HardwareIdsSource:
             log.info("[%s] %d identificativi hardware Valve registrati", spec.get("name"), len(ids))
             return []
         old = json.loads(raw)
-        return [self._finding(spec, name, value) for name, value in sorted(ids.items()) if name not in old]
+        self.new_names = {name for name in ids if name not in old}
+        try:
+            return [self._finding(spec, name, value) for name, value in sorted(ids.items()) if name not in old]
+        finally:
+            self.new_names = set()
 
     # ------------------------------------------------------------------ nome già noto?
     @staticmethod
@@ -112,38 +117,63 @@ class HardwareIdsSource:
         return [w.lower() for w in name.upper().split("_")
                 if len(w) >= 3 and w not in GENERIC and not w.isdigit() and not re.fullmatch(r"V\d+", w)]
 
+    # voci dell'archivio che possono far da prova: hardware, nomi in codice, SteamOS, FCC. Le righe dei giochi no:
+    # "atlas" o "frame" ci sono in mille file che non c'entrano con l'hardware ("texture atlas", "frame time")
+    HW_EVIDENCE = ("hardware", "codename", "valve_device", "controller_type", "steamos", "fcc")
+    # i file dei giochi: lì una parola comune non prova niente (le voci con le parole qui sopra contano lo stesso)
+    GAME_FILES = ("cs2", "dota2", "deadlock", "alyx", "tf2", "underlords", "artifact", "artifact_beta", "dota2_test")
+
     def known(self, spec: dict[str, Any], name: str) -> str:
-        """Dove il nome in codice si vedeva già (testo per la voce), oppure "" se è davvero nuovo."""
-        for word in self.codenames(name):
-            rx = re.compile(rf"(?<![a-z0-9]){re.escape(word)}(?![a-z0-9])", re.I)
-            # 1. negli altri nomi già letti (lo stesso file o l'altro repository)
-            for other in self.files:
-                raw = self.db.get_state(f"hwids:{other['repo']}:{other['path']}")
-                for old in sorted(json.loads(raw) if raw else {}):
-                    if old != name and rx.search(old):
-                        return f"compare in {other.get('name') or other['repo']} come {old}"
-            # 2. nell'archivio (file dei giochi e del client Steam, repository di Valve...)
-            like = f"%{word}%"
-            for r in self.db.conn.execute(
-                    "SELECT f.game, f.text, f.token, COALESCE(b.date, f.created_at) AS d FROM findings f "
-                    "LEFT JOIN builds b ON b.id = f.build_id WHERE f.game != ? AND (lower(f.text) LIKE ? "
-                    "OR lower(COALESCE(f.token, '')) LIKE ?) ORDER BY d LIMIT 200", (GAME, like, like)).fetchall():
-                if rx.search(f"{r[1] or ''} {r[2] or ''}"):
-                    return f"compare nell'archivio dal {str(r[3])[:10]} ({self.cfg.game_title(r[0])})"
-            # 3. negli altri file dello stesso repository (ricerca del codice di GitHub; se non risponde, pazienza)
-            if self.search_code:
-                try:
-                    data = self.client.get_json("/search/code", {"q": f"{word} repo:{spec['repo']}", "per_page": 10})
-                    paths = {i.get("path", "") for i in (data or {}).get("items") or []} - {spec["path"], ""}
-                    # prima i file con il nome nel nome del file (SDL_hidapi_steam_triton.c), poi il codice in src/
-                    paths = sorted(paths, key=lambda q: (word not in q.rsplit("/", 1)[-1].lower(),
-                                                         not q.startswith("src/"), q))
-                except Exception as exc:
-                    log.info("[%s] ricerca di %s su GitHub non riuscita: %s", spec.get("name"), word, exc)
-                    paths = []
-                if paths:
-                    more = f" e altri {len(paths) - 1} file" if len(paths) > 1 else ""
-                    return f"compare in {spec['repo']}: {paths[0]}{more}"
+        """Dove il nome in codice si vedeva già (testo per la voce), oppure "" se è davvero nuovo. Già noto solo se lo
+        sono TUTTE le sue parole: in STEAM_FRAME_ORION "frame" (lo Steam Frame) non deve nascondere "orion"."""
+        words = self.codenames(name)
+        if not words:
+            return ""
+        reasons = []
+        for word in words:
+            seen = self._word_known(spec, name, word)
+            if not seen:
+                return ""
+            reasons.append(seen if len(words) == 1 else f"«{word}» {seen}")
+        return "; ".join(reasons)
+
+    def _word_known(self, spec: dict[str, Any], name: str, word: str) -> str:
+        rx = re.compile(rf"(?<![a-z0-9]){re.escape(word)}(?![a-z0-9])", re.I)
+        # 0. tra i nomi dell'hardware Valve già noti nel config (Deckard, Fremont, Ibex...)
+        res = self.matcher.analyze_line(word, file_path="hardware", change_type="added")
+        if res and "valve_hardware" in res.keywords:
+            return "è tra i nomi dell'hardware Valve già noti"
+        # 1. negli altri nomi già letti (lo stesso file o l'altro repository), non in quelli arrivati adesso
+        for other in self.files:
+            raw = self.db.get_state(f"hwids:{other['repo']}:{other['path']}")
+            for old in sorted(json.loads(raw) if raw else {}):
+                if old != name and old not in self.new_names and rx.search(old):
+                    return f"compare in {other.get('name') or other['repo']} come {old}"
+        # 2. nell'archivio: client Steam, SteamVR, SteamOS, codice di Valve, FCC; dei giochi solo le voci di hardware
+        like = f"%{word}%"
+        evidence = " OR ".join("f.keywords LIKE ?" for _ in self.HW_EVIDENCE)
+        games = ",".join("?" * len(self.GAME_FILES))
+        for r in self.db.conn.execute(
+                "SELECT f.game, f.text, f.token, COALESCE(b.date, f.created_at) AS d FROM findings f "
+                "LEFT JOIN builds b ON b.id = f.build_id WHERE f.game != ? AND (lower(f.text) LIKE ? "
+                f"OR lower(COALESCE(f.token, '')) LIKE ?) AND (f.game NOT IN ({games}) OR {evidence}) "
+                "ORDER BY d LIMIT 200",
+                (GAME, like, like, *self.GAME_FILES, *(f"%{k}%" for k in self.HW_EVIDENCE))).fetchall():
+            if rx.search(f"{r[1] or ''} {r[2] or ''}"):
+                return f"compare nell'archivio dal {str(r[3])[:10]} ({self.cfg.game_title(r[0])})"
+        # 3. un file del repository con il nome nel NOME del file (SDL_hidapi_steam_triton.c): un file qualunque che
+        #    contiene la parola non basta ("frame" c'è in mezzo SDL)
+        if self.search_code:
+            try:
+                data = self.client.get_json("/search/code", {"q": f"{word} repo:{spec['repo']}", "per_page": 30})
+                paths = sorted(i.get("path", "") for i in (data or {}).get("items") or []
+                               if word in i.get("path", "").rsplit("/", 1)[-1].lower() and i.get("path") != spec["path"])
+            except Exception as exc:
+                log.info("[%s] ricerca di %s su GitHub non riuscita: %s", spec.get("name"), word, exc)
+                paths = []
+            if paths:
+                more = f" e altri {len(paths) - 1} file" if len(paths) > 1 else ""
+                return f"compare in {spec['repo']}: {paths[0]}{more}"
         return ""
 
     def rescore_existing(self) -> int:
@@ -181,10 +211,7 @@ class HardwareIdsSource:
         if res and res.score >= 100:
             score = max(score, res.score)                    # parole HLX: sempre al punteggio pieno, senza controlli
         elif self.codenames(name):
-            if res and "valve_hardware" in res.keywords:     # Deckard, Fremont, Ibex...: nomi già nella lista di config
-                seen = "è tra i nomi dell'hardware Valve già noti"
-            else:
-                seen = self.known(spec, name)
+            seen = self.known(spec, name)                    # tutte le parole già note (config, nomi letti, archivio)
             if seen:
                 score = max(self.score_known, res.score if res else 0)
                 text += f": nome in codice già noto, {seen}"

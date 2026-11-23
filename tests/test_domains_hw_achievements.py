@@ -254,3 +254,28 @@ def test_new_and_newly_visible_achievements(tmp_path):
     assert kinds == ["achievement", "achievement"]
     assert json.loads(db.get_state("achievements:1422450"))["visibili"] is True
     db.close()
+
+
+def test_hardware_known_only_if_every_codename_word_is_known(tmp_path):
+    """Revisione del 23/11/2026: "frame" (lo Steam Frame, già annunciato) non deve nascondere un nome nuovo accanto;
+    i nomi arrivati insieme non si fanno da prova; una parola comune nei file dei giochi o in un file qualunque di
+    SDL non prova niente."""
+    from hlxwatch.models import BuildInfo, Finding
+    cfg, db = make(tmp_path, hardware_ids=HW_SPEC)
+    gh = FakeGitHub({"src/joystick/usb_ids.h": SDL},
+                    search={"frame": ["src/joystick/hidapi/SDL_hidapi_steam_frame.c"],
+                            "atlas": ["src/video/SDL_video.c"]})            # "atlas" solo dentro un file qualunque
+    src = HardwareIdsSource(cfg, db, gh)
+    src.run()
+    b = db.upsert_build(BuildInfo(game="dota2", source="github", ref="d" * 40, date=utcnow()))
+    db.add_finding(Finding(game="dota2", source="github", file_path="DumpSource2/convars.txt", change_type="added",
+                           text="r_texture_atlas_size 2048 (developmentonly)", score=20, keywords=["xen"]), b)
+    gh.files["src/joystick/usb_ids.h"] = SDL + ("#define USB_PRODUCT_VALVE_STEAM_FRAME_ORION 0x1320\n"
+                                                "#define USB_PRODUCT_VALVE_STEAM_PEGASUS 0x1321\n"
+                                                "#define USB_PRODUCT_VALVE_STEAM_PEGASUS_BLE 0x1322\n"
+                                                "#define USB_PRODUCT_VALVE_STEAM_ATLAS 0x1323\n")
+    found = {json.loads(f.context)["nome"]: f for f in src.run(force=True)}
+    assert found["STEAM_FRAME_ORION"].score == 60                    # "frame" noto, "orion" no: nome nuovo
+    assert found["STEAM_PEGASUS"].score == 60 and found["STEAM_PEGASUS_BLE"].score == 60   # arrivati insieme
+    assert found["STEAM_ATLAS"].score == 60                          # "texture atlas" di Dota e un file di SDL: no
+    db.close()
