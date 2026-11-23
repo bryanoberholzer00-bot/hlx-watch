@@ -1,0 +1,50 @@
+name: Anteprima della seconda rete
+
+# Prova a mano della seconda rete con l'AI (hlxwatch/rete_ai.py) su un commit scelto, anche vecchio: righe mandate e
+# risposta di Claude solo nel log. Non salva niente e non manda avvisi (la chiave dell'AI è solo nei Secrets).
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "Commit di SteamTracking da guardare (sha, anche solo l'inizio)"
+        required: true
+      tutte:
+        description: "Anche le righe che oggi sono già avvisi delle parole chiave (per provare il giudizio di Claude)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+env:
+  HLXWATCH_CONFIG: config.actions.yaml
+  GITHUB_TOKEN: ${{ github.token }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+jobs:
+  anteprima:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Archivio dal ramo data
+        run: |
+          git fetch --quiet --depth 1 origin data
+          git show FETCH_HEAD:hlxwatch.sqlite.gz > "$RUNNER_TEMP/hlxwatch.sqlite.gz"
+          python -m hlxwatch restore "$RUNNER_TEMP/hlxwatch.sqlite.gz"
+
+      - name: Seconda rete sul commit (solo nel log)
+        env:
+          COMMIT: ${{ github.event.inputs.commit }}
+          TUTTE: ${{ github.event.inputs.tutte }}
+        run: |
+          if [ "$TUTTE" = "true" ]; then python -m hlxwatch rete-ai "$COMMIT" --tutte; else python -m hlxwatch rete-ai "$COMMIT"; fi

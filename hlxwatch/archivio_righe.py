@@ -215,60 +215,65 @@ def fill_candidates(cfg: Any, db: Database, limit: int) -> list[Any]:
         "ORDER BY b.date DESC LIMIT ?", (since, *games, limit)).fetchall()
 
 
+def fill_build(cfg: Any, db: Database, row: Any, client: Any, repos: dict[str, Any] | None = None) -> int:
+    """Archivia un commit già visto: legge dall'API le modifiche dei soli file da archiviare e, se GitHub non le dà,
+    confronta le due versioni del file. `row` ha id, game e ref. Restituisce le righe salvate."""
+    from hlxwatch.analyzers.diff_analyzer import parse_patch
+    if repos is None:
+        from hlxwatch.repos import tracked_repos
+        repos = {r["name"]: r for r in tracked_repos(cfg, db)}
+    repo_cfg = repos.get(row["game"])
+    if not repo_cfg:
+        return store(db, row["id"], {})                    # repository non più seguito: niente da archiviare
+    detail = client.commit_detail(repo_cfg["repo"], row["ref"], int(cfg.get("github.max_file_pages", 10)))
+    if detail is None:
+        return store(db, row["id"], {})
+    pats = patterns(cfg)
+    max_bytes = int(cfg.get("github.fallback_max_bytes", 25 * 1024 * 1024))
+    parent = ((detail.get("parents") or [{}])[0] or {}).get("sha")
+    files: dict[str, list[tuple[str, str]]] = {}
+    for entry in detail.get("files") or []:
+        path = entry.get("filename") or ""
+        if not wanted(pats, path):
+            continue
+        if entry.get("patch"):
+            lines = [(dl.op, dl.text) for hunk in parse_patch(entry["patch"]) for dl in hunk if dl.op in "+-"]
+        else:
+            status = entry.get("status")
+            new = "" if status == "removed" else client.raw_file(repo_cfg["repo"], row["ref"], path, max_bytes)
+            old = "" if status == "added" or not parent else client.raw_file(
+                repo_cfg["repo"], parent, entry.get("previous_filename") or path, max_bytes)
+            if new is None or old is None:
+                continue
+            old_l, new_l = old.splitlines(), new.splitlines()
+            old_s, new_s = set(old_l), set(new_l)
+            lines = [("+", ln) for ln in new_l if ln not in old_s] + [("-", ln) for ln in old_l if ln not in new_s]
+        keep = [(op, t) for op, t in lines if (op == "+" or not BULKY.search(path)) and t.strip()][:MAX_LINES_PER_FILE]
+        if keep:
+            files[path] = keep
+    n = store(db, row["id"], files)
+    log.info("Archivio delle righe: %s %s riempito, %d file, %d righe", row["game"], row["ref"][:10], len(files), n)
+    return n
+
+
 def fill_step(cfg: Any, db: Database, client: Any = None, limit: int | None = None) -> int:
-    """Archivia alcuni commit vecchi a ogni giro: legge dall'API le modifiche dei soli file da archiviare e, se GitHub
-    non le dà, confronta le due versioni del file. Restituisce i commit archiviati."""
+    """Archivia alcuni commit vecchi a ogni giro, dal più recente all'indietro. Restituisce i commit archiviati."""
     if not enabled(cfg):
         return 0
     limit = int(limit if limit is not None else (cfg.get("archivio_righe", {}) or {}).get("commit_per_giro", 6))
     rows = fill_candidates(cfg, db, limit)
     if not rows:
         return 0
-    from hlxwatch.analyzers.diff_analyzer import parse_patch
     from hlxwatch.repos import tracked_repos
     repos = {r["name"]: r for r in tracked_repos(cfg, db)}
     if client is None:
         from hlxwatch.sources.github_tracking import GitHubClient
         client = GitHubClient(cfg.get("github.api_url", "https://api.github.com"),
                               cfg.get("github.raw_url", "https://raw.githubusercontent.com"), cfg.github_token)
-    pats = patterns(cfg)
-    max_bytes = int(cfg.get("github.fallback_max_bytes", 25 * 1024 * 1024))
-    done = 0
     for row in rows:
-        repo_cfg = repos.get(row["game"])
-        if not repo_cfg:
-            store(db, row["id"], {})                       # repository non più seguito: niente da archiviare
-            continue
-        detail = client.commit_detail(repo_cfg["repo"], row["ref"], int(cfg.get("github.max_file_pages", 10)))
-        if detail is None:
-            store(db, row["id"], {})
-            continue
-        parent = ((detail.get("parents") or [{}])[0] or {}).get("sha")
-        files: dict[str, list[tuple[str, str]]] = {}
-        for entry in detail.get("files") or []:
-            path = entry.get("filename") or ""
-            if not wanted(pats, path):
-                continue
-            if entry.get("patch"):
-                lines = [(dl.op, dl.text) for hunk in parse_patch(entry["patch"]) for dl in hunk if dl.op in "+-"]
-            else:
-                status = entry.get("status")
-                new = "" if status == "removed" else client.raw_file(repo_cfg["repo"], row["ref"], path, max_bytes)
-                old = "" if status == "added" or not parent else client.raw_file(
-                    repo_cfg["repo"], parent, entry.get("previous_filename") or path, max_bytes)
-                if new is None or old is None:
-                    continue
-                old_l, new_l = old.splitlines(), new.splitlines()
-                old_s, new_s = set(old_l), set(new_l)
-                lines = [("+", ln) for ln in new_l if ln not in old_s] + [("-", ln) for ln in old_l if ln not in new_s]
-            keep = [(op, t) for op, t in lines if (op == "+" or not BULKY.search(path)) and t.strip()][:MAX_LINES_PER_FILE]
-            if keep:
-                files[path] = keep
-        n = store(db, row["id"], files)
-        done += 1
-        log.info("Archivio delle righe: %s %s riempito, %d file, %d righe", row["game"], row["ref"][:10], len(files), n)
+        fill_build(cfg, db, row, client, repos)
     prune(cfg, db)
-    return done
+    return len(rows)
 
 
 def prune(cfg: Any, db: Database) -> int:

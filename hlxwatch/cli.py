@@ -192,6 +192,15 @@ def cmd_cron(args: argparse.Namespace) -> int:
             log.info("Archivio delle righe: %d commit vecchi archiviati", filled)
     except Exception:
         log.exception("Archivio delle righe: riempimento non riuscito")
+    # seconda rete: Claude guarda le righe nuove del motore che le parole chiave non vedono
+    try:
+        from hlxwatch.rete_ai import run as run_second_net
+        net = run_second_net(cfg, db, pipeline.notifiers if not args.no_notify else [], send=not args.no_notify)
+        if net["chiamate"]:
+            log.info("Seconda rete: %d commit guardati, %d chiamate, %d voci, %.4f $", net["guardati"],
+                     net["chiamate"], net["voci"], net["costo"])
+    except Exception:
+        log.exception("Seconda rete: non riuscita")
     # contatore di Valve: il numero delle modifiche (Perforce) nei steam.inf di oggi, e l'avviso sulle ondate
     try:
         from hlxwatch.contatore import run as run_counter
@@ -348,6 +357,28 @@ def cmd_reevaluate(args: argparse.Namespace) -> int:
     cfg, db = _open(args)
     from hlxwatch.reevaluate import reevaluate
     reevaluate(cfg, db)
+    return 0
+
+
+def cmd_second_net(args: argparse.Namespace) -> int:
+    """Anteprima della seconda rete su un commit: righe mandate e risposta di Claude, solo nel log."""
+    cfg, db = _open(args)
+    from hlxwatch.rete_ai import preview
+    out = preview(cfg, db, args.commit, all_lines=args.tutte)
+    if out.get("errore"):
+        print(out["errore"])
+        return 1
+    print(f"{out['game']} {out['ref']} del {out['date']}: {out['righe']} righe nuove del motore da guardare")
+    for item in out["esempi"]:
+        print(f"   {item['file'].split('/')[-1]}: {item['riga'][:140]}")
+    answer = out.get("risposta")
+    if answer is None:
+        print("nessuna risposta (chiave dell'AI assente, nessuna riga o risposta non valida)")
+        return 0
+    print(f"costo {out.get('costo')} $ - {answer['riassunto']}")
+    for v in answer["voci"]:
+        print(f"[{v['fiducia']}] {v['sistema']}: {v['riga'][:140]}")
+        print(f"      {v['perche']}")
     return 0
 
 
@@ -659,6 +690,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--site", default="site", help="cartella del sito generato")
     p.add_argument("--no-notify", action="store_true", help="non inviare l'avviso")
     p.set_defaults(func=cmd_site_check)
+
+    p = sub.add_parser("rete-ai", help="seconda rete con l'AI: anteprima su un commit (niente salvato né inviato)")
+    p.add_argument("commit", help="sha del commit (anche solo l'inizio)")
+    p.add_argument("--tutte", action="store_true", help="anche le righe che oggi sono già avvisi delle parole chiave")
+    p.set_defaults(func=cmd_second_net)
 
     p = sub.add_parser("archivio-righe", help="archivio completo delle righe nuove: stato, ricerca, prova delle regole")
     p.add_argument("azione", choices=["stato", "cerca", "prova", "riempi"])

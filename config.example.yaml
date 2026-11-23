@@ -226,6 +226,14 @@ archivio_righe:                          # archivio completo delle righe nuove (
   max_mb: 20                             # tetto: oltre, si tolgono per primi schemi e dump dei commit più vecchi
   giochi: [cs2, dota2, deadlock, alyx, steamvr, protobufs]   # repository da riempire (gli altri non hanno quei file)
 
+rete_ai:                                 # seconda rete (rete_ai.py): Claude guarda le righe nuove del motore senza
+  enabled: true                          # parole sorvegliate (dall'archivio delle righe) dei giochi multigiocatore
+  giochi: [cs2, dota2, deadlock]
+  giorni: 3                              # solo commit recenti: i vecchi non fanno partire avvisi
+  min_righe: 3                           # sotto, il commit non vale una chiamata
+  chiamate_al_giorno: 6                  # tetto di spesa, oltre al budget mensile dell'AI
+  effort: medium
+
 contatore:                               # contatore di Valve (contatore.py): SourceRevision dei steam.inf di CS2,
   enabled: true                          # Dota 2 e Deadlock; avviso quando il ritmo supera del 30% l'anno prima
 

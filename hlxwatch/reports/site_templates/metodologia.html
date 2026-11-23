@@ -186,6 +186,12 @@
   storia raccolta, senza riscaricare niente: il 18/11/2026 lo streaming dei livelli in Dota 2 non conteneva parole
   sorvegliate e per studiarlo si sono dovute riscaricare 32.000 righe. I commit già visti si archiviano un po' alla
   volta, dal settembre 2026; oltre 20 MB si tolgono per primi schemi e dump dei commit più vecchi.</li>
+  <li id="rete-ai"><b>La seconda rete (AI).</b> Le parole chiave vedono solo i nomi che conosciamo. Dopo ogni
+  aggiornamento di CS2, Dota 2 o Deadlock, le righe nuove del motore (comandi, entità, schemi, Protobuf) che non sono
+  del gioco stesso, non erano mai comparse in nessun gioco e non hanno già fatto partire un avviso vanno a Claude come
+  dati, con una domanda: quali sono sistemi da gioco narrativo per giocatore singolo, come Half-Life? Ogni risposta deve
+  essere una riga mandata davvero, altrimenti si scarta. Fiducia alta: avviso; media: solo sul sito, fonte "rete_ai".
+  Al massimo 6 chiamate al giorno, dentro il budget mensile dell'AI.</li>
   <li id="contatore"><b>Il contatore di Valve.</b> Ogni build di CS2, Dota 2 e Deadlock scrive nel file pubblico
   <code>steam.inf</code> il numero della modifica di Perforce da cui è stata compilata (SourceRevision) e l'ora della
   compilazione. Il numero è unico per tutta Valve, quindi la sua crescita misura quante modifiche salva l'azienda ogni
