@@ -575,6 +575,25 @@ keywords:
       description: "passaggi tra livelli di una campagna"
       # dump di stringhe dei binari (comando changelevel), traduzioni ("al livello successivo" degli eroi), cosmetici
       path_excludes: ["_strings\\.txt$", "(^|/)strings/", "/localization/", "/resource/", "_english\\.txt$", "items_game\\.txt$", "/scripts/npc/", "/dota_addons/", "/particles/econ/", "readme", "\\.md$"]
+    - id: single_player
+      # sistemi che servono solo a un gioco per giocatore singolo, comparsi in giochi multigiocatore (Dota 2, CS2,
+      # Deadlock): livelli caricati senza schermate di caricamento, salvataggi dei livelli (.hl1/.hl2), salvataggi
+      # automatici, livelli di difficoltà (skill), modalità storia, capitoli, gravity gun. Il 18/11/2026 Dota 2 ha
+      # ricevuto tutto lo streaming dei livelli di Source 2 (point_level_stream, save/<livello>.hl1/.hl2, skill 0-3).
+      # Prova su tutta la storia dei comandi e delle entità (nov. 2026): solo trigger_autosave nel 2019 (Alyx) e
+      # l'aggiornamento del 18/11/2026; "difficulty" no (bot di CS2, modalità di Dota), l'autosave di Hammer no.
+      pattern: 'level[ _]?stream|streamed[ _](?:in|out)|showstreaming|stream(?:s|ing)?\s+(?:the\s+)?levels?\s+(?:in|out|back)|(?<![a-z_])(?:auto|quick)save|trigger_autosave|save[ _]?game|\.hl[12](?![a-z0-9])|save/<|(?<![a-z_])load[ _]?game|(?<![a-z_])skill(?![a-z_])|story[ _]mode|(?<![a-z_])(?:chapters?|campaign)(?![a-z_])|physcannon|gravity\s*gun|(?:carried by|attached to) the player'
+      weight: 60
+      description: "sistemi da gioco per giocatore singolo (livelli in streaming, salvataggi, difficoltà, campagna)"
+      excludes: ['hammer', 'keyvalues', 'asset']
+      # solo comandi, variabili, entità e schemi del motore: nei dump dei binari queste parole ci sono sempre
+      path_includes: ['^DumpSource2/(convars|commands)\.txt$', '^DumpSource2/entities/', '^DumpSource2/schemas/', '\.fgd$']
+    - id: single_player_scene
+      # scene recitate (choreo): Alyx le usa, ma compaiono anche nei giochi multigiocatore; sul sito, senza avviso
+      pattern: 'choreo|scripted[_ ]sequence|choreographed'
+      weight: 35
+      description: "scene recitate (choreo, scripted_sequence)"
+      path_includes: ['^DumpSource2/(convars|commands)\.txt$', '^DumpSource2/entities/', '\.fgd$']
     - id: l4d3
       pattern: '(?<![a-z0-9])(left[ _-]?4[ _-]?dead[ _-]?3|l4d3)(?![a-z0-9])'
       weight: 60

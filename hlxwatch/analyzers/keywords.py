@@ -25,6 +25,7 @@ class Keyword:
     description: str = ""
     excludes: list[re.Pattern[str]] = field(default_factory=list)
     path_excludes: list[re.Pattern[str]] = field(default_factory=list)    # file in cui la parola non conta
+    path_includes: list[re.Pattern[str]] = field(default_factory=list)    # se c'è: conta solo in questi file
 
 
 @dataclass
@@ -108,6 +109,7 @@ class KeywordMatcher:
                     description=item.get("description", ""),
                     excludes=[_compile(x) for x in item.get("excludes", []) or []],
                     path_excludes=[_compile(x) for x in item.get("path_excludes", []) or []],
+                    path_includes=[_compile(x) for x in item.get("path_includes", []) or []],
                 )
             except (KeyError, re.error) as exc:
                 log.error("Keyword non valida %r: %s", item, exc)
@@ -166,6 +168,8 @@ class KeywordMatcher:
             if any(ex.search(text) for ex in kw.excludes):
                 continue
             if file_path and any(ex.search(file_path) for ex in kw.path_excludes):
+                continue
+            if kw.path_includes and not (file_path and any(inc.search(file_path) for inc in kw.path_includes)):
                 continue
             matches.append(Match(kw, m.start(), m.end()))
         if matches and self.global_excludes:

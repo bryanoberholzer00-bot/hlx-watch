@@ -198,3 +198,33 @@ lezioni:
     file: "drivers/frame_controller/resources/input/frame_controller_profile.json"
     testo: '"controller_type": "frame_controller",'
     atteso: voce
+  - id: giocatore-singolo-streaming
+    data: "2026-11-23"
+    errore: "Il 18/11/2026 Dota 2 ha ricevuto lo streaming dei livelli di Source 2 (point_level_stream, salvataggi .hl1/.hl2): nessun avviso, perché le righe non contenevano parole sorvegliate."
+    controllo: parola
+    testo: "A level unloading mid-game saves its entities to save/<level>.hl1/.hl2, which point_level_stream restores when it streams the level back in"
+    file: "DumpSource2/convars.txt"
+    contiene: [single_player]
+    punteggio_min: 50
+  - id: giocatore-singolo-difficolta
+    data: "2026-11-23"
+    errore: "La difficoltà skill da 0 a 3 (come la modalità storia di Alyx) in Dota 2 non era stata segnalata."
+    controllo: parola
+    testo: "skill 1 (min: 0, max: 3, gamedll clientdll archive replicated per_user)"
+    file: "DumpSource2/convars.txt"
+    contiene: [single_player]
+    punteggio_min: 50
+  - id: giocatore-singolo-non-bot
+    data: "2026-11-23"
+    errore: "La difficoltà dei bot di CS2 e l'autosave di Hammer non sono sistemi da gioco per giocatore singolo."
+    controllo: parola
+    testo: "hammer_force_autosave (developmentonly defensive)"
+    file: "DumpSource2/commands.txt"
+    non_contiene: [single_player]
+  - id: giocatore-singolo-non-nei-dump
+    data: "2026-11-23"
+    errore: "Nei dump di stringhe dei binari autosave e skill ci sono sempre: lì non contano."
+    controllo: parola
+    testo: "autosave"
+    file: "game/bin/win64/engine2_strings.txt"
+    non_contiene: [single_player]
