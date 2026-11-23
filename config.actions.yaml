@@ -397,7 +397,7 @@ full_scan:
   # anche le parole dei sistemi per giocatore singolo (23/11/2026): la prima scansione dopo l'allargamento le registra
   # come "già presenti" senza avvisi (l'autosave di Source 2 c'è da sempre in CS2), così se Valve riscrive un file
   # intero quelle righe non tornano come novità. Tra 361 e 1.087 righe in più per gioco.
-  prefilter: "hlx|hl3|half[ _-]?life|left[ _-]?4[ _-]?dead|l4d3|xen|gunship|ranger_?trap|flyer_?flank|autosave|quicksave|save[_ ]?game|level[_ ]?stream|streamed[_ ]out|showstreaming|trigger_changelevel|info_landmark|landmark|physcannon|skill [0-9] [(]min|backtrack|persistent[_ ]?entit|spawngroup_(save|transfer|prebuild)|(held|carried) by the player|attached to the player|camera[_ ]control|pulsedocvcd|firstspeak|reach this locator|rayreconstruct|dlss_?rr|isgamereadytosave|save slot|ready to save|move_world_decals|level[_ ]?transition"
+  prefilter: "hlx|hl3|half[ _-]?life|left[ _-]?4[ _-]?dead|l4d3|xen|gunship|ranger_?trap|flyer_?flank|autosave|quicksave|save[_ ]?game|level[_ ]?stream|streamed[_ ]out|showstreaming|trigger_changelevel|info_landmark|landmark|physcannon|skill [0-9] [(]min|backtrack|persistent[_ ]?entit|spawngroup_(save|transfer|prebuild)|(held|carried) by the player|attached to the player|camera[_ ]control|pulsedocvcd|firstspeak|reach this locator|rayreconstruct|dlss_?rr|isgamereadytosave|save slot|ready to save|move_world_decals|level[_ ]?transition|changelevel|m_vcdinfo|trigger_transition|onmaptransition|\\.hl[12]([^a-z0-9]|$)|load_?game|story[_ ]mode|gravity ?gun|transfer_entities|persistent_manifest|ray reconstruct|streams? the level back|into another level|level they"
   exclude_repos: []                      # nomi dei repo da non scansionare
   max_findings_per_repo: 2000
 

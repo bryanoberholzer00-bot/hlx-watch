@@ -190,7 +190,22 @@ def proposals(db: Database) -> list[dict[str, Any]]:
     return data if isinstance(data, list) else []
 
 
+DECIDED = "revisione:decise"
+
+
+def decided_keys(db: Database) -> set[str]:
+    """Le chiavi dei silenzi già decisi (approvati o rifiutati), anche quelli usciti dalle ultime 60 proposte:
+    con ❌ un tipo di voce non va riproposto mai più."""
+    try:
+        return set(json.loads(db.get_state(DECIDED) or "[]"))
+    except ValueError:
+        return set()
+
+
 def _save_proposals(db: Database, items: list[dict[str, Any]]) -> None:
+    keys = decided_keys(db) | {str(p["chiave"]) for p in items if p.get("azione") == "silenzio" and p.get("chiave")
+                               and p.get("stato") in ("applicata", "rifiutata")}
+    db.set_state(DECIDED, json.dumps(sorted(keys), ensure_ascii=False))
     db.set_state(PROPOSALS, json.dumps(items[-60:], ensure_ascii=False))
 
 
@@ -298,6 +313,7 @@ def noisy_groups(cfg: Config, db: Database, now: datetime | None = None) -> list
     active = {**noise.rules(db), **corrections(db)["silenzi"]}
     decided = {p.get("chiave") for p in proposals(db)
                if p.get("azione") == "silenzio" and p.get("stato") in ("attesa", "applicata", "rifiutata")}
+    decided |= decided_keys(db)
     groups: dict[str, list[tuple[Finding, str]]] = {}
     for row in db.conn.execute("SELECT * FROM findings WHERE notified = 1 AND created_at >= ? ORDER BY id",
                                (iso(since),)):

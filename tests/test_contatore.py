@@ -236,7 +236,8 @@ def test_traces_vs_waves(tmp_path):
     r = c.traces_vs_waves(env, days, tries=1000)
     assert r["giorni"] == 14 and not r["legame"] and r["caso"] > 0.2 and "Nessun legame" in r["testo"]
     # giorni presi tutti nell'ondata di adesso: il legame c'è
-    hot = [(datetime(2026, 9, 20) + timedelta(days=4 * k)).date().isoformat() for k in range(10)]
+    # (il confronto parte dalla prima traccia: un giorno normale del 2025 apre il periodo)
+    hot = ["2025-01-06"] + [(datetime(2026, 9, 20) + timedelta(days=4 * k)).date().isoformat() for k in range(10)]
     assert c.traces_vs_waves(env, hot, tries=1000)["legame"]
     assert c.traces_vs_waves(env, days[:3]) is None
     db.close()

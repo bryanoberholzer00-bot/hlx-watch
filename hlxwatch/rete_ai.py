@@ -40,7 +40,10 @@ GAME_WORD = re.compile(r"(?<![a-z])(dota|citadel|deadlock|csgo|cs2|cstrike|survi
                        r"bot_|mp_|cs_|cl_dota|sv_dota)", re.I)
 GAME_CLASS = re.compile(r"\b(C_?DOTA|CDOTA|C_?Citadel|CCitadel|C_?CS|CCS|CCSGO|CSGO)[A-Za-z_]", re.I)
 GAME_PROTO = re.compile(r"(^|/)(dota|citadel|cstrike|csgo|cs_|gcsdk|econ|steammessages)", re.I)
-NAME_LINE = re.compile(r"^([A-Za-z_][A-Za-z0-9_.]*)\s+\S.*\(")       # convars/commands: "nome valore (flag)"
+# comandi e variabili: "nome (flag)" o "nome valore (flag)", anche "+nome"; i nomi sono minuscoli, le descrizioni no
+NAME_LINE = re.compile(r"^[+-]?[a-z_][a-z0-9_.]*(?:\s+\S+)?\s+\([a-z0-9_ ,:.+-]*\)\s*$")
+# ordine di importanza quando le righe sono troppe: comandi, entità, Protobuf, schemi
+PRIORITY = ((re.compile(r"(convars|commands)\.txt$"), 0), (re.compile(r"\.fgd$"), 1), (re.compile(r"\.proto$"), 2))
 
 SYSTEM = """Sei la "seconda rete" di HLX Watch, uno strumento che sorveglia i dati pubblici dei giochi Valve su \
 Source 2 (CS2, Dota 2, Deadlock) cercando tracce di HLX, il presunto nuovo Half-Life: un gioco narrativo per giocatore \
@@ -102,7 +105,31 @@ def game_specific(path: str, text: str) -> bool:
     return bool(GAME_WORD.search(text) or GAME_CLASS.search(text) or GAME_CLASS.search(path))
 
 
-def candidates(db: Database, build_id: int, cfg: Any = None, skip_alerting: bool = True) -> list[dict[str, str]]:
+def seen_index(db: Database) -> dict[int, tuple[str, int]]:
+    """Per ogni riga archiviata (solo i file che vanno a Claude) la prima comparsa: (data, commit). Si calcola una
+    volta per giro; le chiavi sono hash delle righe, per non tenere in memoria milioni di testi."""
+    from hlxwatch import archivio_righe as ar
+    ar.ensure_schema(db)
+    first: dict[int, tuple[str, int]] = {}
+    for rec in db.conn.execute("SELECT a.build_id, a.file_path, a.data, b.date FROM line_archive a "
+                               "JOIN builds b ON b.id = a.build_id").fetchall():
+        if not FILES.search(rec["file_path"]):
+            continue
+        when = (str(rec["date"]), int(rec["build_id"]))
+        for op, t in ar.unpack(rec["data"]):
+            if op == "+":
+                h = hash(_norm(t))
+                if h not in first or when < first[h]:
+                    first[h] = when
+    return first
+
+
+def _priority(path: str) -> int:
+    return next((n for rx, n in PRIORITY if rx.search(path)), 3)
+
+
+def candidates(db: Database, build_id: int, cfg: Any = None, skip_alerting: bool = True,
+               index: dict[int, tuple[str, int]] | None = None) -> list[dict[str, str]]:
     """Le righe nuove del motore di un commit, senza quelle del gioco, quelle già viste prima in qualunque gioco e
     quelle che hanno già fatto partire un avviso. Nei comandi la riga di descrizione segue il suo nome."""
     from hlxwatch import archivio_righe as ar
@@ -111,10 +138,13 @@ def candidates(db: Database, build_id: int, cfg: Any = None, skip_alerting: bool
     row = db.conn.execute("SELECT date FROM builds WHERE id = ?", (build_id,)).fetchone()
     if row is None:
         return []
-    seen: set[str] = set()
-    for old in db.conn.execute("SELECT a.data FROM line_archive a JOIN builds b ON b.id = a.build_id "
-                               "WHERE b.date < ? AND a.build_id <> ?", (row["date"], build_id)).fetchall():
-        seen.update(_norm(t) for op, t in ar.unpack(old["data"]) if op == "+")
+    index = seen_index(db) if index is None else index
+    here = (str(row["date"]), int(build_id))
+
+    def seen_before(text: str) -> bool:
+        first = index.get(hash(_norm(text)))
+        return first is not None and first < here        # a parità di data conta il commit registrato prima
+
     matcher = KeywordMatcher(cfg.keywords) if cfg is not None and skip_alerting else None
     out: list[dict[str, str]] = []
     for rec in db.conn.execute("SELECT file_path, data FROM line_archive WHERE build_id = ? ORDER BY file_path",
@@ -131,18 +161,21 @@ def candidates(db: Database, build_id: int, cfg: Any = None, skip_alerting: bool
                 continue
             is_name = bool(NAME_LINE.match(t)) or not path.endswith(("convars.txt", "commands.txt"))
             if not is_name:                                  # descrizione di un comando: segue il nome
-                if keep_desc and _norm(t) not in seen:
-                    out.append({"file": path, "riga": t[:MAX_LEN]})
+                if keep_desc and not seen_before(t):
+                    out.append({"file": path, "riga": t[:MAX_LEN].rstrip()})
                 continue
             keep_desc = False
-            if _norm(t) in seen or game_specific(path, t):
+            if seen_before(t) or game_specific(path, t):
                 continue
             if matcher is not None:
                 res = matcher.analyze_line(t, file_path=path, change_type="added")
                 if res and res.score >= 50:
                     continue                                  # è già un avviso
             keep_desc = True
-            out.append({"file": path, "riga": t[:MAX_LEN]})
+            out.append({"file": path, "riga": t[:MAX_LEN].rstrip()})
+    out.sort(key=lambda i: _priority(i["file"]))              # stabile: dentro un file resta l'ordine delle righe
+    if len(out) > MAX_ITEMS:
+        log.info("Seconda rete: %d righe, ne vanno a Claude le prime %d (prima comandi ed entità)", len(out), MAX_ITEMS)
     return out[:MAX_ITEMS]
 
 
@@ -179,8 +212,8 @@ def review(cfg: Any, db: Database, build: Any, client: Any, items: list[dict[str
                                     effort=str(settings(cfg)["effort"]), max_tokens=4000, system=SYSTEM)
     if not content:
         return None, cost
-    sent = {(i["file"], i["riga"]) for i in items}
-    by_line = {i["riga"]: i["file"] for i in items}
+    sent = {(i["file"], i["riga"].strip()) for i in items}
+    by_line = {i["riga"].strip(): i["file"] for i in items}
     voci = []
     for v in content.get("voci") or []:
         riga = str(v.get("riga") or "").strip()
@@ -200,7 +233,7 @@ def to_findings(build: Any, answer: dict[str, Any]) -> list[Finding]:
     for v in answer.get("voci") or []:
         score = SCORES.get(v.get("fiducia"), 30)
         out.append(Finding(game=build["game"], source="rete_ai", file_path=v["file"], change_type="added",
-                           text=v["riga"][:500], score=score, keywords=["rete_ai"],
+                           text=v["riga"][:500], score=score, keywords=["rete_ai"], token=f"rete_ai:{_norm(v['riga'])[:150]}",
                            context=f"seconda rete (AI), fiducia {v.get('fiducia')}: {v.get('sistema')} — {v.get('perche')}"))
     return out
 
@@ -224,39 +257,54 @@ def run(cfg: Any, db: Database, notifiers: list, *, client: Any = None, send: bo
     calls = int(day.get("n", 0)) if day.get("giorno") == today else 0
     done = _done(db)
     alerts: list[Finding] = []
-    for build in pending(cfg, db):
-        items = candidates(db, build["id"], cfg)
-        if len(items) < int(s["min_righe"]):
+    todo = pending(cfg, db)
+    index = seen_index(db) if todo else {}
+
+    def save() -> None:                                       # dopo ogni commit: un errore dopo non fa ripagare niente
+        db.set_state(STATE_DONE, json.dumps(done[-3000:]))
+        db.set_state(STATE_DAY, json.dumps({"giorno": today, "n": calls}))
+
+    try:
+        for build in todo:
+            items = candidates(db, build["id"], cfg, index=index)
+            if len(items) < int(s["min_righe"]):
+                done.append(build["id"])
+                result["guardati"] += 1
+                save()
+                continue
+            if calls >= int(s["chiamate_al_giorno"]) or analyzer.month_spend() >= budget:
+                log.info("Seconda rete: tetto di chiamate o budget raggiunto, il resto al prossimo giro")
+                break
+            calls += 1                                        # contata anche se fallisce: il tetto protegge la spesa
+            answer, cost = review(cfg, db, build, analyzer.client, items)
+            result["chiamate"] += 1
+            result["costo"] += cost
             done.append(build["id"])
             result["guardati"] += 1
-            continue
-        if calls >= int(s["chiamate_al_giorno"]) or analyzer.month_spend() >= budget:
-            log.info("Seconda rete: tetto di chiamate o budget raggiunto, il resto al prossimo giro")
-            break
-        answer, cost = review(cfg, db, build, analyzer.client, items)
-        calls += 1
-        result["chiamate"] += 1
-        result["costo"] += cost
-        done.append(build["id"])
-        result["guardati"] += 1
-        if answer is None:
-            continue
-        found = to_findings(build, answer)
-        for f in found:
-            db.add_finding(f, build["id"])
-        result["voci"] += len(found)
-        alerts += [f for f in found if f.is_new and f.score >= int(cfg.get("general.notify_min_score", 50))]
-        db.set_state(STATE_LAST, json.dumps({"at": iso(utcnow()), "game": build["game"], "ref": build["ref"],
-                                             "righe": len(items), "voci": len(found), "costo": round(cost, 4),
-                                             "riassunto": answer["riassunto"]}, ensure_ascii=False))
-        log.info("Seconda rete: %s %s, %d righe mandate, %d voci, costo %.4f $", build["game"], build["ref"][:10],
-                 len(items), len(found), cost)
-    db.set_state(STATE_DONE, json.dumps(done[-3000:]))
-    db.set_state(STATE_DAY, json.dumps({"giorno": today, "n": calls}))
-    if alerts and send and notifiers:
-        from hlxwatch.notifiers import notify_findings
-        if notify_findings(notifiers, alerts, cfg, "HLX Watch: la seconda rete (AI) ha notato qualcosa"):
-            db.mark_notified(f.id for f in alerts if f.id is not None)
+            if answer is not None:
+                found = to_findings(build, answer)
+                for f in found:
+                    db.add_finding(f, build["id"])
+                result["voci"] += len(found)
+                alerts += [f for f in found if f.is_new and f.score >= int(cfg.get("general.notify_min_score", 50))]
+                db.set_state(STATE_LAST, json.dumps({"at": iso(utcnow()), "game": build["game"], "ref": build["ref"],
+                                                     "righe": len(items), "voci": len(found), "costo": round(cost, 4),
+                                                     "riassunto": answer["riassunto"]}, ensure_ascii=False))
+                log.info("Seconda rete: %s %s, %d righe mandate, %d voci, costo %.4f $", build["game"],
+                         build["ref"][:10], len(items), len(found), cost)
+            save()
+    except Exception:                                         # noqa: BLE001 - l'API può cadere: il resto al giro dopo
+        log.exception("Seconda rete: interrotta, i commit non guardati restano per il prossimo giro")
+    finally:
+        save()
+        if alerts and send and notifiers:
+            from hlxwatch import noise
+            from hlxwatch.notifiers import notify_findings
+            from hlxwatch.revisione import corrections
+            active = {**noise.rules(db), **corrections(db)["silenzi"]}   # 👎 e silenzi approvati valgono anche qui
+            alerts = [f for f in alerts if not noise.muted(f, active)]
+            if alerts and notify_findings(notifiers, alerts, cfg, "HLX Watch: la seconda rete (AI) ha notato qualcosa"):
+                db.mark_notified(f.id for f in alerts if f.id is not None)
     return result
 
 

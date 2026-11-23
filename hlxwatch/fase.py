@@ -57,6 +57,7 @@ def summary(reg: dict[str, Any], alyx_seed: dict[str, Any] | None) -> dict[str, 
         if key in by_key:                                  # stesso pezzo: si tiene il nome più corto
             if len(label) < len(by_key[key]["label"]):
                 by_key[key]["label"] = label
+                by_key[key]["slug"] = t.get("slug") or by_key[key]["slug"]   # il nome porta alla sua pagina
             continue
         by_key[key] = {"label": label, "first": t["first"], "year": t["first"][:4], "kind": kind, "slug": t.get("slug")}
         items.append(by_key[key])

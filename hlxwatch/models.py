@@ -12,7 +12,8 @@ NON_KEYWORD_KEYWORDS = ("watched_file", "codename_new", "steam_build", "new_repo
                         "structure_new", "structure_removed", "loc_prefix_new", "loc_file_new",
                         "orphan_entity", "hammer_helper_new", "hlx_renamed", "steamtracking_summary", "pulse_node", "steam_news",
                         "valve_github", "cert_domain", "hardware_id", "achievement_new", "class_family",
-                        "steamos_package", "steamos_repo", "fcc_id", "steamworks_page", "steamworks_text")
+                        "steamos_package", "steamos_repo", "fcc_id", "steamworks_page", "steamworks_text",
+                        "rete_ai")
 
 
 @dataclass

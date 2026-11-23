@@ -24,7 +24,7 @@
   <div class="card"><b>{{ num(a.ultimo.rev) }}</b><span>il contatore oggi ({{ a.ultimo.quando[:10] }}, {{ titles_c.get(a.ultimo.gioco, a.ultimo.gioco) }})</span></div>
  </div>
  {% if a.record %}<p><b>È il ritmo più alto da quando ci sono i dati</b> (2016): il massimo di prima, su 60 giorni, era {{ num(a.record_prima) }} al giorno.</p>{% endif %}
- {% if wave and wave.attiva %}<p class="avviso" style="padding:.5rem .7rem;border-radius:6px">Ondata in corso dal {{ wave.da }}: il ritmo è sopra di oltre il 30% quello dell'anno prima.</p>{% endif %}
+ {% if wave and wave.attiva %}<p class="avviso" style="padding:.5rem .7rem;border-radius:6px">Ondata in corso, rilevata il {{ wave.da }} quando il ritmo ha superato del 30% quello dell'anno prima. Resta in corso finché non scende sotto il +15%.</p>{% endif %}
 </section>
 
 <section>
@@ -66,7 +66,7 @@
   <tr><td><b>Totale</b></td><td><b>{{ v.totale.ora }}</b></td><td>{{ v.totale.prima }}</td><td>{{ v.totale.anno }}</td></tr>
  </table>
  <p><b>Contatore {{ pct(a.rapporto_anno) }}, lavoro visibile {{ pct(v.rispetto_anno) }}</b> rispetto a un anno
- fa{% if a.rapporto_anno and v.rispetto_anno and a.rapporto_anno > v.rispetto_anno * 1.1 %}: una parte della crescita
+ fa{% if not a.rapporto_anno or not v.rispetto_anno %}: confronto non disponibile, mancano i dati di un anno fa.{% elif a.rapporto_anno <= 1 %}: il contatore non cresce, non c'è lavoro in più da spiegare.{% elif a.rapporto_anno > v.rispetto_anno * 1.1 %}: una parte della crescita
  del contatore non si vede negli aggiornamenti pubblici.{% else %}: la crescita del contatore si vede anche negli
  aggiornamenti pubblici.{% endif %}</p>
  <p class="muted"><small>Un aggiornamento è un commit di SteamTracking: conta quante volte un progetto è cambiato,

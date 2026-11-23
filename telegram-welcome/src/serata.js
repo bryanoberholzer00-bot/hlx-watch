@@ -19,7 +19,7 @@
 // Ogni lettura parte da sola: una fonte che non risponde non ferma le altre. Il KV si scrive solo quando cambia qualcosa.
 
 import SERATE from "../../hlxwatch/serate.json" with { type: "json" };
-import { PREFIX, newHalfLife } from "./fast.js";
+import { PREFIX, mentionsHalfLife, newHalfLifeVideo } from "./fast.js";
 
 export const LIST = SERATE.serate || [];
 export const STATE = "serata:stato";
@@ -78,10 +78,13 @@ export function halfLifePaths(html) {
   return [...out].sort();
 }
 
-// Una pagina nuova di primo livello (un gioco) è un possibile annuncio; un anniversario (halflife25, halflife2/20th)
-// o una pagina dentro un gioco già noto no.
+// Una pagina nuova di primo livello con il nome di un gioco Half-Life (halflife3, hlx, episode3...) è un possibile
+// annuncio; un anniversario (halflife25, halflife2/20th), una pagina dentro un gioco già noto o una pagina qualunque
+// (news, legal, steamframe) no: quelle arrivano solo al proprietario.
+const GAME_PAGE = /half-?life|^hl|hlx|episode|xen|citadel|combine|black-?mesa|gordon|freeman|vance|ravenholm|lambda/;
+
 export function isGamePage(path) {
-  return !path.includes("/") && !/\d{2}(th)?$/.test(path);
+  return !path.includes("/") && !/\d{2}(th)?$/.test(path) && GAME_PAGE.test(path);
 }
 
 export function valveList(data) {
@@ -154,8 +157,10 @@ export function compareSerata(state, readings, canali = [], now = Date.now()) {
       const url = `https://www.youtube.com/watch?v=${v.id}`;
       if (ch.commento) {                       // canale di commento: solo "da controllare", mai un annuncio
         if (ABOUT_VALVE.test(`${v.titolo} ${v.testo}`)) videoDaControllare.push({ canale: ch.nome, titolo: v.titolo, url });
-      } else if (newHalfLife(v.titolo, v.testo)) {
+      } else if (newHalfLifeVideo(v.titolo)) {
         annunci.push(item(`YouTube: ${ch.nome}`, "video", `video nuovo: ${v.titolo}`, `youtube.com/${ch.nome}`, url, "il video", now));
+      } else if (mentionsHalfLife(v.testo)) {      // solo nella descrizione: da guardare, non un annuncio pubblico
+        videoDaControllare.push({ canale: ch.nome, titolo: v.titolo, url });
       } else if (ch.tutti || /\bvalve\b/i.test(v.titolo)) {
         note.push(`Video nuovo sul canale ${ch.nome}: <a href="${url}">${esc(v.titolo)}</a>`);
       }
@@ -302,7 +307,7 @@ async function appInfo(appid) {
 }
 
 async function readChannel(channelId, key) {
-  const url = `${YT_API}?part=snippet&maxResults=10&playlistId=${uploadsPlaylist(channelId)}&key=${encodeURIComponent(key)}`;
+  const url = `${YT_API}?part=snippet&maxResults=50&playlistId=${uploadsPlaylist(channelId)}&key=${encodeURIComponent(key)}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`YouTube ${channelId}: HTTP ${res.status}`);
   return videos(await res.json());

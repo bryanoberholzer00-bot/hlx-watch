@@ -73,8 +73,10 @@ def changes(old: dict[str, Any] | None, new: dict[str, Any]) -> list[dict[str, A
                         f"La pagina di Valve su Steam conta {cur['dichiarati']} {label} ma ne mostra {len(cur['app'])}: "
                         f"{hidden} {'è nascosto' if hidden == 1 else 'sono nascosti'}."})
         if before is not None:
+            # un'app sparita per un giro (cache o regione) e ricomparsa non è un prodotto nuovo
+            ever = set(before["app"]) | set((old or {}).get("viste", []))
             for appid in cur["app"]:
-                if appid not in before["app"]:
+                if appid not in ever:
                     out.append({"tipo": "nuova", "lista": key, "appid": appid})
             if key == "arrivo" and cur["dichiarati"] > before["dichiarati"]:
                 out.append({"tipo": "sale", "lista": key, "testo":
@@ -119,6 +121,8 @@ def check(cfg: Any, db: Any, notifiers: list | None = None, session: Any = None,
         return None
     new = {"at": now.isoformat(timespec="seconds"), "tutti": every, "arrivo": upcoming}
     found = changes(old, new)
+    new["viste"] = sorted(set((old or {}).get("viste", [])) | set((old or {}).get("tutti", {}).get("app", []))
+                          | set((old or {}).get("arrivo", {}).get("app", [])) | set(every["app"]) | set(upcoming["app"]))
     for c in found:
         if c["tipo"] == "nuova":
             name, kind = app_name(session, c["appid"])

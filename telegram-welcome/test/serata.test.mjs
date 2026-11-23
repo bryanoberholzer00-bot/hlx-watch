@@ -306,3 +306,24 @@ test("serataCheck: i canali di commento si leggono sempre con la chiave e mandan
     globalThis.fetch = realFetch;
   }
 });
+
+test("video: la descrizione non fa un annuncio pubblico, solo un da controllare", () => {
+  const canali = [{ id: "UCtga", nome: "The Game Awards", tutti: true }];
+  const state = { yt: { UCtga: ["vecchio"] } };
+  const yt = { UCtga: [
+    { id: "t1", titolo: "Space Game - Official Trailer", testo: "Episode 3 coming soon. HL3 confirmed lol" },
+    { id: "t2", titolo: "Half-Life: The Documentary", testo: "" },
+    { id: "t3", titolo: "Half-Life 3 - Announcement Trailer", testo: "" },
+  ] };
+  const res = compareSerata(state, { pagine: null, valve: null, yt }, canali);
+  assert.deepEqual(res.annunci.map((a) => a.x.includes("Half-Life 3")), [true]);
+  assert.deepEqual(res.videoDaControllare.map((v) => v.titolo), ["Space Game - Official Trailer"]);
+});
+
+test("half-life.com: una pagina qualunque non è un annuncio", () => {
+  assert.ok(!isGamePage("news") && !isGamePage("legal") && !isGamePage("steamframe"));
+  assert.ok(isGamePage("halflife3") && isGamePage("hlx") && isGamePage("blackmesa"));
+  const res = compareSerata({ pagine: ["alyx"] }, { pagine: ["alyx", "news"], valve: null, yt: {} }, []);
+  assert.equal(res.annunci.length, 0);
+  assert.equal(res.note.length, 1);
+});

@@ -63,7 +63,7 @@ def engine_merge_index(db: Database) -> dict[str, dict[str, str]]:
     """chiave della traccia -> gioco -> primo giorno, solo per i tre giochi che ricevono le fusioni del motore."""
     out: dict[str, dict[str, str]] = defaultdict(dict)
     rows = db.conn.execute(
-        "SELECT f.game, f.token, f.text, COALESCE(fs.commit_date, b.date, f.created_at) AS d FROM findings f "
+        "SELECT f.game, f.token, f.text, CASE WHEN f.change_type IN ('removed', 'file_removed') THEN COALESCE(b.date, f.created_at) ELSE COALESCE(fs.commit_date, b.date, f.created_at) END AS d FROM findings f "
         "LEFT JOIN builds b ON b.id = f.build_id LEFT JOIN first_seen fs ON fs.game = f.game AND fs.file_path = f.file_path "
         "AND fs.text = f.text WHERE f.game IN ('cs2', 'dota2', 'deadlock') "
         "AND f.change_type IN ('added', 'present', 'file_added', 'changed', 'pulse', 'renamed') "
@@ -163,7 +163,7 @@ def outcome_register(cfg: Config, db: Database) -> dict[str, Any]:
     present = _present_now(db)
     rows = db.conn.execute(
         "SELECT f.game, f.file_path, f.change_type, f.token, f.text, f.old_text, f.context, f.keywords, f.score, "
-        "COALESCE(fs.commit_date, b.date, f.created_at) AS d, b.url AS url FROM findings f "
+        "CASE WHEN f.change_type IN ('removed', 'file_removed') THEN COALESCE(b.date, f.created_at) ELSE COALESCE(fs.commit_date, b.date, f.created_at) END AS d, b.url AS url FROM findings f "
         "LEFT JOIN builds b ON b.id = f.build_id LEFT JOIN first_seen fs ON fs.game = f.game AND fs.file_path = f.file_path "
         "AND fs.text = f.text WHERE f.change_type NOT IN ('baseline', 'summary') AND f.file_path NOT LIKE '%.stringsignore'"
     ).fetchall()

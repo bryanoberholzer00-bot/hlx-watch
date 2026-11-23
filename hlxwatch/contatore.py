@@ -98,9 +98,7 @@ def load_seed(db: Database) -> int:
         seed = json.loads(SEED.read_text(encoding="utf-8"))["punti"]
     except (OSError, ValueError, KeyError):
         return 0
-    have = db.conn.execute("SELECT COUNT(*) FROM valve_counter").fetchone()[0]
-    if have >= len(seed):
-        return 0
+    # sempre INSERT OR IGNORE (pochi millisecondi): contare le righe non basta, quelle vere dei giri si sommano
     before = db.conn.total_changes
     db.conn.executemany("INSERT OR IGNORE INTO valve_counter (game, rev, built_at) VALUES (?, ?, ?)", seed)
     db.conn.commit()
@@ -200,7 +198,9 @@ class Envelope:
         """Il contatore all'istante t, in linea retta tra la build prima e quella dopo: per periodi brevi, come una
         settimana di feste con poche build, è più giusto del gradino."""
         i = bisect.bisect_right(self.t, t)
-        if i == 0 or i >= len(self.t):
+        if i >= len(self.t):                      # all'ultima build vale il suo numero; dopo non si sa
+            return float(self.v[-1]) if self.t and t == self.t[-1] else None
+        if i == 0:
             return None
         t0, t1, v0, v1 = self.t[i - 1], self.t[i], self.v[i - 1], self.v[i]
         return v0 + (v1 - v0) * (t - t0).total_seconds() / (t1 - t0).total_seconds()
@@ -323,8 +323,8 @@ def precedents(env: Envelope) -> dict[str, Any]:
 # ------------------------------------------------------------------ le tracce HLX e le ondate
 def traces_vs_waves(env: Envelope, days: list[str], tries: int = 5000) -> dict[str, Any] | None:
     """Le tracce HLX compaiono quando Valve lavora più del solito? Il ritmo sull'anno prima nei giorni della prima
-    comparsa, contro tutti i giorni dello stesso periodo, con una prova a caso: quante volte lo stesso numero di
-    giorni presi a caso ha una media almeno così alta. Prova di novembre 2026: 101% contro 103%, nessun legame."""
+    comparsa, contro tutti i giorni dello stesso periodo (dalla prima traccia a oggi), con una prova a caso: quante
+    volte lo stesso numero di giorni presi a caso ha una media almeno così alta. Novembre 2026: nessun legame."""
     import random
     import statistics
     if not env.t:
@@ -335,7 +335,7 @@ def traces_vs_waves(env: Envelope, days: list[str], tries: int = 5000) -> dict[s
                         if datetime.fromisoformat(d) <= end) if v]
     if len(vals) < 5:
         return None
-    t = datetime.fromisoformat(unique[0]) - timedelta(days=365)
+    t = datetime.fromisoformat(unique[0])
     every = []
     while t <= end:
         v = ratio_at(env, t)
@@ -440,8 +440,9 @@ def check_holidays(db: Database, h: dict[str, Any], notifiers: list, site_url: s
         key = f"{STATE_FESTE}{r['festa']}:{r['anno']}"
         if db.get_state(key):
             continue
-        notify_text(notifiers, f"HLX Watch: la prova delle feste ({FESTE[r['festa']].split(' (')[0]} {r['anno']})",
-                    holiday_text(r, s, site_url))
+        if not notify_text(notifiers, f"HLX Watch: la prova delle feste ({FESTE[r['festa']].split(' (')[0]} {r['anno']})",
+                           holiday_text(r, s, site_url)):
+            continue                                  # Telegram non ha risposto: si riprova al giro dopo
         db.set_state(key, json.dumps({"rapporto": r["rapporto"], "giudizio": r["giudizio"], "at": iso(utcnow())}))
         sent.append(key)
     return sent
@@ -472,16 +473,20 @@ def analyse(db: Database, visible: dict[str, Any] | None = None) -> dict[str, An
         return None
     end = env.t[-1]
     w0 = end - timedelta(days=WINDOW)
-    cur = env.rate(w0, end)
-    base = env.rate(w0 - timedelta(days=BASE), w0)
-    last_year = env.rate(w0 - timedelta(days=365), end - timedelta(days=365))
-    prev = env.rate(w0 - timedelta(days=WINDOW), w0)
-    history = waves(env, top=40)
-    best_before = max((w["ritmo"] for w in history if w["a"] < w0.date().isoformat()), default=0)
+    # valori interpolati tra due build: con il gradino una finestra che comincia dopo giorni senza build sembra più veloce
+    cur = env.rate_interp(w0, end)
+    base = env.rate_interp(w0 - timedelta(days=BASE), w0)
+    if not cur or not base:
+        return None                               # meno di 14 mesi di dati: niente pagina a metà
+    last_year = env.rate_interp(w0 - timedelta(days=365), end - timedelta(days=365))
+    prev = env.rate_interp(w0 - timedelta(days=WINDOW), w0)
+    best_before = record_before(env, w0)
     per_game = []
     for game in ("cs2", "dota2", "deadlock"):
         g = Envelope([p for p in pts if p[2] == game])
-        a, b = g.rate(w0, end), g.rate(w0 - timedelta(days=BASE), w0)
+        if not g.t or g.t[-1] <= w0:
+            continue
+        a, b = g.rate_interp(w0, g.t[-1]), g.rate_interp(w0 - timedelta(days=BASE), w0)
         if a and b:
             per_game.append({"game": game, "titolo": GAME_TITLES[game], "ora": a, "prima": b, "rapporto": a / b})
     hours_now = hourly(env, w0, end)
@@ -504,6 +509,21 @@ def analyse(db: Database, visible: dict[str, Any] | None = None) -> dict[str, An
         "ondate": waves(env), "mesi": monthly(env), "visibile": visible, "eventi": EVENTS,
         "feste": holidays(env), "lanci": precedents(env),
     }
+
+
+def record_before(env: Envelope, w0: datetime) -> float:
+    """Il ritmo più alto di sempre su 60 giorni, tra le finestre finite prima di w0 (un giorno alla volta, dal 2017:
+    nel 2016 c'erano poche build e il primo salto del contatore non è un ritmo)."""
+    if not env.t:
+        return 0.0
+    best = 0.0
+    a = max(env.t[0], datetime(2017, 1, 1))
+    while a + timedelta(days=WINDOW) <= w0:
+        r = env.rate_interp(a, a + timedelta(days=WINDOW))
+        if r and r > best:
+            best = r
+        a += timedelta(days=1)
+    return best
 
 
 # ------------------------------------------------------------------ grafico
@@ -577,10 +597,13 @@ def wave_text(a: dict[str, Any], site_url: str) -> str:
     if a["record"]:
         lines.append("È il ritmo più alto da quando ci sono i dati (2016).")
     f = a["fasce"]
-    if f["lavoro"].get("rapporto"):
-        tail = "" if f["lavoro"]["pochi"] else " (dati solidi)"
-        lines.append(f"Nelle ore di lavoro di Seattle: {pct(f['lavoro']['rapporto'])}{tail}: sono soprattutto persone, "
+    work = f["lavoro"].get("rapporto")
+    if work and not f["lavoro"]["pochi"] and work >= WAVE_OFF:
+        lines.append(f"Nelle ore di lavoro di Seattle: {pct(work)} (dati solidi): sono soprattutto persone, "
                      "non programmi automatici.")
+    elif work:
+        lines.append(f"Nelle ore di lavoro di Seattle: {pct(work)}"
+                     + (" (pochi dati)." if f["lavoro"]["pochi"] else ": l'aumento non viene dalle ore di lavoro."))
     off = [f"{BUCKET_LABELS[k]} {pct(f[k]['rapporto'])}" for k in ("sera", "weekend")
            if f[k].get("rapporto") and not f[k]["pochi"]]
     if off:
@@ -609,7 +632,8 @@ def check_wave(db: Database, a: dict[str, Any] | None, notifiers: list, site_url
     state = _json_state(db, STATE_WAVE) or {}
     fresh = (datetime.fromisoformat(a["ultimo"]["quando"]) > datetime.now() - timedelta(days=7))
     if not state.get("attiva") and a["rapporto"] >= WAVE_ON and fresh:
-        notify_text(notifiers, TITLE_WAVE, wave_text(a, site_url))
+        if not notify_text(notifiers, TITLE_WAVE, wave_text(a, site_url)):
+            return None                                # Telegram non ha risposto: si riprova al giro dopo
         db.set_state(STATE_WAVE, json.dumps({"attiva": True, "da": a["finestra"]["a"], "rapporto": a["rapporto"],
                                              "ritmo": a["ora"], "at": iso(utcnow())}))
         return "inizio"
@@ -618,17 +642,19 @@ def check_wave(db: Database, a: dict[str, Any] | None, notifiers: list, site_url
     today = la.get("oggi") or {}
     if (state.get("attiva") and not state.get("come_alyx") and alyx_weeks and fresh
             and today.get("settimane", 0) >= min(alyx_weeks)):
-        notify_text(notifiers, "HLX Watch: un'ondata lunga come prima di Alyx",
+        if not notify_text(notifiers, "HLX Watch: un'ondata lunga come prima di Alyx",
                     f"Il ritmo di lavoro di Valve è sopra il +20% sull'anno prima da {today['settimane']} settimane "
                     f"negli ultimi 12 mesi: tanto quanto prima di Half-Life: Alyx ({min(alyx_weeks)}-{max(alyx_weeks)}) "
                     "e più che prima di qualunque altro lancio di Valve dal 2017.\n" + la.get("testo", "")
-                    + f"\nIl contatore dice quanto lavora Valve, non su cosa.\n{site_url}contatore.html#lanci")
+                    + f"\nIl contatore dice quanto lavora Valve, non su cosa.\n{site_url}contatore.html#lanci"):
+            return None
         db.set_state(STATE_WAVE, json.dumps({**state, "come_alyx": a["finestra"]["a"]}))
         return "come_alyx"
     if state.get("attiva") and a["rapporto"] < WAVE_OFF:
-        notify_text(notifiers, TITLE_CALM,
+        if not notify_text(notifiers, TITLE_CALM,
                     f"Il ritmo delle modifiche di Valve è sceso a {num(a['ora'])} al giorno ({pct(a['rapporto'])} "
-                    f"rispetto all'anno prima). L'ondata iniziata il {state.get('da')} è finita.\n{site_url}contatore.html")
+                    f"rispetto all'anno prima). L'ondata rilevata il {state.get('da')} è finita.\n{site_url}contatore.html"):
+            return None
         db.set_state(STATE_WAVE, json.dumps({"attiva": False, "finita": a["finestra"]["a"], "da": state.get("da"),
                                              "at": iso(utcnow())}))
         return "fine"

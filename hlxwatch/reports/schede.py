@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import re
 from pathlib import Path
 from typing import Any
@@ -28,6 +29,8 @@ from hlxwatch.fase import trace_kind
 from hlxwatch.outcomes import MAIN_GAMES, _is_hlx, merge_partners, norm, trace_key
 from hlxwatch.storage import Database
 from hlxwatch.timeutil import local_day
+
+log = logging.getLogger(__name__)
 
 PREFIX = "traccia-"
 MAX_SLUG = 50
@@ -80,14 +83,16 @@ def assign_slugs(traces: list[dict[str, Any]]) -> dict[str, str]:
     """chiave della traccia -> nome della pagina (senza prefisso né .html), stabile tra un giro e l'altro.
     Il nome viene dalla traccia stessa; se è troppo lungo o due tracce darebbero lo stesso nome (cambiano solo
     segni di punteggiatura), si aggiungono 6 caratteri presi dalla chiave."""
-    base = {t["key"]: _clean(t["key"]) or "traccia" for t in traces}
-    seen: dict[str, int] = {}
-    for s in base.values():
-        seen[s] = seen.get(s, 0) + 1
-    out = {}
-    for key, s in base.items():
-        if len(s) > MAX_SLUG or seen[s] > 1:
+    out: dict[str, str] = {}
+    taken: set[str] = set()
+    # dalla traccia più vecchia: una traccia nuova con un nome simile prende il suffisso, quella già pubblicata no
+    # (così i link già condivisi e quelli negli avvisi restano validi)
+    for t in sorted(traces, key=lambda t: (str(t.get("first") or ""), t["key"])):
+        key = t["key"]
+        s = _clean(key) or "traccia"
+        if len(s) > MAX_SLUG or s in taken:
             s = s[:MAX_SLUG].strip("-") + "-" + hashlib.sha1(key.encode("utf-8")).hexdigest()[:6]
+        taken.add(s)
         out[key] = s
     for t in traces:
         t["slug"] = out[t["key"]]
@@ -103,7 +108,7 @@ def occurrences(db: Database, keys: set[str]) -> dict[str, list[dict[str, Any]]]
     """Tutte le righe HLX dell'archivio delle tracce richieste, con la data della prima comparsa se nota."""
     rows = db.conn.execute(
         "SELECT f.id, f.game, f.file_path, f.line_no, f.change_type, f.token, f.text, f.context, f.keywords, f.score, "
-        "COALESCE(fs.commit_date, b.date, f.created_at) AS d, fs.at_least AS al, b.url AS url FROM findings f "
+        "CASE WHEN f.change_type IN ('removed', 'file_removed') THEN COALESCE(b.date, f.created_at) ELSE COALESCE(fs.commit_date, b.date, f.created_at) END AS d, fs.at_least AS al, b.url AS url FROM findings f "
         "LEFT JOIN builds b ON b.id = f.build_id LEFT JOIN first_seen fs ON fs.game = f.game AND fs.file_path = f.file_path "
         "AND fs.text = f.text WHERE f.change_type NOT IN ('baseline', 'summary', 'renamed') "
         "AND f.file_path NOT LIKE '%.stringsignore'").fetchall()
@@ -336,7 +341,11 @@ def fill_neighbours(cfg: Any, db: Database, client: Any = None, limit: int = 12)
                                   cfg.get("github.raw_url", "https://raw.githubusercontent.com"), cfg.github_token)
         repo, sha = COMMIT.search(r["url"]).groups()
         done += 1
-        lines = (client.raw_file(repo, sha, r["file_path"], MAX_FILE_BYTES) or "").splitlines()
+        try:
+            lines = (client.raw_file(repo, sha, r["file_path"], MAX_FILE_BYTES) or "").splitlines()
+        except Exception as exc:                       # noqa: BLE001 - si riprova al giro dopo, le altre tracce vanno avanti
+            log.warning("Schede: righe vicine di %s non scaricate (%s)", t["key"][:60], exc)
+            continue
         want = norm(r["text"])
         hit = next((i for i, x in enumerate(lines) if norm(x) == want), None)
         if hit is None and want:

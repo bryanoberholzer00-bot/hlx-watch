@@ -86,7 +86,10 @@ def run(cfg: Any, db: Any, client: Any = None, names: tuple[str, ...] = ("cs2", 
         if name not in names or not repo or (db.get_state(STATE + name) == "fatto" and not force):
             continue
         st = stats.setdefault(name, {"file": 0, "commit": 0, "voci": 0})
-        listing = client.get_json(f"/repos/{repo}/contents/{FOLDER}", {"ref": branch}) or []
+        listing = client.get_json(f"/repos/{repo}/contents/{FOLDER}", {"ref": branch})
+        if listing is None:                           # non letto: si riprova al giro dopo, senza segnare "fatto"
+            log.warning("[%s] storia dei file dei personaggi: elenco di %s non letto, riprovo dopo", name, FOLDER)
+            continue
         files = [f"{FOLDER}/{x['name']}" for x in listing if isinstance(x, dict) and FILE_RE.match(x.get("name", ""))]
         matcher = KeywordMatcher(cfg.keywords, ignore_ids=repo_cfg.get("ignore_keywords", []) or [])
         for path in files:
@@ -100,8 +103,12 @@ def run(cfg: Any, db: Any, client: Any = None, names: tuple[str, ...] = ("cs2", 
             parents = commits[0].get("parents") or []
             previous = client.raw_file(repo, parents[0]["sha"], path, MAX_BYTES) if parents else ""
             for c in commits:
+                if previous is None:                  # il file del commit prima non si era scaricato: si riparte dal suo genitore
+                    parents_c = c.get("parents") or []
+                    previous = client.raw_file(repo, parents_c[0]["sha"], path, MAX_BYTES) if parents_c else ""
                 current = client.raw_file(repo, c["sha"], path, MAX_BYTES)
-                if current is None:
+                if current is None or previous is None:
+                    previous = None                   # niente diff di due commit insieme con la data del secondo
                     continue
                 lines = changed_lines(previous or "", current, watched[2])
                 previous = current

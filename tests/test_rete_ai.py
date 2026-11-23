@@ -149,3 +149,39 @@ def test_preview_all_lines_includes_alerting_ones(tmp_path, monkeypatch):
     assert rete_ai.preview(cfg, db, "h" * 10)["righe"] == 1
     assert "errore" in rete_ai.preview(cfg, db, "zzzz")
     db.close()
+
+
+def test_reevaluate_keeps_second_net_findings(tmp_path, monkeypatch):
+    from hlxwatch.reevaluate import reevaluate
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "x")
+    cfg, db = make(tmp_path)
+    fill(db)
+    client = FakeClient([{"riga": "companion_follow_distance 128 (gamedll cheat)", "file": CONVARS,
+                          "sistema": "compagno", "perche": "segue il giocatore", "fiducia": "alta"}])
+    rete_ai.run(cfg, db, [], client=client)
+    reevaluate(cfg, db)
+    assert db.conn.execute("SELECT COUNT(*) FROM findings WHERE source = 'rete_ai'").fetchone()[0] == 1
+    db.close()
+
+
+class FlakyClient(FakeClient):
+    def create(self, **kw):
+        if len(self.calls) >= 1:
+            self.calls.append(kw)
+            raise RuntimeError("API sovraccarica")
+        return super().create(**kw)
+
+
+def test_error_mid_run_keeps_done_and_sends_alerts(tmp_path, monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "x")
+    cfg, db = make(tmp_path)
+    first, second = build(db, "dota2", "i", 3), build(db, "cs2", "j", 2)
+    for bid, sha in ((first, "i"), (second, "j")):
+        ar.store(db, bid, {CONVARS: [("+", f"r_new_{sha}_{k} 1 (developmentonly)") for k in range(4)]})
+    client = FlakyClient([{"riga": "r_new_i_0 1 (developmentonly)", "file": CONVARS, "sistema": "x",
+                           "perche": "y", "fiducia": "alta"}])
+    n = FakeNotifier()
+    res = rete_ai.run(cfg, db, [n], client=client)
+    assert res["voci"] == 1 and len(n.groups) == 1                       # l'avviso del primo commit parte lo stesso
+    assert first in rete_ai._done(db) and second not in rete_ai._done(db)  # il secondo si riprova al giro dopo
+    db.close()

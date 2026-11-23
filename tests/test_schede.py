@@ -71,10 +71,11 @@ class FakeClient:
 
 
 def test_slugs_are_stable_unique_and_short():
-    traces = [{"key": "chlxcoverpreviewhelper"}, {"key": "mod != hlx"}, {"key": "mod-hlx"}, {"key": "x" * 80}]
+    traces = [{"key": "chlxcoverpreviewhelper", "first": "2026-09-23"}, {"key": "mod != hlx", "first": "2025-05-17"},
+              {"key": "mod-hlx", "first": "2026-06-25"}, {"key": "x" * 80, "first": "2026-01-01"}]
     slugs = assign_slugs(traces)
     assert slugs["chlxcoverpreviewhelper"] == "chlxcoverpreviewhelper"
-    assert slugs["mod != hlx"] != slugs["mod-hlx"] and slugs["mod != hlx"].startswith("mod-hlx-")
+    assert slugs["mod != hlx"] == "mod-hlx" and slugs["mod-hlx"].startswith("mod-hlx-")   # la più vecchia tiene il nome
     assert len(slugs["x" * 80]) <= 57 and traces[0]["slug"] == "chlxcoverpreviewhelper"
     assert assign_slugs([dict(t) for t in traces]) == slugs              # stessi nomi al giro dopo
     assert page_name("abc") == "traccia-abc.html"
@@ -163,3 +164,10 @@ def test_alerts_link_to_card(tmp_path):
     assert msg["url"] == hlx.card                                       # la notifica apre la scheda
     assert annotate_cards(cfg, db, [other]) == 0
     db.close()
+
+
+def test_new_similar_trace_does_not_rename_old_page():
+    old = [{"key": "hlx_ranger_trap", "first": "2026-09-23"}]
+    before = assign_slugs([dict(t) for t in old])["hlx_ranger_trap"]
+    after = assign_slugs([dict(t) for t in old] + [{"key": "hlx ranger trap", "first": "2026-11-20"}])
+    assert after["hlx_ranger_trap"] == before == "hlx-ranger-trap" and after["hlx ranger trap"] != before

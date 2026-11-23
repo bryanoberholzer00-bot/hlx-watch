@@ -67,6 +67,18 @@ export function clean(text) {
     .split("\n").map((l) => l.split(/\s+/).filter(Boolean).join(" ")).filter(Boolean).join("\n");
 }
 
+// I video: conta solo il titolo, con regole strette. Le descrizioni dei trailer (The Game Awards) citano spesso
+// "Episode 3" o "HL3" per altri giochi o per scherzo: lì al massimo un "da controllare" per il proprietario.
+const NEW_IN_VIDEO_TITLE = /\bhlx\b|\bhl[\s_-]?3\b|half[\s-]*life\s*(?:3|iii)\b|half[\s-]*life\b.{0,40}\bepisode (?:three|3)\b/i;
+
+export function newHalfLifeVideo(title) {
+  return NEW_IN_VIDEO_TITLE.test(String(title || "").replace(KNOWN_TITLES, " "));
+}
+
+export function mentionsHalfLife(text) {
+  return NEW_IN_TEXT.test(String(text || "").replace(KNOWN_TITLES, " "));
+}
+
 export function newHalfLife(title, contents) {
   const t = String(title || "").replace(KNOWN_TITLES, " ");
   const b = String(contents || "").replace(KNOWN_TITLES, " ");

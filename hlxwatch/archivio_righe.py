@@ -28,6 +28,8 @@ from collections.abc import Iterator
 from typing import Any
 
 from hlxwatch.storage import Database
+from datetime import timedelta
+
 from hlxwatch.storage.db import iso, utcnow
 
 log = logging.getLogger(__name__)
@@ -37,7 +39,7 @@ DEFAULT_FILES = [
     r"^DumpSource2/entities/",
     r"^DumpSource2/schemas/",
     r"\.fgd$",
-    r"^Protobufs/.*\.proto$",
+    r"\.proto$",                       # Protobufs/ nei giochi, dota2/ csgo/ ... nel repository Protobufs
     r"(^|/)gameinfo\.gi$",
     r"_strings\.txt$",
 ]
@@ -47,6 +49,9 @@ MAX_LINES_PER_FILE = 60000
 BULKY = re.compile(r"_strings\.txt$|^DumpSource2/schemas/")
 DEFAULT_MAX_MB = 20
 DEFAULT_GAMES = ["cs2", "dota2", "deadlock", "alyx", "steamvr", "protobufs"]
+STATE_FAILS = "archivio_righe:errori:"
+MAX_FAILS = 3
+KEEP_DAYS = 7                    # il tetto non tocca i commit degli ultimi giorni: servono ancora alla seconda rete
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS line_archive (
     build_id  INTEGER NOT NULL,
@@ -244,7 +249,7 @@ def fill_build(cfg: Any, db: Database, row: Any, client: Any, repos: dict[str, A
             old = "" if status == "added" or not parent else client.raw_file(
                 repo_cfg["repo"], parent, entry.get("previous_filename") or path, max_bytes)
             if new is None or old is None:
-                continue
+                continue                                # più grande del limite: resta fuori per sempre (voluto)
             old_l, new_l = old.splitlines(), new.splitlines()
             old_s, new_s = set(old_l), set(new_l)
             lines = [("+", ln) for ln in new_l if ln not in old_s] + [("-", ln) for ln in old_l if ln not in new_s]
@@ -261,6 +266,7 @@ def fill_step(cfg: Any, db: Database, client: Any = None, limit: int | None = No
     if not enabled(cfg):
         return 0
     limit = int(limit if limit is not None else (cfg.get("archivio_righe", {}) or {}).get("commit_per_giro", 6))
+    prune(cfg, db)                                     # il tetto vale sempre, anche quando non c'è più niente da riempire
     rows = fill_candidates(cfg, db, limit)
     if not rows:
         return 0
@@ -270,10 +276,20 @@ def fill_step(cfg: Any, db: Database, client: Any = None, limit: int | None = No
         from hlxwatch.sources.github_tracking import GitHubClient
         client = GitHubClient(cfg.get("github.api_url", "https://api.github.com"),
                               cfg.get("github.raw_url", "https://raw.githubusercontent.com"), cfg.github_token)
+    done = 0
     for row in rows:
-        fill_build(cfg, db, row, client, repos)
-    prune(cfg, db)
-    return len(rows)
+        key = f"{STATE_FAILS}{row['id']}"
+        try:
+            fill_build(cfg, db, row, client, repos)
+            done += 1
+        except Exception as exc:                       # noqa: BLE001 - un commit difettoso non ferma gli altri
+            fails = int(db.get_state(key) or 0) + 1
+            db.set_state(key, str(fails))
+            log.warning("Archivio delle righe: %s %s non archiviato (%s), tentativo %d", row["game"], row["ref"][:10],
+                        exc, fails)
+            if fails >= MAX_FAILS:                     # dopo 3 tentativi si segna vuoto, per non bloccare la coda
+                store(db, row["id"], {})
+    return done
 
 
 def prune(cfg: Any, db: Database) -> int:
@@ -285,7 +301,8 @@ def prune(cfg: Any, db: Database) -> int:
     if total <= max_bytes:
         return 0
     rows = db.conn.execute("SELECT a.build_id, a.file_path, length(a.data) FROM line_archive a JOIN builds b "
-                           "ON b.id = a.build_id ORDER BY b.date").fetchall()
+                           "ON b.id = a.build_id WHERE b.date < ? ORDER BY b.date",
+                           (iso(utcnow() - timedelta(days=KEEP_DAYS)),)).fetchall()
     removed = 0
     with db._lock:
         for build_id, path, size in rows:

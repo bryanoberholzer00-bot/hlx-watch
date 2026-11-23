@@ -272,3 +272,12 @@ def test_undo_silences_removes_rule_lesson_and_blocks_new_proposal(tmp_path):
     assert proposals(db)[0]["stato"] == "rifiutata"
     assert undo_silences(cfg, db) == []                       # una volta sola
     db.close()
+
+
+def test_rejected_silence_stays_decided_after_leaving_the_list(tmp_path):
+    from hlxwatch import revisione as rv
+    cfg, db = make(tmp_path)
+    rv._save_proposals(db, [{"azione": "silenzio", "chiave": "dota2|added|watched_file|convar", "stato": "rifiutata"}])
+    rv._save_proposals(db, [{"azione": "nota", "chiave": f"x{i}", "stato": "attesa"} for i in range(70)])
+    assert "dota2|added|watched_file|convar" in rv.decided_keys(db)
+    db.close()
