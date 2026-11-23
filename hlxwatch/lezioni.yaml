@@ -228,3 +228,27 @@ lezioni:
     testo: "autosave"
     file: "game/bin/win64/engine2_strings.txt"
     non_contiene: [single_player]
+  - id: giocatore-singolo-autosave-con-prefisso
+    data: "2026-11-23"
+    errore: "save_timestamp_autosaves non scattava: la regola non accettava il trattino basso prima di autosave."
+    controllo: parola
+    testo: "save_timestamp_autosaves false (developmentonly gamedll)"
+    file: "DumpSource2/convars.txt"
+    contiene: [single_player]
+    punteggio_min: 50
+  - id: giocatore-singolo-nel-codice
+    data: "2026-11-23"
+    errore: "Le righe del codice di Dota 2 sul salvataggio dei livelli (SaveStreamedOutLevel) erano scartate: nomi con maiuscole e minuscole mescolate."
+    controllo: parola
+    testo: "%s:  SaveStreamedOutLevel:  saved %s to %s [%d entities] in %.2f msec
+"
+    file: "game/dota/bin/win64/server_strings.txt"
+    contiene: [single_player_code]
+    punteggio_min: 50
+  - id: streaming-texture-non-livelli
+    data: "2026-11-23"
+    errore: "Lo streaming delle texture e dell'audio non è lo streaming dei livelli."
+    controllo: parola
+    testo: "Streamed Out: %0.2f MB:"
+    file: "game/bin/win64/scenesystem_strings.txt"
+    non_contiene: [single_player_code, single_player]

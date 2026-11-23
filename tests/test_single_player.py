@@ -62,3 +62,33 @@ def test_config_yaml_local_matches_example():
     items = {k["id"]: k for k in yaml.safe_load(local.read_text(encoding="utf-8"))["keywords"]["items"]}
     example = {k["id"]: k for k in yaml.safe_load((PACKAGE_ROOT / "config.example.yaml").read_text(encoding="utf-8"))["keywords"]["items"]}
     assert items["single_player"]["pattern"] == example["single_player"]["pattern"]
+
+
+@pytest.mark.parametrize("line,path,kw", [
+    ("save_timestamp_autosaves false (developmentonly gamedll)", CONVARS, "single_player"),
+    ("spawngroup_save_on_unload false (developmentonly gamedll clientdll replicated defensive)", CONVARS, "single_player"),
+    ("Entities that leave their level (teleported or carried into another one) change to belonging to the level they're in",
+     CONVARS, "single_player"),
+    ("backtrack(boolean) // FIELD_BOOLEAN", "DumpSource2/entities/server.fgd", "single_player"),
+    ("%s:  SaveStreamedOutLevel:  saved %s to %s [%d entities] in %.2f msec\n",
+     "game/dota/bin/win64/server_strings.txt", "single_player_code"),
+    ("CSpawnGroupMgrGameSystem::IsGameReadyToSave:  holding the save, %s\n",
+     "game/dota/bin/win64/client_strings.txt", "single_player_code"),
+    ("hud_showstreaming", "game/dota/bin/win64/server_strings.txt", "single_player_code"),
+])
+def test_single_player_wider(matcher, line, path, kw):
+    r = matcher.analyze_line(line, file_path=path)
+    assert r is not None and kw in r.keywords and r.score >= 50
+
+
+@pytest.mark.parametrize("line,path", [
+    ("Streamed Out: %0.2f MB:", "game/bin/win64/scenesystem_strings.txt"),                 # texture
+    ("AudioProcessing::ProcessStream_AudioFrame", "game/bin/win64/engine2_strings.txt"),    # audio
+    ("%s:  CNetworkClientSpawnGroup_LoadSaveGamePrerequisiteBase async started [%s]...\n",
+     "game/csgo/bin/win64/client_strings.txt"),                                            # c'è da anni
+    ("StreamEntitiesToFile", "game/csgo/bin/win64/server_strings.txt"),                     # salvataggi di sempre
+    ("assetsystem_save_info_idle_seconds 3 (developmentonly)", CONVARS),                     # strumenti
+])
+def test_single_player_code_noise(matcher, line, path):
+    r = matcher.analyze_line(line, file_path=path)
+    assert r is None or not {"single_player", "single_player_code"} & set(r.keywords)

@@ -582,12 +582,22 @@ keywords:
       # ricevuto tutto lo streaming dei livelli di Source 2 (point_level_stream, save/<livello>.hl1/.hl2, skill 0-3).
       # Prova su tutta la storia dei comandi e delle entità (nov. 2026): solo trigger_autosave nel 2019 (Alyx) e
       # l'aggiornamento del 18/11/2026; "difficulty" no (bot di CS2, modalità di Dota), l'autosave di Hammer no.
-      pattern: 'level[ _]?stream|streamed[ _](?:in|out)|showstreaming|stream(?:s|ing)?\s+(?:the\s+)?levels?\s+(?:in|out|back)|(?<![a-z_])(?:auto|quick)save|trigger_autosave|save[ _]?game|\.hl[12](?![a-z0-9])|save/<|(?<![a-z_])load[ _]?game|(?<![a-z_])skill(?![a-z_])|story[ _]mode|(?<![a-z_])(?:chapters?|campaign)(?![a-z_])|physcannon|gravity\s*gun|(?:carried by|attached to) the player'
+      pattern: 'level[ _]?stream|streamed[ _](?:in|out)|showstreaming|stream(?:s|ing)?\s+(?:the\s+)?levels?\s+(?:in|out|back)|(?<![a-z])(?:auto|quick)saves?|save[ _]?game|\.hl[12](?![a-z0-9])|save/<|(?<![a-z_])load[ _]?game|(?<![a-z_])skill(?![a-z_])|story[ _]mode|(?<![a-z_])(?:chapters?|campaign)(?![a-z_])|physcannon|gravity\s*gun|(?:carried by|attached to) the player|spawngroup_(?:save|transfer|prebuild)|transfer_entities|persistent[ _]entit|persistent_(?:resources|manifest)|(?:leave|leaves|left) (?:their|its) level|level they(?:''re| are) in|(?<![a-z_])backtrack(?![a-z])|landmark'
       weight: 60
       description: "sistemi da gioco per giocatore singolo (livelli in streaming, salvataggi, difficoltà, campagna)"
       excludes: ['hammer', 'keyvalues', 'asset']
       # solo comandi, variabili, entità e schemi del motore: nei dump dei binari queste parole ci sono sempre
       path_includes: ['^DumpSource2/(convars|commands)\.txt$', '^DumpSource2/entities/', '^DumpSource2/schemas/', '\.fgd$']
+    - id: single_player_code
+      # gli stessi sistemi nei dump di stringhe dei programmi (client_strings.txt...), con nomi molto stretti: solo lo
+      # streaming dei LIVELLI e i salvataggi, non quello delle texture o dell'audio. Prova (nov. 2026) sui dump di oggi:
+      # 0 righe in CS2, Deadlock e Half-Life: Alyx, 48 in Dota 2, tutte dell'aggiornamento del 18/11/2026.
+      # i nomi CamelCase si cercano dalla prima lettera (lookahead): KeywordMatcher scarta le parole con maiuscole e
+      # minuscole mescolate, che nei dump sono spesso byte a caso
+      pattern: '(?<![A-Za-z])(?=(?:Save|Restore)StreamedOutLevel|IsGameReadyToSave|(?:Prebuild|Rebuild)PersistentEntityManifest)[A-Za-z]|hud_showstreaming|save_streamed_out|streamed out (?:at world offset|before the client|but the client)|ready to save|level[ _]?stream|streamed[ _]out[ _]level|levels? (?:streams?|streamed|streaming) (?:in|out|back)|streams? (?:the level )?back in|decals streaming (?:in|out)|save slot|holding the save|spawngroup_(?:save|transfer)'
+      weight: 55
+      description: "streaming dei livelli e salvataggi nel codice dei programmi"
+      path_includes: ['_strings\.txt$']
     - id: single_player_scene
       # scene recitate (choreo): Alyx le usa, ma compaiono anche nei giochi multigiocatore; sul sito, senza avviso
       pattern: 'choreo|scripted[_ ]sequence|choreographed'
