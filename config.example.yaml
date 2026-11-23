@@ -219,6 +219,12 @@ revisione:                               # revisione settimanale con l'AI (revis
     - "dota2|added|watched_file|convar"    # file dei nemici di Dota 2 (ai_*.fgd), seguiti apposta (18/11/2026)
     - "dota2|removed|watched_file|convar"
 
+archivio_righe:                          # archivio completo delle righe nuove (archivio_righe.py): comandi, entità,
+  enabled: true                          # schemi, FGD, Protobuf e dump di stringhe, anche senza parole chiave
+  dal: "2026-09-01"                      # i commit già visti si riempiono all'indietro fino a questa data
+  commit_per_giro: 6                     # quanti commit vecchi per giro (pochi: a ogni giro due richieste per commit)
+  max_mb: 20                             # tetto: oltre, si tolgono per primi schemi e dump dei commit più vecchi
+
 contatore:                               # contatore di Valve (contatore.py): SourceRevision dei steam.inf di CS2,
   enabled: true                          # Dota 2 e Deadlock; avviso quando il ritmo supera del 30% l'anno prima
 

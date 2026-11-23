@@ -216,6 +216,7 @@ def run_test(cfg: Config, key: str, test: dict[str, Any], workdir: Path) -> dict
                        f"{start_sha}..{end_sha}")
         commits = [line.split("\x1f") for line in log_out.splitlines() if line.count("\x1f") == 3]
         src = GitHubTrackingSource(tcfg, db)
+        src.archive.on = False                      # la prova sul passato non riempie l'archivio delle righe
         matcher = KeywordMatcher(tcfg.keywords, ignore_ids=repo_cfg.get("ignore_keywords", []) or [])
         notify_min = int(cfg.get("general.notify_min_score", 50))
         alerts: list[dict[str, Any]] = []

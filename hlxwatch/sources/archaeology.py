@@ -158,6 +158,7 @@ def run_archaeology(cfg: Config, db: Database, *, names: list[str] | None = None
                     workdir: str | None = None, keep: bool = False) -> dict[str, Any]:
     from hlxwatch.sources.github_tracking import GitHubTrackingSource
     helper = GitHubTrackingSource(cfg, db)            # stessi file ignorati della scansione normale
+    helper.archive.on = False                          # l'archeologia non passa da scan_repo: niente archivio
     base = Path(workdir or tempfile.mkdtemp(prefix="hlx-archeologia-"))
     base.mkdir(parents=True, exist_ok=True)
     summary: dict[str, Any] = {}

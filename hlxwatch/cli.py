@@ -184,6 +184,14 @@ def cmd_cron(args: argparse.Namespace) -> int:
         check_noise(cfg, db, pipeline.notifiers if not args.no_notify else [], send_it=not args.no_notify)
     except Exception:
         log.exception("Controllo dei falsi allarmi fallito")
+    # archivio delle righe: alcuni commit già visti a ogni giro, all'indietro fino a archivio_righe.dal
+    try:
+        from hlxwatch.archivio_righe import fill_step
+        filled = fill_step(cfg, db, pipeline.github.client)
+        if filled:
+            log.info("Archivio delle righe: %d commit vecchi archiviati", filled)
+    except Exception:
+        log.exception("Archivio delle righe: riempimento non riuscito")
     # contatore di Valve: il numero delle modifiche (Perforce) nei steam.inf di oggi, e l'avviso sulle ondate
     try:
         from hlxwatch.contatore import run as run_counter
@@ -340,6 +348,36 @@ def cmd_reevaluate(args: argparse.Namespace) -> int:
     cfg, db = _open(args)
     from hlxwatch.reevaluate import reevaluate
     reevaluate(cfg, db)
+    return 0
+
+
+def cmd_line_archive(args: argparse.Namespace) -> int:
+    """Archivio completo delle righe nuove (archivio_righe.py)."""
+    cfg, db = _open(args)
+    from hlxwatch import archivio_righe as ar
+    kw = {"game": args.gioco, "path_re": args.file, "since": args.dal, "op": "-" if args.tolte else "+"}
+    if args.azione == "stato":
+        st = ar.stats(db)
+        print(f"{st['commit']} commit archiviati dal {st['dal'] or '-'}, {st['righe']} righe, {st['kb']} KB compressi")
+    elif args.azione == "riempi":
+        print(f"{ar.fill_step(cfg, db, limit=args.quanti)} commit archiviati")
+    elif args.azione == "cerca":
+        if not args.testo:
+            print("serve un'espressione da cercare")
+            return 2
+        rows = ar.search(db, args.testo, **kw)
+        for r in rows[:args.quanti]:
+            print(f"{r['date'][:10]} {r['game']:9} {r['sha'][:10]} {r['file']}: {r['op']}{r['text'].strip()[:150]}")
+        print(f"{len(rows)} righe")
+    else:
+        keywords = [k for k in args.testo.split(",") if k] or None
+        rows = ar.try_rules(cfg, db, keywords=keywords, **kw)
+        for x in rows[:args.quanti]:
+            print(f"{x['date'][:10]} {x['game']:9} {x['sha'][:10]} {x['righe']:4} righe, max {x['max']}, "
+                  f"{', '.join(x['parole'])}")
+            for e in x["esempi"]:
+                print(f"      {e}")
+        print(f"{len(rows)} commit con righe da avviso")
     return 0
 
 
@@ -621,6 +659,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--site", default="site", help="cartella del sito generato")
     p.add_argument("--no-notify", action="store_true", help="non inviare l'avviso")
     p.set_defaults(func=cmd_site_check)
+
+    p = sub.add_parser("archivio-righe", help="archivio completo delle righe nuove: stato, ricerca, prova delle regole")
+    p.add_argument("azione", choices=["stato", "cerca", "prova", "riempi"])
+    p.add_argument("testo", nargs="?", default="", help="per cerca: espressione regolare; per prova: parole chiave (a,b)")
+    p.add_argument("--gioco", default=None)
+    p.add_argument("--file", default=None, help="espressione regolare sul percorso del file")
+    p.add_argument("--dal", default=None, help="data minima del commit (AAAA-MM-GG)")
+    p.add_argument("--tolte", action="store_true", help="cerca tra le righe tolte invece che tra le aggiunte")
+    p.add_argument("--quanti", type=int, default=40, help="risultati mostrati / commit da riempire")
+    p.set_defaults(func=cmd_line_archive)
 
     p = sub.add_parser("controlla-errori", help="registro degli errori: gli errori già corretti non devono tornare")
     p.add_argument("--no-notify", action="store_true", help="non inviare l'avviso")

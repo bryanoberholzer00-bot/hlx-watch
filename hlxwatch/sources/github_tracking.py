@@ -283,6 +283,9 @@ class GitHubTrackingSource:
         # commit con più file di quelli esposti dall'API: il resto si legge con git (sources/bigcommit.py)
         self.local_diff = LocalDiff(cfg.data_dir / "bigcommits", max_patch_bytes=self.fallback_max)
         self.read_truncated = bool(cfg.get("github.read_truncated_commits", True))
+        # archivio completo delle righe nuove dei file che contano (archivio_righe.py), commit per commit
+        from hlxwatch.archivio_righe import Collector
+        self.archive = Collector(cfg)
         if not cfg.github_token:
             log.warning("GITHUB_TOKEN assente: limite di 60 richieste/ora (metti un token in .env per 5000/ora)")
 
@@ -343,6 +346,7 @@ class GitHubTrackingSource:
                 continue
             message = ((detail.get("commit") or {}).get("message") or "").strip()
             m = BUILDID_RE.search(message)
+            self.archive.reset()
             commit_findings = self._analyze_commit(repo_cfg, detail, matcher)
             # la build si salva dopo l'analisi: se l'analisi si interrompe, il commit si riprende al run dopo
             build = BuildInfo(
@@ -351,6 +355,10 @@ class GitHubTrackingSource:
                 files_changed=int(detail.get("files_total") or len(detail.get("files") or [])),
             )
             build_id = self.db.upsert_build(build)
+            try:
+                self.archive.save(self.db, build_id)
+            except Exception:                        # l'archivio delle righe non deve fermare la scansione
+                log.exception("[%s] %s: righe non archiviate", name, sha[:10])
             for finding in commit_findings:
                 finding.build = build
                 self.db.add_finding(finding, build_id)
@@ -483,6 +491,7 @@ class GitHubTrackingSource:
                         matcher: KeywordMatcher, status: str = "modified") -> list[Finding]:
         """Oltre alle parole chiave: nomi di progetto mai visti, famiglie di token di localizzazione nuove
         e ogni riga cambiata nei file sorvegliati."""
+        self.archive.add(path, lines)                # archivio completo delle righe (tutte, non solo le voci)
         out: list[Finding] = self.localization.check_file(
             name, path, (t for op, t in lines if op == "+"), file_added=(status == "added"),
             score_override=(self._repo_by_name.get(name) or {}).get("loc_prefix_score"),

@@ -180,6 +180,12 @@
   Telegram, nelle notifiche del sito e nell'app Android; il run completo su GitHub poi lo archivia con i dettagli.
   Se il controllo veloce non riesce da più di 2 ore, il proprietario riceve un avviso; l'ora dell'ultimo giro riuscito è
   nello stato delle fonti, in pagina iniziale.</li>
+  <li id="archivio-righe"><b>Archivio completo delle righe.</b> Di ogni commit dei giochi si conservano tutte le
+  righe aggiunte nei file che contano (comandi e variabili del motore, entità, schemi, FGD, Protobuf, dump di stringhe
+  dei programmi), anche quelle senza parole sorvegliate, compresse. Così una regola nuova si prova subito su tutta la
+  storia raccolta, senza riscaricare niente: il 18/11/2026 lo streaming dei livelli in Dota 2 non conteneva parole
+  sorvegliate e per studiarlo si sono dovute riscaricare 32.000 righe. I commit già visti si archiviano un po' alla
+  volta, dal settembre 2026; oltre 20 MB si tolgono per primi schemi e dump dei commit più vecchi.</li>
   <li id="contatore"><b>Il contatore di Valve.</b> Ogni build di CS2, Dota 2 e Deadlock scrive nel file pubblico
   <code>steam.inf</code> il numero della modifica di Perforce da cui è stata compilata (SourceRevision) e l'ora della
   compilazione. Il numero è unico per tutta Valve, quindi la sua crescita misura quante modifiche salva l'azienda ogni
