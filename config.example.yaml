@@ -378,7 +378,10 @@ full_scan:
   min_score: 50                          # registra solo le righe con punteggio almeno 50
   # termini (regex estesa, senza distinzione maiuscole) che selezionano le righe da valutare:
   # solo parole ad alto valore, le generiche come npc_ darebbero migliaia di righe
-  prefilter: "hlx|hl3|half[ _-]?life|left[ _-]?4[ _-]?dead|l4d3|xen|gunship|ranger_?trap|flyer_?flank"
+  # anche le parole dei sistemi per giocatore singolo (23/11/2026): la prima scansione dopo l'allargamento le registra
+  # come "già presenti" senza avvisi (l'autosave di Source 2 c'è da sempre in CS2), così se Valve riscrive un file
+  # intero quelle righe non tornano come novità. Tra 361 e 1.087 righe in più per gioco.
+  prefilter: "hlx|hl3|half[ _-]?life|left[ _-]?4[ _-]?dead|l4d3|xen|gunship|ranger_?trap|flyer_?flank|autosave|quicksave|save[_ ]?game|level[_ ]?stream|streamed[_ ]out|showstreaming|trigger_changelevel|info_landmark|landmark|physcannon|skill [0-9] [(]min|backtrack|persistent[_ ]?entit|spawngroup_(save|transfer|prebuild)|(held|carried) by the player|attached to the player|camera[_ ]control|pulsedocvcd|firstspeak|reach this locator|rayreconstruct|dlss_?rr|isgamereadytosave|save slot|ready to save|move_world_decals|level[_ ]?transition"
   exclude_repos: []                      # nomi dei repo da non scansionare
   max_findings_per_repo: 2000
 
@@ -582,7 +585,7 @@ keywords:
       # ricevuto tutto lo streaming dei livelli di Source 2 (point_level_stream, save/<livello>.hl1/.hl2, skill 0-3).
       # Prova su tutta la storia dei comandi e delle entità (nov. 2026): solo trigger_autosave nel 2019 (Alyx) e
       # l'aggiornamento del 18/11/2026; "difficulty" no (bot di CS2, modalità di Dota), l'autosave di Hammer no.
-      pattern: 'level[ _]?stream|streamed[ _](?:in|out)|showstreaming|stream(?:s|ing)?\s+(?:the\s+)?levels?\s+(?:in|out|back)|(?<![a-z])(?:auto|quick)saves?|save[ _]?game|\.hl[12](?![a-z0-9])|save/<|(?<![a-z_])load[ _]?game|(?<![a-z_])skill(?![a-z_])|story[ _]mode|(?<![a-z_])(?:chapters?|campaign)(?![a-z_])|physcannon|gravity\s*gun|(?:carried by|attached to) the player|spawngroup_(?:save|transfer|prebuild)|transfer_entities|persistent[ _]entit|persistent_(?:resources|manifest)|(?:leave|leaves|left) (?:their|its) level|level they(?:''re| are) in|(?<![a-z_])backtrack(?![a-z])|landmark'
+      pattern: 'level[ _]?stream|streamed[ _](?:in|out)|showstreaming|stream(?:s|ing)?\s+(?:the\s+)?levels?\s+(?:in|out|back)|(?<![a-z])(?:auto|quick)saves?|save[ _]?game|\.hl[12](?![a-z0-9])|save/<|(?<![a-z_])load[ _]?game|(?<![a-z_])skill(?![a-z_])|story[ _]mode|(?<![a-z_])(?:chapters?|campaign)(?![a-z_])|physcannon|gravity\s*gun|(?:carried by|held by|attached to) the player|(?<![A-Za-z])(?=PulseDocVCD|FirstSpeak)[A-Za-z]|player[ _]camera[ _]control|spawngroup_(?:save|transfer|prebuild)|transfer_entities|persistent[ _]entit|persistent_(?:resources|manifest)|(?:leave|leaves|left) (?:their|its) level|level they(?:''re| are) in|(?<![a-z_])backtrack(?![a-z])|landmark'
       weight: 60
       description: "sistemi da gioco per giocatore singolo (livelli in streaming, salvataggi, difficoltà, campagna)"
       excludes: ['hammer', 'keyvalues', 'asset']
@@ -594,10 +597,18 @@ keywords:
       # 0 righe in CS2, Deadlock e Half-Life: Alyx, 48 in Dota 2, tutte dell'aggiornamento del 18/11/2026.
       # i nomi CamelCase si cercano dalla prima lettera (lookahead): KeywordMatcher scarta le parole con maiuscole e
       # minuscole mescolate, che nei dump sono spesso byte a caso
-      pattern: '(?<![A-Za-z])(?=(?:Save|Restore)StreamedOutLevel|IsGameReadyToSave|(?:Prebuild|Rebuild)PersistentEntityManifest)[A-Za-z]|hud_showstreaming|save_streamed_out|streamed out (?:at world offset|before the client|but the client)|ready to save|level[ _]?stream|streamed[ _]out[ _]level|levels? (?:streams?|streamed|streaming) (?:in|out|back)|streams? (?:the level )?back in|decals streaming (?:in|out)|save slot|holding the save|spawngroup_(?:save|transfer)'
+      pattern: '(?<![A-Za-z])(?=(?:Save|Restore)StreamedOutLevel|IsGameReadyToSave|(?:Prebuild|Rebuild)PersistentEntityManifest)[A-Za-z]|hud_showstreaming|save_streamed_out|streamed out (?:at world offset|before the client|but the client)|ready to save|level[ _]?stream|streamed[ _]out[ _]level|levels? (?:streams?|streamed|streaming) (?:in|out|back)|streams? (?:the level )?back in|decals streaming (?:in|out)|save slot|holding the save|spawngroup_(?:save|transfer)|(?:carried|held) by the player|attached to the player|player[ _]camera[ _]control|(?<![A-Za-z])(?=PulseDocVCD|m_VCDInfo|m_FirstSpeak)[A-Za-z]|reach this locator'
       weight: 55
       description: "streaming dei livelli e salvataggi nel codice dei programmi"
       path_includes: ['_strings\.txt$']
+    - id: ray_reconstruction
+      # grafica di punta: la "ray reconstruction" di Nvidia (DLSS RR) nel renderer Vulkan di Source 2, comparsa in Dota 2
+      # il 18/11/2026. Non è un indizio di gioco per giocatore singolo (potrebbe usarla CS2), ma è tecnologia nuova del
+      # motore: avviso a 50. Solo comandi del motore e dump dei renderer, non la libreria DLSS di Nvidia.
+      pattern: 'rayreconstruct|ray[ _]reconstruction|(?<![A-Za-z])(?=(?:CVk)?DlssRR|SupportsDLSS_RR)[A-Za-z]'
+      weight: 50
+      description: "ray reconstruction (DLSS RR) nel motore"
+      path_includes: ['^DumpSource2/(convars|commands)\.txt$', 'rendersystem[a-z0-9]*_strings\.txt$']
     - id: single_player_scene
       # scene recitate (choreo): Alyx le usa, ma compaiono anche nei giochi multigiocatore; sul sito, senza avviso
       pattern: 'choreo|scripted[_ ]sequence|choreographed'

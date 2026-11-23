@@ -252,3 +252,19 @@ lezioni:
     testo: "Streamed Out: %0.2f MB:"
     file: "game/bin/win64/scenesystem_strings.txt"
     non_contiene: [single_player_code, single_player]
+  - id: giocatore-singolo-telecamera
+    data: "2026-11-23"
+    errore: "L'evento delle scene che toglie al giocatore il controllo della telecamera (CChoreoEvent_PLAYER_CAMERA_CONTROL) non era segnalato."
+    controllo: parola
+    testo: "CChoreoEvent_PLAYER_CAMERA_CONTROL"
+    file: "game/dota/bin/win64/client_strings.txt"
+    contiene: [single_player_code]
+    punteggio_min: 50
+  - id: ray-reconstruction-nel-motore
+    data: "2026-11-23"
+    errore: "La ray reconstruction (DLSS RR) nel renderer Vulkan di Source 2 non era segnalata."
+    controllo: parola
+    testo: "r_upscale_rayreconstruct false (reference)"
+    file: "DumpSource2/convars.txt"
+    contiene: [ray_reconstruction]
+    punteggio_min: 50
