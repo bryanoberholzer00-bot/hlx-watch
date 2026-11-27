@@ -593,6 +593,7 @@ keywords:
       description: "passaggi tra livelli di una campagna"
       # dump di stringhe dei binari (comando changelevel), traduzioni ("al livello successivo" degli eroi), cosmetici
       path_excludes: ["_strings\\.txt$", "(^|/)strings/", "/localization/", "/resource/", "_english\\.txt$", "items_game\\.txt$", "/scripts/npc/", "/dota_addons/", "/particles/econ/", "readme", "\\.md$"]
+      excludes: ["panorama/images/events/"]   # immagini degli eventi di Dota (slark_jailbreak/level_transition_mask, 23/11/2026): un nome di file, non un passaggio tra livelli
     - id: single_player
       # sistemi che servono solo a un gioco per giocatore singolo, comparsi in giochi multigiocatore (Dota 2, CS2,
       # Deadlock): livelli caricati senza schermate di caricamento, salvataggi dei livelli (.hl1/.hl2), salvataggi
