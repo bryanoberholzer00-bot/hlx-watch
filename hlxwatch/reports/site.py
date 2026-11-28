@@ -202,6 +202,21 @@ def write_feed(db: Database, out_dir: Path, site_url: str, ctx: dict[str, Any], 
     return len(entries)
 
 
+def write_sitemap(out_dir: Path, site_url: str, day: str) -> int:
+    """robots.txt e sitemap.xml: dicono ai motori di ricerca che possono leggere il sito e quali pagine ha."""
+    from xml.sax.saxutils import escape as xml_escape
+    first = ("index.html", "en.html", "hlx.html")
+    pages = sorted(p.name for p in out_dir.glob("*.html"))
+    pages = [p for p in first if p in pages] + [p for p in pages if p not in first]
+    urls = "".join(f"  <url><loc>{xml_escape(site_url + ('' if p == 'index.html' else p))}</loc><lastmod>{day}</lastmod></url>\n"
+                   for p in pages)
+    (out_dir / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n'
+                                         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+                                         f"{urls}</urlset>\n", encoding="utf-8")
+    (out_dir / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {site_url}sitemap.xml\n", encoding="utf-8")
+    return len(pages)
+
+
 def export_findings(db: Database, limit: int = 25000, ctx: dict[str, Any] | None = None) -> list[dict[str, Any]]:
     rows = db.search_findings(limit=limit, order="created_at", exclude_change_type="baseline")
     days = first_seen_days(db)
@@ -496,6 +511,7 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
                   {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}],
     }, ensure_ascii=False, indent=1), encoding="utf-8")
     (out_dir / ".nojekyll").touch()
+    write_sitemap(out_dir, site_url, stamp.strftime("%Y-%m-%d"))
     log.info("Sito generato in %s: %d voci esportate, %d ad alta rilevanza, %d schede delle tracce", out_dir,
              len(findings), len(high), n_cards)
     return out_dir

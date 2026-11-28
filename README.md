@@ -1,5 +1,22 @@
 # HLX Watch
 
+> **English** · HLX Watch is an open-source bot that watches Valve's public game data for traces of **HLX**, the
+> rumoured codename of the next Half-Life. Every 30 minutes it reads the files of Counter-Strike 2, Dota 2, Deadlock,
+> Half-Life: Alyx and SteamVR (as published by [SteamTracking](https://github.com/SteamTracking)), scores every new
+> line and keeps the noise out.
+>
+> - 🌐 **Live site:** <https://bryanoberholzer00-bot.github.io/hlx-watch/en.html> (Italian version: [index](https://bryanoberholzer00-bot.github.io/hlx-watch/))
+> - 📰 **Feed:** [feed.xml](https://bryanoberholzer00-bot.github.io/hlx-watch/feed.xml), only the important finds (100+ points)
+> - 🏆 **Event nights:** during The Game Awards it checks Valve's Steam page, half-life.com and YouTube every 10 minutes
+>
+> Some of the traces it follows: `CHLXUserCmdPB`, an HLX player-input network message next to the ones of CS2 and
+> Deadlock (Dota 2, June 2022); particle options hidden only in the `hlx` mod (`mod != hlx`, since 2024); Hammer
+> helpers `CHLXBaseProjectileEmitterHelper` and `CHLXCoverPreviewHelper` (CS2, September 2026). Every trace has its
+> own page with dates, source commit and what happened to it later.
+>
+> Public and legal sources only: no scraping of steamdb.info, no private depots, no accounts. Not affiliated with Valve.
+> The rest of this README is in Italian.
+
 Strumento di data mining per Steam che sorveglia i giochi Valve su Source 2 (Counter-Strike 2, Dota 2,
 Deadlock, Half-Life: Alyx) e avvisa quando compaiono riferimenti nuovi a **HLX**, il presunto nome in
 codice di Half-Life 3: stringhe, ConVar, entità FGD, percorsi di file, build Steam e app Valve nuove.

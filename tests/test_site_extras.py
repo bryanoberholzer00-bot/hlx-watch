@@ -94,3 +94,18 @@ def test_source_status_and_hardware(tmp_path):
     data = json.loads((out / "findings.json").read_text(encoding="utf-8"))
     assert {r["area"] for r in data} >= {"data", "ui"}
     db.close()
+
+
+def test_sitemap_and_robots(tmp_path):
+    from hlxwatch.reports.site import write_sitemap
+    for name in ("index.html", "hlx.html", "zeta.html", "en.html"):
+        (tmp_path / name).write_text("<html></html>", encoding="utf-8")
+    url = "https://example.github.io/hlx-watch/"
+    assert write_sitemap(tmp_path, url, "2026-11-28") == 4
+    sm = (tmp_path / "sitemap.xml").read_text(encoding="utf-8")
+    locs = [l.split("<loc>")[1].split("</loc>")[0] for l in sm.splitlines() if "<loc>" in l]
+    assert locs[0] == url                                    # la pagina iniziale senza index.html, per prima
+    assert locs[1:3] == [url + "en.html", url + "hlx.html"]
+    assert url + "zeta.html" in locs and "2026-11-28" in sm
+    robots = (tmp_path / "robots.txt").read_text(encoding="utf-8")
+    assert "Allow: /" in robots and f"Sitemap: {url}sitemap.xml" in robots
