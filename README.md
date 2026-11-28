@@ -7,6 +7,7 @@
 >
 > - 🌐 **Live site:** <https://bryanoberholzer00-bot.github.io/hlx-watch/en.html> (Italian version: [index](https://bryanoberholzer00-bot.github.io/hlx-watch/))
 > - 📰 **Feed:** [feed.xml](https://bryanoberholzer00-bot.github.io/hlx-watch/feed.xml), only the important finds (100+ points)
+> - 🦋 **Bluesky:** [Follow on Bluesky](https://bsky.app/profile/hlx-radar.bsky.social) (@hlx-radar.bsky.social), the same finds posted automatically
 > - 🏆 **Event nights:** during The Game Awards it checks Valve's Steam page, half-life.com and YouTube every 10 minutes
 >
 > Some of the traces it follows: `CHLXUserCmdPB`, an HLX player-input network message next to the ones of CS2 and
