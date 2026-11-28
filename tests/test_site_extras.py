@@ -109,3 +109,10 @@ def test_sitemap_and_robots(tmp_path):
     assert url + "zeta.html" in locs and "2026-11-28" in sm
     robots = (tmp_path / "robots.txt").read_text(encoding="utf-8")
     assert "Allow: /" in robots and f"Sitemap: {url}sitemap.xml" in robots
+
+
+def test_google_verification_in_head():
+    from hlxwatch.reports.site import TEMPLATES
+    base = (TEMPLATES / "base.html").read_text(encoding="utf-8")
+    head = base.split("</head>")[0]
+    assert 'name="google-site-verification" content="OIQ5HXQ4jtYiP-izVxBLpSYFN0sGFPCkJRHP2rAIQQw"' in head
