@@ -390,5 +390,9 @@
 })();
 </script>
 {% endif %}
+{% if cf_beacon %}
+<!-- contatore delle visite: Cloudflare Web Analytics, senza cookie -->
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ cf_beacon }}"}'></script>
+{% endif %}
 </body>
 </html>

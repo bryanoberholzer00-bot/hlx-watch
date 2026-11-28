@@ -244,6 +244,9 @@ bluesky:                                 # pubblicazione automatica su Bluesky (
   bot_annunci: true                      # e i possibili annunci del bot su Cloudflare (/fast/annuncio.json): pagina nuova
                                          # su half-life.com, prodotto Valve su Steam, video. Li pubblica solo il giro.
 
+visite:                                  # contatore delle visite al sito: Cloudflare Web Analytics, senza cookie
+  cloudflare_token: "92a6511d4c234d808d4201c134c89092"  # token del sito (pubblico: finisce nelle pagine); vuoto = nessun contatore
+
 contatore:                               # contatore di Valve (contatore.py): SourceRevision dei steam.inf di CS2,
   enabled: true                          # Dota 2 e Deadlock; avviso quando il ritmo supera del 30% l'anno prima
 
