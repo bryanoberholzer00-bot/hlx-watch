@@ -80,6 +80,8 @@ env:
   STEAM_WEB_API_KEY: ${{ secrets.STEAM_WEB_API_KEY }}
   CERTSPOTTER_API_KEY: ${{ secrets.CERTSPOTTER_API_KEY }}
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
+  BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
 
 jobs:
   watch:

@@ -48,6 +48,7 @@ LABELS = {
     "first_seen": "date di prima comparsa",
     "ai": "analisi AI con Claude",
     "notify": "invio delle notifiche",
+    "bluesky": "pubblicazione su Bluesky",
     "local": "file locali dei giochi",
 }
 
