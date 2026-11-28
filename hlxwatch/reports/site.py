@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import shutil
 import logging
 from datetime import datetime, timedelta, timezone
@@ -336,6 +337,9 @@ def build_site(db: Database, cfg: Config, out_dir: Path, timeline_days: int = 18
     register_filters(env)
     push = cfg.get("notifiers.webpush", {}) or {}
     env.globals["push_url"] = str(push.get("worker_url", "")).rstrip("/") if push.get("enabled") else ""
+    # contatore delle visite (Cloudflare Web Analytics): solo un token valido, così nella pagina non finisce altro
+    token = str((cfg.get("visite", {}) or {}).get("cloudflare_token") or "").strip()
+    env.globals["cf_beacon"] = token if re.fullmatch(r"[0-9a-f]{32}", token) else ""
 
     stats = db.stats()
     analyses = [load_analysis(r) for r in db.analyses(60)]

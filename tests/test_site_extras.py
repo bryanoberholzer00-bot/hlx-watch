@@ -116,3 +116,19 @@ def test_google_verification_in_head():
     base = (TEMPLATES / "base.html").read_text(encoding="utf-8")
     head = base.split("</head>")[0]
     assert 'name="google-site-verification" content="OIQ5HXQ4jtYiP-izVxBLpSYFN0sGFPCkJRHP2rAIQQw"' in head
+
+
+def test_visit_counter_only_with_a_valid_token(tmp_path):
+    cfg, db = make(tmp_path)
+    out = build_site(db, cfg, tmp_path / "vuoto")                  # senza token: nessun contatore
+    assert not any("cloudflareinsights" in f.read_text(encoding="utf-8") for f in out.glob("*.html"))
+    cfg.raw["visite"] = {"cloudflare_token": "0123456789abcdef0123456789abcdef"}
+    out = build_site(db, cfg, tmp_path / "con")
+    pages = list(out.glob("*.html"))
+    assert len(pages) > 10
+    tag = """data-cf-beacon='{"token": "0123456789abcdef0123456789abcdef"}'"""
+    assert all(tag in f.read_text(encoding="utf-8") for f in pages)  # su tutte le pagine
+    cfg.raw["visite"] = {"cloudflare_token": "x\"><script>alert(1)</script>"}
+    out = build_site(db, cfg, tmp_path / "strano")                 # un valore strano non finisce nella pagina
+    assert not any("cloudflareinsights" in f.read_text(encoding="utf-8") for f in out.glob("*.html"))
+    db.close()
