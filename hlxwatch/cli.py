@@ -100,6 +100,39 @@ def cmd_fullscan(args: argparse.Namespace) -> int:
     return 1 if result.all_failed else 0
 
 
+def cmd_bluesky_test(args: argparse.Namespace) -> int:
+    """Prova a vuoto di Bluesky: i post che si farebbero con gli avvisi da 100 punti degli ultimi giorni e con la
+    serata in corso. Non pubblica e non scrive niente nell'archivio."""
+    cfg, db = _open(args)
+    from datetime import timedelta
+    from hlxwatch import bluesky
+    from hlxwatch.revisione import _row_finding
+    from hlxwatch.storage.db import iso, utcnow
+    s = bluesky.settings(cfg)
+    since = iso(utcnow() - timedelta(days=args.giorni))
+    rows = db.conn.execute(
+        "SELECT f.*, b.date AS build_date FROM findings f LEFT JOIN builds b ON b.id = f.build_id "
+        "WHERE f.notified = 1 AND f.score >= ? AND f.created_at >= ? ORDER BY f.id", (s["min_score"], since)).fetchall()
+    alerts = []
+    for r in rows:
+        f = _row_finding(r)
+        f.build_id = r["build_id"]            # un post per build, come nel giro vero
+        alerts.append(f)
+    try:                                       # il link alla scheda della traccia, come nel giro vero
+        from hlxwatch.reports.schede import annotate_cards
+        annotate_cards(cfg, db, alerts)
+    except Exception:
+        log.exception("Bluesky, prova: schede delle tracce non collegate")
+    cfg.raw.setdefault("bluesky", {})["max_age_days"] = args.giorni + 1      # nella prova contano anche i giorni passati
+    posts = bluesky.plan(cfg, db, alerts)
+    print(f"Bluesky, prova a vuoto: {len(alerts)} avvisi da {s['min_score']} punti negli ultimi {args.giorni} giorni, "
+          f"{len(posts)} post (pubblicazione {'accesa' if s['enabled'] else 'spenta'}"
+          f"{', prova a vuoto nel config' if s['dry_run'] else ''}; segreti {'presenti' if cfg.env('BLUESKY_HANDLE') and cfg.env('BLUESKY_APP_PASSWORD') else 'assenti'}).")
+    for p in posts:
+        print(f"\n--- {p['chiave']} ({len(p['testo'])} caratteri)\n{p['testo']}")
+    return 0
+
+
 def cmd_cron(args: argparse.Namespace) -> int:
     """Un giro del daemon senza restare in esecuzione: scansione + eventuale report giornaliero.
     Pensato per GitHub Actions o per l'Utilità di pianificazione di Windows."""
@@ -716,6 +749,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("falsi-allarmi", help="tipi di voce con molti avvisi senza tracce HLX (anteprima)")
     p.set_defaults(func=cmd_noise_check)
+
+    p = sub.add_parser("bluesky-prova", help="i post che HLX Watch farebbe su Bluesky, senza pubblicarli")
+    p.add_argument("--giorni", type=int, default=30, help="avvisi degli ultimi N giorni (predefinito 30)")
+    p.set_defaults(func=cmd_bluesky_test)
 
     p = sub.add_parser("prova-ripristino", help="scarica l'ultima copia settimanale dell'archivio e verifica che si apra")
     p.add_argument("--forza", action="store_true", help="anche se non è passata una settimana dall'ultima prova")

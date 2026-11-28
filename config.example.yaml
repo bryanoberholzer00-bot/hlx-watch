@@ -234,6 +234,15 @@ rete_ai:                                 # seconda rete (rete_ai.py): Claude gua
   chiamate_al_giorno: 6                  # tetto di spesa, oltre al budget mensile dell'AI
   effort: medium
 
+bluesky:                                 # pubblicazione automatica su Bluesky (hlxwatch/bluesky.py), in inglese
+  enabled: true                          # segreti BLUESKY_HANDLE e BLUESKY_APP_PASSWORD: senza, si salta
+  dry_run: false                         # true: i post vanno nel registro invece che su Bluesky
+  min_score: 100                         # solo le voci da 100 punti in su già mandate su Telegram, mai il rumore
+  max_per_day: 3                         # post normali al giorno (uno per build)
+  max_announcements_per_day: 6           # i possibili annunci passano sempre, fino a questo numero
+  max_age_days: 3                        # modifiche più vecchie (recuperi, archeologia) non si pubblicano
+  serate: true                           # nella serata vera di un evento (serate.json, mai la prova): un post all'inizio
+
 contatore:                               # contatore di Valve (contatore.py): SourceRevision dei steam.inf di CS2,
   enabled: true                          # Dota 2 e Deadlock; avviso quando il ritmo supera del 30% l'anno prima
 

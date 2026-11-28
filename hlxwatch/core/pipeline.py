@@ -260,6 +260,7 @@ class Pipeline:
                 annotate_new_systems(self.cfg, self.db, result.alerts)
             except Exception:
                 log.exception("Controllo dei sistemi nuovi negli avvisi non riuscito")
+        sent = False
         if result.alerts:
             if notify and self.notifiers:
                 from hlxwatch.announcement import announcement_heading
@@ -279,6 +280,16 @@ class Pipeline:
             for finding in sorted(result.alerts, key=lambda f: f.score, reverse=True)[:15]:
                 log.info("  [%3d] %-9s %-12s %s  (%s)", finding.score, finding.game, finding.change_type,
                          (finding.token or finding.text)[:70], finding.file_path[:60])
+        # Bluesky: solo nei giri normali (non backfill o scansione completa), solo voci già mandate su Telegram e la
+        # serata vera di un evento. Separato dai notificatori: un errore qui non tocca gli avvisi né il giro.
+        if notify and heading is None:
+            try:
+                from hlxwatch import bluesky
+                out = bluesky.publish(self.cfg, self.db, result.alerts if sent else [])
+                if out.get("tentato"):
+                    self.health.record("bluesky", not out.get("errore"), str(out.get("errore") or ""))
+            except Exception:
+                log.exception("Bluesky: pubblicazione non riuscita")
 
         self.db.set_state("last_scan_at", iso(utcnow()))
         # controllo di salute: un avviso dopo più fallimenti di fila, uno quando la fonte riparte
