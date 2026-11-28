@@ -241,6 +241,8 @@ bluesky:                                 # pubblicazione automatica su Bluesky (
   max_announcements_per_day: 6           # i possibili annunci passano sempre, fino a questo numero
   max_age_days: 3                        # modifiche più vecchie (recuperi, archeologia) non si pubblicano
   serate: true                           # nella serata vera di un evento (serate.json, mai la prova): un post all'inizio
+  bot_annunci: true                      # e i possibili annunci del bot su Cloudflare (/fast/annuncio.json): pagina nuova
+                                         # su half-life.com, prodotto Valve su Steam, video. Li pubblica solo il giro.
 
 contatore:                               # contatore di Valve (contatore.py): SourceRevision dei steam.inf di CS2,
   enabled: true                          # Dota 2 e Deadlock; avviso quando il ritmo supera del 30% l'anno prima

@@ -124,7 +124,27 @@ def cmd_bluesky_test(args: argparse.Namespace) -> int:
     except Exception:
         log.exception("Bluesky, prova: schede delle tracce non collegate")
     cfg.raw.setdefault("bluesky", {})["max_age_days"] = args.giorni + 1      # nella prova contano anche i giorni passati
-    posts = bluesky.plan(cfg, db, alerts)
+    now, bot_alerts = None, None
+    if args.simula_serata:
+        # la serata dei Game Awards in corso, con tre annunci finti del bot (pagina, prodotto, video): solo per vedere
+        # i post, niente viene pubblicato né scritto
+        from datetime import datetime
+        from hlxwatch import serata
+        real = [x for x in serata.load() if not x.get("prova")]
+        if real:
+            start = datetime.fromisoformat(real[-1]["inizio"].replace("Z", "+00:00"))
+            now = start + timedelta(hours=8)
+            c = (start + timedelta(hours=7, minutes=40)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            bot_alerts = [
+                {"t": "web", "g": "half-life.com", "x": "POSSIBILE ANNUNCIO: pagina nuova su half-life.com: /en/hlx",
+                 "u": "https://www.half-life.com/en/hlx", "c": c},
+                {"t": "store", "g": "Valve su Steam", "x": "POSSIBILE ANNUNCIO: nuovo prodotto di Valve su Steam: Half-Life X",
+                 "u": "https://store.steampowered.com/app/9999990/", "c": c},
+                {"t": "video", "g": "YouTube: The Game Awards", "x": "POSSIBILE ANNUNCIO: video nuovo: Half-Life X - Reveal Trailer",
+                 "u": "https://www.youtube.com/watch?v=esempio", "c": c}]
+            alerts = []                        # nella serata simulata contano solo apertura e annunci del bot
+            print(f"Serata simulata: {real[-1].get('nome')}, ore {now.isoformat()} (annunci finti del bot).")
+    posts = bluesky.plan(cfg, db, alerts, now, bot_alerts)
     print(f"Bluesky, prova a vuoto: {len(alerts)} avvisi da {s['min_score']} punti negli ultimi {args.giorni} giorni, "
           f"{len(posts)} post (pubblicazione {'accesa' if s['enabled'] else 'spenta'}"
           f"{', prova a vuoto nel config' if s['dry_run'] else ''}; segreti {'presenti' if cfg.env('BLUESKY_HANDLE') and cfg.env('BLUESKY_APP_PASSWORD') else 'assenti'}).")
@@ -752,6 +772,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("bluesky-prova", help="i post che HLX Watch farebbe su Bluesky, senza pubblicarli")
     p.add_argument("--giorni", type=int, default=30, help="avvisi degli ultimi N giorni (predefinito 30)")
+    p.add_argument("--simula-serata", action="store_true",
+                   help="mostra i post della serata dei Game Awards con tre annunci finti del bot")
     p.set_defaults(func=cmd_bluesky_test)
 
     p = sub.add_parser("prova-ripristino", help="scarica l'ultima copia settimanale dell'archivio e verifica che si apra")
